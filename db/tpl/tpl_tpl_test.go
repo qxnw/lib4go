@@ -28,6 +28,7 @@ func TestORCLContext(t *testing.T) {
 		t.Error("GetDBContext返回结果有误")
 	}
 
+	/*add by champly 2016年11月9日11:54:20*/
 	// 输入不同的字符
 	context, err = GetDBContext("#@！%￥%")
 	if err == nil || context != nil {
@@ -39,4 +40,5 @@ func TestORCLContext(t *testing.T) {
 	if err == nil || context != nil {
 		t.Error("GetDBContext返回结果有误")
 	}
+	/*end*/
 }

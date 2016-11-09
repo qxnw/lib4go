@@ -44,6 +44,7 @@ func TestORCTPLGetContext(t *testing.T) {
 		t.Error("GetSQLContext解析参数有误")
 	}
 
+	/*change by champly 2016年11月9日11:55:31*/
 	// //正确参数解析【重复代码】
 	// tpl = "where id=@id \r\nand name=@name"
 	// except = "where id=:1 \r\nand name=:2"
@@ -51,6 +52,7 @@ func TestORCTPLGetContext(t *testing.T) {
 	// if actual != except || len(params) != 2 || params[0] != input["id"] || params[1] != input["name"] {
 	// 	t.Error("GetSQLContext解析参数有误")
 	// }
+	/*end*/
 
 	//正确参数解析
 	tpl = "where id=@id \r\nand name=@name &name"
@@ -92,6 +94,7 @@ func TestORCTPLGetContext(t *testing.T) {
 		t.Errorf("GetSQLContext解析参数有误:actual:%s,except:%s", actual, except)
 	}
 
+	/*add by champly 2016年11月9日11:55:57*/
 	// 没有参数的解析
 	tpl = "where status=@status"
 	except = `where status=:1`
@@ -131,6 +134,7 @@ func TestORCTPLGetContext(t *testing.T) {
 	if actual != except || len(params) != 0 {
 		t.Errorf("GetSQLContext解析参数有误:actual:%s,except:%s", actual, except)
 	}
+	/*end*/
 }
 
 func TestORCTPLGetSPContext(t *testing.T) {
@@ -156,6 +160,7 @@ func TestORCTPLGetSPContext(t *testing.T) {
 		t.Error("GetSPContext解析参数有误", actual)
 	}
 
+	/*add by champly 2016年11月9日11:56:24*/
 	// sql为空解析
 	tpl = ""
 	except = "begin ;end;"
@@ -163,6 +168,7 @@ func TestORCTPLGetSPContext(t *testing.T) {
 	if actual != except || len(params) != 0 {
 		t.Error("GetSPContext解析参数有误", actual)
 	}
+	/*end*/
 }
 func TestORCTPLReplace(t *testing.T) {
 	orcl := OracleTPLContext{}

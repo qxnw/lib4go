@@ -34,7 +34,9 @@ func TestAnalyzeTPL(t *testing.T) {
 		`15where id=0 !id`:          []interface{}{`15where id=0 !id`, 0},
 		`16set name=colin~id`:       []interface{}{`16set name=colin`, 0},
 		`17set id=0~name`:           []interface{}{`17set id=0,name=:`, 1},
-		`18where name=@name3_`:      []interface{}{`18where name=:`, 1},
+		/*add by champly 2016年11月9日11:53:35*/
+		`18where name=@name3_`: []interface{}{`18where name=:`, 1},
+		/*end*/
 	}
 
 	for tpl, except := range tpls {
@@ -68,6 +70,7 @@ func TestAnalyzeTPL(t *testing.T) {
 		t.Error("AnalyzeTPL解析参数有误")
 	}
 
+	/*add by champly 2016年11月9日11:54:52*/
 	// 多个不同的参数
 	tpl = "select seq_wxaccountmenu_auto_id.nextbal from where name=@name and name2='#name2' &name3_ |name ~name"
 	except = "select seq_wxaccountmenu_auto_id.nextbal from where name=: and name2='colin2' and name3_=: or name=: ,name=:"
@@ -75,5 +78,6 @@ func TestAnalyzeTPL(t *testing.T) {
 	if actual != except || len(params) != 4 || params[0].(string) != input["name"] || params[1].(string) != input["name3_"] || params[2].(string) != input["name"] || params[3].(string) != input["name"] {
 		t.Error("AnalyzeTPL解析参数有误")
 	}
+	/*end*/
 
 }
