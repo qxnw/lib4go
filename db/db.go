@@ -1,6 +1,6 @@
 package db
 
-import "github.com/zzkkff/lib4go/db/tpl"
+import "github.com/qxnw/lib4go/db/tpl"
 
 //IDB 数据库操作接口
 type IDB interface {
