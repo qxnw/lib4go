@@ -37,15 +37,33 @@ func (o OracleTPLContext) Replace(sql string, args []interface{}) (r string) {
 	if strings.EqualFold(sql, "") || args == nil {
 		return sql
 	}
-	word, _ := regexp.Compile(`:\d+[,|\)]`)
+	// word, _ := regexp.Compile(`:\d+[,|\)]`)
+	// sql = word.ReplaceAllStringFunc(sql, func(s string) string {
+	// 	c := len(s)
+	// 	num := s[1 : c-1]
+	// 	k, err := strconv.Atoi(num)
+	// 	if err != nil || len(args) < k {
+	// 		return "NULL" + s[c-1:]
+	// 	}
+	// 	return fmt.Sprintf("'%v'%s", args[k-1], s[c-1:])
+	// })
+
+	/*change by champly*/
+	word, _ := regexp.Compile(`:\d+([,|\) ;]|$)`)
 	sql = word.ReplaceAllStringFunc(sql, func(s string) string {
 		c := len(s)
 		num := s[1 : c-1]
+		// 处理匹配到结尾
+		if num == "" {
+			num = s[1:c]
+			c++
+		}
 		k, err := strconv.Atoi(num)
 		if err != nil || len(args) < k {
 			return "NULL" + s[c-1:]
 		}
 		return fmt.Sprintf("'%v'%s", args[k-1], s[c-1:])
 	})
+	/*end*/
 	return sql
 }

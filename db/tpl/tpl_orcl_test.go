@@ -205,4 +205,55 @@ func TestORCTPLReplace(t *testing.T) {
 		t.Error("Replace解析参数有误", actual)
 	}
 
+	/*add by champly 2016年11月9日14:23:20*/
+	tpl = "begin name=:1  where id=:2;end;"
+	except = "begin name='1'  where id='colin';end;"
+	actual = orcl.Replace(tpl, input)
+	if actual != except {
+		t.Error("Replace解析参数有误", actual)
+	}
+
+	tpl = ""
+	except = ""
+	actual = orcl.Replace(tpl, input)
+	if actual != except {
+		t.Error("Replace解析参数有误", actual)
+	}
+
+	tpl = "begin name=:1  where id=:2;end;"
+	except = "begin name=:1  where id=:2;end;"
+	actual = orcl.Replace(tpl, nil)
+	if actual != except {
+		t.Error("Replace解析参数有误", actual)
+	}
+
+	tpl = "begin name=:1  where id=:2|;end;"
+	except = "begin name='1'  where id='colin'|;end;"
+	actual = orcl.Replace(tpl, input)
+	if actual != except {
+		t.Error("Replace解析参数有误", actual)
+	}
+
+	tpl = "begin name=:1a  where id=:2a|;end;"
+	except = "begin name=:1a  where id=:2a|;end;"
+	actual = orcl.Replace(tpl, input)
+	if actual != except {
+		t.Error("Replace解析参数有误", actual)
+	}
+
+	// 匹配结尾
+	tpl = "begin name=:1a  where id=:2"
+	except = "begin name=:1a  where id='colin'"
+	actual = orcl.Replace(tpl, input)
+	if actual != except {
+		t.Error("Replace解析参数有误", actual)
+	}
+
+	tpl = "begin name=:1  where id=:2  "
+	except = "begin name='1'  where id='colin'  "
+	actual = orcl.Replace(tpl, input)
+	if actual != except {
+		t.Error("Replace解析参数有误", actual)
+	}
+	/*end*/
 }

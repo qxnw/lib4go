@@ -28,7 +28,10 @@ func (o SqliteTPLContext) Replace(sql string, args []interface{}) (r string) {
 	if strings.EqualFold(sql, "") || args == nil {
 		return sql
 	}
-	word, _ := regexp.Compile(`\?[,|\)]`)
+	// word, _ := regexp.Compile(`\?[,|\)]`)
+	/*change by champly 2016年11月10日09:58:03*/
+	word, _ := regexp.Compile(`\?([,|\ ;)]|$)`)
+	/*end*/
 	index := -1
 	sql = word.ReplaceAllStringFunc(sql, func(s string) string {
 		index++
