@@ -72,6 +72,12 @@ func (db *DB) Replace(sql string, args []interface{}) string {
 }
 
 //Begin 创建事务
-func (db *DB) Begin() (t IDBTrans, err error) {
-	return db.db.Begin()
+func (db *DB) Begin() (t *DBTrans, err error) {
+	t = &DBTrans{}
+	t.tx, err = db.db.Begin()
+	if err != nil {
+		return
+	}
+	t.tpl = db.tpl
+	return
 }
