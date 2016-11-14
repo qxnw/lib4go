@@ -42,6 +42,7 @@ func (t *DBTrans) ExecuteSP(sql string, input map[string]interface{}) (row int64
 
 //Rollback 回滚所有操作
 func (t *DBTrans) Rollback() error {
+
 	return t.tx.Rollback()
 }
 

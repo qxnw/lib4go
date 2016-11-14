@@ -48,6 +48,12 @@ type SysDB struct {
 
 //NewSysDB 创建DB实例
 func NewSysDB(provider string, connString string, maxIdle int, maxOpen int) (obj *SysDB, err error) {
+	/*add by champly 2016年11月14日17:03:46*/
+	if connString == "" {
+		return
+	}
+	/*end*/
+
 	obj = &SysDB{provider: provider, connString: connString}
 	switch strings.ToLower(provider) {
 	case "oracle":
@@ -122,6 +128,12 @@ func (db *SysDB) Execute(query string, args ...interface{}) (affectedRow int64, 
 
 //Begin 创建一个事务请求
 func (db *SysDB) Begin() (r IDBTrans, err error) {
+	/*add by champly 2016年11月14日18:41:21*/
+	if db == nil {
+		return nil, nil
+	}
+	/*end*/
+
 	t := &SysDBTransaction{}
 	t.tx, err = db.db.Begin()
 	return t, err

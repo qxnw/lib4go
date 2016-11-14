@@ -72,12 +72,10 @@ func (t *tDB) Begin() (IDBTrans, error) {
 
 /*add by champly 2016年11月11日14:27:40*/
 func (t *tIDBTrans) GetSQLContext(tpl string, input map[string]interface{}) (query string, args []interface{}) {
-	// return t.data[tpl].query, t.data[tpl].args
-	return
+	return t.tpData[tpl].query, t.tpData[tpl].args
 }
 func (t *tIDBTrans) GetSPContext(tpl string, input map[string]interface{}) (query string, args []interface{}) {
-	// return t.data[tpl].query, t.data[tpl].args
-	return
+	return t.tpData[tpl].query, t.tpData[tpl].args
 }
 func (t *tIDBTrans) Replace(sql string, args []interface{}) (r string) {
 	return "REPLACE"
@@ -251,10 +249,6 @@ func TestDBTrans(t *testing.T) {
 			if !reflect.DeepEqual(result, queryMap[v.query].data) || sql != v.query || err != nil || !reflect.DeepEqual(input, v.args) {
 				t.Error("Query返回参数有误", len(result), len(queryMap[v.query].data))
 			}
-			// result, _, err := tdb.Query(k, v.input)
-			// if !reflect.DeepEqual(result, queryMap[v.query].data) || err != nil {
-			// 	t.Error("Query返回参数有误", len(result), len(queryMap[v.query].data))
-			// }
 			dt, sql, input, err := tdb.Scalar(k, v.input)
 			if dt != queryMap[v.query].data[0]["name"] || sql != v.query || err != nil || !reflect.DeepEqual(input, v.args) {
 				t.Error("Scalar", len(result), len(queryMap[v.query].data))
