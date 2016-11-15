@@ -1,16 +1,22 @@
-package hex
+package url
 
-import "encoding/hex"
+import (
+	"html"
+	"net/url"
+)
 
-func Encode(src []byte) string {
-	return hex.EncodeToString(src)
+func URLEncode(input string) string {
+	return url.QueryEscape(input)
 }
 
-func Decode(src string) (r string, err error) {
-	data, err := hex.DecodeString(src)
-	if err != nil {
-		return
-	}
-	r = string(data)
-	return
+func URLDecode(input string) (string, error) {
+	return url.QueryUnescape(input)
+}
+
+func HTMLEncode(input string) string {
+	return html.EscapeString(input)
+}
+
+func HTMLDecode(input string) string {
+	return html.UnescapeString(input)
 }
