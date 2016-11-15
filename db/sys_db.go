@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"errors"
+
 	_ "github.com/mattn/go-oci8"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -49,7 +51,8 @@ type SysDB struct {
 //NewSysDB 创建DB实例
 func NewSysDB(provider string, connString string, maxIdle int, maxOpen int) (obj *SysDB, err error) {
 	/*add by champly 2016年11月14日17:03:46*/
-	if connString == "" {
+	if provider == "" || connString == "" {
+		err = errors.New("")
 		return
 	}
 	/*end*/
