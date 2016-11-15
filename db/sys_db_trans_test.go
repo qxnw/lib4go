@@ -29,7 +29,7 @@ func TestDBTRansQuery(t *testing.T) {
 
 	// 数据库连接串错误测试
 	obj, err = NewSysDB("oracle", "", 2, 2)
-	if obj != nil || err != nil {
+	if obj != nil || err == nil {
 		t.Error("创建数据库连接失败:", err)
 	}
 	if obj != nil {
@@ -54,6 +54,19 @@ func TestDBTRansQuery(t *testing.T) {
 	}
 
 	sql = "selects * from dual where 1 = :1"
+	args = []interface{}{"1"}
+	dataRows, colus, err = dbTrans.Query(sql, args...)
+	if err == nil {
+		t.Errorf("执行%s失败", sql)
+	}
+
+	// sql错误
+	obj, err = NewSysDB("oracle", "oc_common/123456@orcl136", 2, 2)
+	if obj == nil || err != nil {
+		t.Error("创建数据库连接失败:", err)
+	}
+
+	sql = "select * from user_id where 1 = :1"
 	args = []interface{}{"1"}
 	dataRows, colus, err = dbTrans.Query(sql, args...)
 	if err == nil {
@@ -85,7 +98,7 @@ func TestDBTRansExecute(t *testing.T) {
 
 	// 数据库连接串错误测试
 	obj, err = NewSysDB("oracle", "", 2, 2)
-	if obj != nil || err != nil {
+	if obj != nil || err == nil {
 		t.Error("创建数据库连接失败:", err)
 	}
 	if obj != nil {
@@ -113,6 +126,20 @@ func TestDBTRansExecute(t *testing.T) {
 			t.Errorf("测试失败")
 		}
 	}
+
+	// sql错误
+	obj, err = NewSysDB("oracle", "oc_common/123456@orcl136", 2, 2)
+	if err != nil {
+		t.Error("创建数据库连接失败:", err)
+	}
+	if obj != nil {
+		sql = "update oc_user_infos t set t.traffic_wallet = t.traffic_wallet + 0 where t.user_id = :1"
+		args = []interface{}{"2223"}
+		row, err = dbTrans.Execute(sql, args...)
+		if err == nil {
+			t.Errorf("测试失败")
+		}
+	}
 }
 
 func TestDBTransRollback(t *testing.T) {
@@ -131,16 +158,11 @@ func TestDBTransRollback(t *testing.T) {
 		t.Error("回滚数据库事务失败")
 	}
 
-	// 数据库连接串错误
-	obj, err = NewSysDB("oracle", "", 2, 2)
-	if obj != nil || err != nil {
-		t.Error("创建数据库连接失败:", err)
-	}
-
-	dbTrans, err = obj.Begin()
-	if dbTrans != nil {
-		t.Error("测试失败")
-	}
+	// // 数据库连接串错误
+	// obj, err = NewSysDB("oracle", "", 2, 2)
+	// if obj != nil || err == nil {
+	// 	t.Error("创建数据库连接失败:", err)
+	// }
 
 	// err = dbTrans.Rollback()
 	// if err != nil {
@@ -164,16 +186,11 @@ func TestDBTransCommit(t *testing.T) {
 		t.Error("提交数据库事务失败")
 	}
 
-	// 数据库连接串错误
-	obj, err = NewSysDB("oracle", "", 2, 2)
-	if obj != nil || err != nil {
-		t.Error("创建数据库连接失败:", err)
-	}
-
-	dbTrans, err = obj.Begin()
-	if dbTrans != nil {
-		t.Error("测试失败")
-	}
+	// // 数据库连接串错误
+	// obj, err = NewSysDB("oracle", "", 2, 2)
+	// if obj != nil || err == nil {
+	// 	t.Error("创建数据库连接失败:", err)
+	// }
 
 	// err = dbTrans.Commit()
 	// if err != nil {
