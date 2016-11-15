@@ -9,7 +9,7 @@ import (
 func TestMemcache(t *testing.T) {
 	mem, err := New("192.168.0.166:11212")
 	if err != nil {
-		t.Error(err)
+		t.Error(err.Error())
 		return
 	}
 	key := "test"
