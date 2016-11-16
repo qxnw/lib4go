@@ -95,10 +95,10 @@ func TestHTTPClientRequest(t *testing.T) {
 	if err != nil {
 		t.Errorf("Request fail %v", err)
 	}
-	if status != http.StatusNotFound {
+	if status != 0 {
 		t.Errorf("Request fail status : %d", status)
 	}
-	if content == "" {
+	if content != "" {
 		t.Error("Request fail whit not content")
 	}
 }
