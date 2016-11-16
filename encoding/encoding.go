@@ -22,7 +22,7 @@ func GetReader(content string, charset string) io.Reader {
 
 //Convert []byte转换为字符串
 func Convert(data []byte, encoding string) (content string, err error) {
-	if !strings.EqualFold(encoding, "gbk") && strings.EqualFold(encoding, "gb2312") &&
+	if !strings.EqualFold(encoding, "gbk") && !strings.EqualFold(encoding, "gb2312") &&
 		!strings.EqualFold(encoding, "utf-8") {
 		err = fmt.Errorf("不支持的编码方式：%s", encoding)
 		return
