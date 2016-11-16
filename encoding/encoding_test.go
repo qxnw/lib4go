@@ -23,7 +23,7 @@ func TestGetReader(t *testing.T) {
 	if err != nil {
 		t.Errorf("测试失败：%v", err)
 	}
-	if bytes.EqualFold(data, []byte(input)) || data == nil {
+	if !bytes.EqualFold(data, []byte(input)) {
 		t.Error("GetReader fail")
 	}
 
