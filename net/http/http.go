@@ -1,8 +1,6 @@
 package http
 
-
 import (
-	"bytes"
 	"crypto/rand"
 	"crypto/tls"
 	"crypto/x509"
@@ -14,10 +12,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/arsgo/lib4go/encoding"
-
-	"golang.org/x/text/encoding/simplifiedchinese"
-	"golang.org/x/text/transform"
+	"github.com/qxnw/lib4go/encoding"
 )
 
 //HTTPClient HTTP客户端
@@ -158,7 +153,7 @@ func (c *HTTPClient) Save(method string, url string, params string, header map[s
 
 //Request 发送http请求, method:http请求方法包括:get,post,delete,put等 url: 请求的HTTP地址,不包括参数,params:请求参数,
 //header,http请求头多个用/n分隔,每个键值之前用=号连接
-func (c *HTTPClient) Request(method string, url string, params string, encoding string, header map[string]string) (content string, status int, err error) {
+func (c *HTTPClient) Request(method string, url string, params string, charset string, header map[string]string) (content string, status int, err error) {
 	req, err := http.NewRequest(strings.ToUpper(method), url, strings.NewReader(params))
 	if err != nil {
 		return
@@ -179,13 +174,13 @@ func (c *HTTPClient) Request(method string, url string, params string, encoding 
 		return
 	}
 	status = resp.StatusCode
-	content, err = changeEncodingData(encoding, body)
+	content, err = encoding.Convert(body, charset)
 	return
 }
 
 //Get http get请求
 func (c *HTTPClient) Get(url string, args ...string) (content string, status int, err error) {
-	encoding := getEncoding(args...)
+	charset := getEncoding(args...)
 	resp, err := c.client.Get(url)
 	if resp != nil {
 		defer resp.Body.Close()
@@ -199,7 +194,7 @@ func (c *HTTPClient) Get(url string, args ...string) (content string, status int
 		return
 	}
 	status = resp.StatusCode
-	content, err = changeEncodingData(encoding, body)
+	content, err = encoding.Convert(body, charset)
 	return
 }
 
@@ -218,7 +213,7 @@ func (c *HTTPClient) Post(url string, params string, args ...string) (content st
 		return
 	}
 	status = resp.StatusCode
-	content, err = changeEncodingData(charset, body)
+	content, err = encoding.Convert(body, charset)
 	return
 }
 
@@ -228,16 +223,4 @@ func getEncoding(params ...string) (encoding string) {
 		return
 	}
 	return "UTF-8"
-}
-func changeEncodingData(encoding string, data []byte) (content string, err error) {
-	if !strings.EqualFold(encoding, "GBK") && !strings.EqualFold(encoding, "GB2312") {
-		content = string(data)
-		return
-	}
-	buffer, err := ioutil.ReadAll(transform.NewReader(bytes.NewReader(data), simplifiedchinese.GB18030.NewDecoder()))
-	if err != nil {
-		return
-	}
-	content = string(buffer)
-	return
 }

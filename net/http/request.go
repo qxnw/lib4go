@@ -1,10 +1,11 @@
 package http
 
-
 import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+
+	"github.com/qxnw/lib4go/encoding"
 )
 
 //NewRequest 创建新请求
@@ -52,7 +53,8 @@ func (c *HTTPClientRequest) Request() (content string, status int, err error) {
 		return
 	}
 	status = resp.StatusCode
-	content, err = changeEncodingData(c.encoding, body)
+
+	content, err = encoding.Convert(body, c.encoding)
 
 	return
 }
