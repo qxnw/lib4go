@@ -1,7 +1,6 @@
 package http
 
 import (
-	"bytes"
 	"crypto/rand"
 	"crypto/tls"
 	"crypto/x509"
@@ -14,8 +13,6 @@ import (
 	"strings"
 
 	"github.com/qxnw/lib4go/encoding"
-	"golang.org/x/text/encoding/simplifiedchinese"
-	"golang.org/x/text/transform"
 )
 
 //HTTPClient HTTP客户端
@@ -226,16 +223,4 @@ func getEncoding(params ...string) (encoding string) {
 		return
 	}
 	return "UTF-8"
-}
-func changeEncodingData(encoding string, data []byte) (content string, err error) {
-	if !strings.EqualFold(encoding, "GBK") && !strings.EqualFold(encoding, "GB2312") {
-		content = string(data)
-		return
-	}
-	buffer, err := ioutil.ReadAll(transform.NewReader(bytes.NewReader(data), simplifiedchinese.GB18030.NewDecoder()))
-	if err != nil {
-		return
-	}
-	content = string(buffer)
-	return
 }
