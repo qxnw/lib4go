@@ -14,10 +14,11 @@ import (
 //GetReader 获取
 
 func GetReader(content string, charset string) io.Reader {
-	if strings.EqualFold(charset, "utf-8") {
-		return strings.NewReader(content)
+	if strings.EqualFold(charset, "gbk") || strings.EqualFold(charset, "gb2312") {
+		return transform.NewReader(bytes.NewReader([]byte(content)), simplifiedchinese.GBK.NewDecoder())
 	}
-	return transform.NewReader(bytes.NewReader([]byte(content)), simplifiedchinese.GBK.NewDecoder())
+	return strings.NewReader(content)
+
 }
 
 //Convert []byte转换为字符串
