@@ -1,4 +1,4 @@
-package mem
+package memcache
 
 import (
 	"strings"
