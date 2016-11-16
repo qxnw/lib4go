@@ -1,6 +1,5 @@
 package http
 
-
 import (
 	"bytes"
 	"crypto/rand"
@@ -14,8 +13,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/arsgo/lib4go/encoding"
-
+	"github.com/qxnw/lib4go/encoding"
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/transform"
 )
