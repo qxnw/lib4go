@@ -1,136 +1,211 @@
+/*
+	参考链接：
+	1、http://blog.studygolang.com/2013/01/go%E5%8A%A0%E5%AF%86%E8%A7%A3%E5%AF%86%E4%B9%8Brsa/
+	2、http://studygolang.com/articles/5257
+*/
 package rsa
 
-/*
-	http://blog.studygolang.com/2013/01/go%E5%8A%A0%E5%AF%86%E8%A7%A3%E5%AF%86%E4%B9%8Brsa/
-	2016年11月16日21:34:36
-*/
-
 import (
-	"bytes"
-	"fmt"
 	"testing"
 
-	"github.com/qxnw/lib4go/encoding"
+	"strings"
 )
 
-var (
-	privateKey = []byte(`-----BEGIN RSA PRIVATE KEY-----
-MIICXQIBAAKBgQDTeyBioVCJcwhwu68CKJQQwrHgzRu+14fM5/Br/xBrpp1+FPtB
-MKSs+jlJ5gMjVOp1gYCRvQ2pSdaxj83t7i0KRRzkUCup6rIphC6265XGWagCODT2
-LaUkTnIBA3wrbDF7ziTrHJt0e6WO4NJie4iGzqfKbQMbXnj9dvSlV3KWIQIDAQAB
-AoGBAMnRAJDfPQpOesmKcnLu4o40HqhXVJkE+hWzah7F5Je3AyklQLlvgFeK200I
-cgovqSfGFDoAXp8lVftRLsZWuycKykhqwZHD7WVN0b3Jtnxr9Q+ZB3vpnu+/sRGF
-9EJ0t0Q0ESExMgRkaDeDiENsrn8KZ0EpXwUo2IlpxwCGKp65AkEA+IOyp7ytsg4f
-zXghTnR+tRzSMu2ou4pPx0bfXE1qkHLdw/6D9xYlPmV8eHFEQpQO/kAny9D4mHA1
-UOj1QXII7wJBANnZ3MSUKoriwgLqxEuh3VjxiXlgAWnGkbL0aG3pKIMHVZE630g3
-5lHBRYResvm5BukPtLPxMsdag8gpQ7Ehse8CQQDjPdHkjaQqt72e7aVPDzk5tWQE
-C8uJybyPlR/zUBsMgOyGJrpW+xoNR1Gc9L2dP7PCC7oYJjrbcWdfV9XEBVljAkA/
-Gernid9UwV/fBm97VNRPmg7u+E8Qe3LiegbxpzKT2YEAgyP/wClXjvr6349J5D1L
-LsBxyrChq+c2CDXSTedDAkAdkrx++tGeitQOYjP8EdC3roIq1x5+eAm78HRQ+SY2
-SGjbwWCzZ/26kW0bm6H5KcOS1xPjp6gn+Bd00PQRaGJ5
------END RSA PRIVATE KEY-----`)
-	publicKey = []byte(`-----BEGIN PUBLIC KEY-----
-MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDTeyBioVCJcwhwu68CKJQQwrHg
-zRu+14fM5/Br/xBrpp1+FPtBMKSs+jlJ5gMjVOp1gYCRvQ2pSdaxj83t7i0KRRzk
-UCup6rIphC6265XGWagCODT2LaUkTnIBA3wrbDF7ziTrHJt0e6WO4NJie4iGzqfK
-bQMbXnj9dvSlV3KWIQIDAQAB
------END PUBLIC KEY-----`)
+const (
+	privateKey = `-----BEGIN RSA PRIVATE KEY-----
+MIIBOQIBAAJAZ3/rkUodqiNuKtGGsJvo68HzDPCMjQYjD0VpaAclwQFL0s7uPUPL
+G6qnLg37wweLiamH16hxA4EJfmiK7Uh5oQIDAQABAkAMQBLUzo32Tl1CyiwECWAn
+T3yCIpKwOnK54wBX5MiuMF77Rn7ktJqgDINvx37GegNsHpoS7R0EzP+WkHuP5rJ1
+AiEAwVbyh23um1kzObks3aicgDj3Umq3MCssYgo3DlnfcA8CIQCJCxvcGA3CIw9j
+SDqzcLGKb69D3PrCg7Y6whwYy/fLTwIhALJjfDGTMCZsPkSTZB89NPFmHmUQC+hI
+3ZG0JSp7qBrnAiBA+4eGYdGEUOOnDETpeXJ2VmchItO1EIeEbS6tg2pIeQIgXIwF
+UgtCj4Sr23PgYHs3VTXHfniZCOv2R4HS1epkKks=
+-----END RSA PRIVATE KEY-----`
+	publicKey = `-----BEGIN PUBLIC KEY-----
+MFswDQYJKoZIhvcNAQEBBQADSgAwRwJAZ3/rkUodqiNuKtGGsJvo68HzDPCMjQYj
+D0VpaAclwQFL0s7uPUPLG6qnLg37wweLiamH16hxA4EJfmiK7Uh5oQIDAQAB
+-----END PUBLIC KEY-----`
+	errPrivateKey = `-----BEGIN RSA PRIVATE KEY-----
+MIIBOQIBAAJAZ3/rkUodqiNuKtGGsJvo68HzDPCMjQYjD0VpaAclwQFL0s7uPUPL
+G6qnLg37wweLiamH16hxA4E89NPFmHmUQC+hI
+3ZG0JSp7qBrnAiBA+4eGYdGEUOOnDETpeXJ2VmchItO1EIeEbS6tg2pIeQIgXIwF
+UgtCj4Sr23PgYHs3VTXHfniZCOv2R4HS1epkKks=
+-----END RSA PRIVATE KEY-----`
+	errPublicKey = `-----BEGIN PUBLIC KEY-----
+MFswDQYJKoZIhvcNAQEBBQADSgAwRwJAZ3/rkUodqiNuKtGGsJvo68HzDPCMjQYj
+-----END PUBLIC KEY-----`
+	errPrivateKey2 = `-----BEGIN RSA PRIVATE KEY-----
+MIIBOQIBAAJAZ3/dbUodqiNuKtGGsJvo68HzDPCMjQYjD0VpaAclwQFL0s7uPUPL
+G6qnLg37wweLiamH16hxA4EJfmiK7Uh5oQIDAQABAkAMQBLUzo32Tl1CyiwECWAn
+T3yCIpKwOnK54wBX5MiuMF77Rn7ktJqgDINvx37GegNsHpoS7R0EzP+WkHuP5rJ1
+AiEAwVbyh23um1kzObks3aicgDj3Umq3MCssYgo3DlnfcA8CIQCJCxvcGA3CIw9j
+SDqzcLGKb69D3PrCg7Y6whwYy/12TwIhALJjfDGTMCZsPkSTZB89NPFmHmUQC+hI
+3ZG0JSp7qBrnAiBA+4eGYqeEUOOnDETpeXJ2VmchItO1EIeEbS6tg2pIeQIgXIwF
+UgtCj4Sr23PgYHs3VTXHfniZCOv2R4HS1epkKks=
+-----END RSA PRIVATE KEY-----`
+	errPublickey2 = `-----BEGIN PUBLIC KEY-----
+MFswDQYJKoZIhvcNAQEBBQADSgAwRwJAV2/rkUodqiNuKtGGsJvo68HzDPCMjQYj
+D0VpaAclwQFL0s7uPUPLG6qnLg37wweLiamH16hxA4EJfmiK7Uh5oQIDAQWE
+-----END PUBLIC KEY-----`
 )
 
 func TestEncrypt(t *testing.T) {
-	input := "hello"
-	except := "TkNIRnIZESmOdid6j5ObIeTKBUmHMhqzmYp6A2k/8TtKOOmheBv2Ji2ufDxHiC+7KdwKaaWdMnAKXvGuZ1QrP6Q9+i4c8MWSFBfCDuiQXqH6lLXer6k4pq2LUH9TIXg1HQB38Kn3eWElQW7AN/IKdLpM2VMSIy4Rd3SnEOh62ZA="
-	data, err := Encrypt(input, string(publicKey))
-	fmt.Println(bytes.EqualFold(data, []byte(except)))
+	input := "hello world"
+	data, err := Encrypt(input, publicKey)
 	if err != nil {
-		t.Errorf("encrypt fail:%v", err)
+		t.Errorf("Encrypt fail:%v", err)
 	}
-	if !bytes.EqualFold(data, []byte(except)) {
-		t.Errorf("encrypt fail %s to %s", except, string(data))
+	actual, err := Decrypt(data, privateKey)
+	if err != nil {
+		t.Errorf("Decrypt fail:%v", err)
 	}
-}
+	if !strings.EqualFold(actual, input) {
+		t.Errorf("RSA test fail %s to %s", input, actual)
+	}
 
-func TestDecode(t *testing.T) {
-	input := "TkNIRnIZESmOdid6j5ObIeTKBUmHMhqzmYp6A2k/8TtKOOmheBv2Ji2ufDxHiC+7KdwKaaWdMnAKXvGuZ1QrP6Q9+i4c8MWSFBfCDuiQXqH6lLXer6k4pq2LUH9TIXg1HQB38Kn3eWElQW7AN/IKdLpM2VMSIy4Rd3SnEOh62ZA="
-	except := "hello"
-	data, err := Decrypt(input, string(privateKey))
+	input = ""
+	data, err = Encrypt(input, publicKey)
 	if err != nil {
-		t.Errorf("Decode fail:%v", err)
+		t.Errorf("Encrypt fail:%v", err)
 	}
-	if !bytes.EqualFold(data, []byte(except)) {
-		t.Errorf("Decode fail %s to %s", except, string(data))
+	actual, err = Decrypt(data, privateKey)
+	if err != nil {
+		t.Errorf("Decrypt fail:%v", err)
+	}
+	if !strings.EqualFold(actual, input) {
+		t.Errorf("RSA test fail %s to %s", input, actual)
+	}
+
+	input = "hello world"
+	data = "TkNIRnIZESmOdid6j5ObIeTKBUmHMhqzmYp6A2k/8TtKOOmheBv2Ji2ufDxHiC+7KdwKaaWdMnAKXvGuZ1QrP6Q9+i4c8MWSFBfCDuiQXqH6lLXer6k4pq2LUH9TIXg1HQB38Kn3eWElQW7AN/IKdLpM2VMSIy4Rd3SnEOh62ZA="
+	actual, err = Decrypt(data, privateKey)
+	if err != nil {
+		t.Errorf("Decrypt fail:%v", err)
+	}
+	if strings.EqualFold(actual, input) {
+		t.Errorf("RSA test fail %s to %s", input, actual)
+	}
+
+	input = "hello world"
+	_, err = Encrypt(input, errPublicKey)
+	if err == nil {
+		t.Error("test fail")
+	}
+
+	input = "hello world"
+	data, err = Encrypt(input, publicKey)
+	if err != nil {
+		t.Errorf("Encrypt fail:%v", err)
+	}
+	_, err = Decrypt(data, errPrivateKey)
+	if err == nil {
+		t.Error("test fail")
+	}
+
+	input = "hello world"
+	data, err = Encrypt(input, errPublickey2)
+	if err != nil {
+		t.Errorf("Encrypt fail:%v", err)
+	}
+	actual, err = Decrypt(data, errPrivateKey2)
+	if err == nil {
+		t.Error("test fail")
+	}
+	if strings.EqualFold(actual, input) {
+		t.Errorf("RSA test fail %s to %s", input, actual)
 	}
 }
 
 func TestSign(t *testing.T) {
 	input := "hello"
-	except := ""
-	data, err := Sign(input, string(publicKey), "md5")
+	mode := "md5"
+	data, err := Sign(input, privateKey, mode)
 	if err != nil {
 		t.Errorf("Sign fail %v", err)
 	}
-	if !bytes.EqualFold(data, []byte(except)) {
-		t.Errorf("Sign fail %s to %s", except, string(data))
+	actual, err := Verify(input, data, publicKey, mode)
+	if err != nil {
+		t.Errorf("Sign test fail %v", err)
+	}
+	if !actual {
+		t.Error("Sign test fail")
 	}
 
 	input = "hello"
-	except = ""
-	data, err = Sign(input, string(publicKey), "sha1")
+	mode = "sha1"
+	data, err = Sign(input, privateKey, mode)
 	if err != nil {
 		t.Errorf("Sign fail %v", err)
 	}
-	if !bytes.EqualFold(data, []byte(except)) {
-		actual, _ := encoding.Convert(data, "gb2312")
-		t.Errorf("Sign fail %s to %s", except, actual)
+	actual, err = Verify(input, data, publicKey, mode)
+	if err != nil {
+		t.Errorf("Sign test fail %v", err)
+	}
+	if !actual {
+		t.Error("Sign test fail")
+	}
+
+	input = ""
+	mode = "sha1"
+	data, err = Sign(input, privateKey, mode)
+	if err != nil {
+		t.Errorf("Sign fail %v", err)
+	}
+	actual, err = Verify(input, data, publicKey, mode)
+	if err != nil {
+		t.Errorf("Sign test fail %v", err)
+	}
+	if !actual {
+		t.Error("Sign test fail")
 	}
 
 	input = "hello"
-	except = ""
-	data, err = Sign(input, string(publicKey), "base64")
+	mode = "base64"
+	_, err = Sign(input, privateKey, mode)
 	if err == nil {
 		t.Error("test fail")
 	}
 
 	input = "hello"
-	except = ""
-	data, err = Sign(input, string(publicKey), "")
+	mode = "sha1"
+	data, err = Sign(input, privateKey, mode)
+	if err != nil {
+		t.Errorf("Sign fail %v", err)
+	}
+	_, err = Verify(input, data, publicKey, "base64")
 	if err == nil {
 		t.Error("test fail")
 	}
-}
-
-func TestVerify(t *testing.T) {
-	input := "hello"
-	sign := ""
-	flag, err := Verify(input, sign, string(privateKey), "md5")
-	if err != nil {
-		t.Errorf("Verify fail %v", err)
-	}
-	if flag {
-		t.Error("Verify fail")
-	}
 
 	input = "hello"
-	sign = ""
-	flag, err = Verify(input, sign, string(privateKey), "sha1")
-	if err != nil {
-		t.Errorf("Verify fail %v", err)
-	}
-	if flag {
-		t.Error("Verify fail")
-	}
-
-	input = "hello"
-	sign = ""
-	flag, err = Verify(input, sign, string(privateKey), "base64")
+	mode = "sha1"
+	_, err = Sign(input, errPrivateKey, mode)
 	if err == nil {
-		t.Error("Verify fail")
+		t.Error("test fail")
 	}
 
 	input = "hello"
-	sign = ""
-	flag, err = Verify(input, sign, string(privateKey), "")
+	mode = "sha1"
+	data, err = Sign(input, privateKey, mode)
+	if err != nil {
+		t.Errorf("Sign fail %v", err)
+	}
+	_, err = Verify(input, data, errPublicKey, mode)
 	if err == nil {
-		t.Error("Verify fail")
+		t.Error("Sign test fail")
+	}
+
+	input = "hello"
+	mode = "sha1"
+	data, err = Sign(input, errPrivateKey2, mode)
+	if err == nil {
+		t.Error("Sign test fail")
+	}
+	actual, err = Verify(input, data, errPublickey2, mode)
+	if err == nil {
+		t.Error("Sign test fail")
+	}
+	if actual {
+		t.Error("Sign test fail")
 	}
 }
