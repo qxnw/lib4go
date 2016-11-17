@@ -5,15 +5,26 @@ import (
 	"testing"
 )
 
-// func TestNewHTTPClientCert(t *testing.T) {
-// 	certFile := "/home/champly/http.cer"
-// 	keyFile := "/home/champly/http.key"
-// 	caFile := "/home/champly/http.ca"
-// 	_, err := NewHTTPClientCert(certFile, keyFile, caFile)
-// 	if err != nil {
-// 		t.Error(err)
-// 	}
-// }
+func TestNewHTTPClientCert(t *testing.T) {
+	certFile := "/home/champly/openssl/cert.pem"
+	keyFile := "/home/champly/openssl/key.pem"
+	caFile := "/home/champly/openssl/ca.pem"
+	client, err := NewHTTPClientCert(certFile, keyFile, caFile)
+	if err != nil {
+		t.Error(err)
+	}
+	if client == nil {
+		t.Error("test fail")
+	}
+
+	certFile = "/home/champly/openssl/err_cert.pem"
+	keyFile = "/home/champly/openssl/err_key.pem"
+	caFile = "/home/champly/openssl/err_ca.pem"
+	_, err = NewHTTPClientCert(certFile, keyFile, caFile)
+	if err == nil {
+		t.Error("test fail")
+	}
+}
 
 func TestGet(t *testing.T) {
 	client := NewHTTPClient()
