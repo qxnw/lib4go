@@ -3,7 +3,7 @@ package db
 import "testing"
 
 func TestDBTRansQuery(t *testing.T) {
-	obj, err := NewSysDB("oracle", "oc_common/123456@orcl136", 2, 2)
+	obj, err := NewSysDB("oracle", "oc_test/123456@orcl136", 2, 2)
 	if obj == nil || err != nil {
 		t.Error("创建数据库连接失败:", err)
 	}
@@ -14,8 +14,8 @@ func TestDBTRansQuery(t *testing.T) {
 	}
 
 	// 正常测试
-	sql := "select * from oc_user_info where user_id = :1"
-	args := []interface{}{"2223"}
+	sql := "select * from test where id = :1"
+	args := []interface{}{"1"}
 	dataRows, colus, err := dbTrans.Query(sql, args...)
 	if err != nil {
 		t.Errorf("执行%s失败：%v", sql, err)
@@ -23,7 +23,7 @@ func TestDBTRansQuery(t *testing.T) {
 	if dataRows == nil {
 		t.Errorf("执行%s失败", sql)
 	}
-	if dataRows[0][colus[0]] != "2223" {
+	if dataRows[0][colus[0]] != "1" {
 		t.Errorf("执行%s失败", sql)
 	}
 
@@ -33,8 +33,8 @@ func TestDBTRansQuery(t *testing.T) {
 		t.Error("创建数据库连接失败:", err)
 	}
 	if obj != nil {
-		sql = "select * from oc_user_info where user_id = :1"
-		args = []interface{}{"2223"}
+		sql = "select * from test where id = :1"
+		args = []interface{}{"1"}
 		dataRows, colus, err = dbTrans.Query(sql, args...)
 		if err != nil {
 			t.Errorf("执行%s失败：%v", sql, err)
@@ -42,19 +42,19 @@ func TestDBTRansQuery(t *testing.T) {
 		if dataRows == nil {
 			t.Errorf("执行%s失败", sql)
 		}
-		if dataRows[0][colus[0]] != "2223" {
+		if dataRows[0][colus[0]] != "1" {
 			t.Errorf("执行%s失败", sql)
 		}
 	}
 
 	// 数据库连接串错误测试
-	obj, err = NewSysDB("", "oc_common/123456@orcl136", 2, 2)
+	obj, err = NewSysDB("", "oc_test/123456@orcl136", 2, 2)
 	if obj != nil || err == nil {
 		t.Error("创建数据库连接失败:", err)
 	}
 	if obj != nil {
-		sql = "select * from oc_user_info where user_id = :1"
-		args = []interface{}{"2223"}
+		sql = "select * from test where id = :1"
+		args = []interface{}{"1"}
 		dataRows, colus, err = dbTrans.Query(sql, args...)
 		if err != nil {
 			t.Errorf("执行%s失败：%v", sql, err)
@@ -62,13 +62,13 @@ func TestDBTRansQuery(t *testing.T) {
 		if dataRows == nil {
 			t.Errorf("执行%s失败", sql)
 		}
-		if dataRows[0][colus[0]] != "2223" {
+		if dataRows[0][colus[0]] != "1" {
 			t.Errorf("执行%s失败", sql)
 		}
 	}
 
 	// sql错误
-	obj, err = NewSysDB("oracle", "oc_common/123456@orcl136", 2, 2)
+	obj, err = NewSysDB("oracle", "oc_test/123456@orcl136", 2, 2)
 	if obj == nil || err != nil {
 		t.Error("创建数据库连接失败:", err)
 	}
@@ -81,12 +81,12 @@ func TestDBTRansQuery(t *testing.T) {
 	}
 
 	// sql错误
-	obj, err = NewSysDB("oracle", "oc_common/123456@orcl136", 2, 2)
+	obj, err = NewSysDB("oracle", "oc_test/123456@orcl136", 2, 2)
 	if obj == nil || err != nil {
 		t.Error("创建数据库连接失败:", err)
 	}
 
-	sql = "select * from user_id where 1 = :1"
+	sql = "select * from id where 1 = :1"
 	args = []interface{}{"1"}
 	dataRows, colus, err = dbTrans.Query(sql, args...)
 	if err == nil {
@@ -95,7 +95,7 @@ func TestDBTRansQuery(t *testing.T) {
 }
 
 func TestDBTRansExecute(t *testing.T) {
-	obj, err := NewSysDB("oracle", "oc_common/123456@orcl136", 2, 2)
+	obj, err := NewSysDB("oracle", "oc_test/123456@orcl136", 2, 2)
 	if obj == nil || err != nil {
 		t.Error("创建数据库连接失败:", err)
 	}
@@ -106,8 +106,8 @@ func TestDBTRansExecute(t *testing.T) {
 	}
 
 	// 正常测试
-	sql := "update oc_user_info t set t.traffic_wallet = t.traffic_wallet + 0 where t.user_id = :1"
-	args := []interface{}{"2223"}
+	sql := "update test t set t.money = t.money + 0 where t.id = :1"
+	args := []interface{}{"1"}
 	row, err := dbTrans.Execute(sql, args...)
 	if err != nil {
 		t.Errorf("执行%s失败：%v", sql, err)
@@ -122,8 +122,8 @@ func TestDBTRansExecute(t *testing.T) {
 		t.Error("创建数据库连接失败:", err)
 	}
 	if obj != nil {
-		sql = "update oc_user_info t set t.traffic_wallet = t.traffic_wallet + 0 where t.user_id = :1"
-		args = []interface{}{"2223"}
+		sql = "update test t set t.money = t.money + 0 where t.id = :1"
+		args = []interface{}{"1"}
 		row, err = dbTrans.Execute(sql, args...)
 		if err != nil {
 			t.Errorf("执行%s失败：%v", sql, err)
@@ -134,13 +134,13 @@ func TestDBTRansExecute(t *testing.T) {
 	}
 
 	// 数据库连接串错误测试
-	obj, err = NewSysDB("", "oc_common/123456@orcl136", 2, 2)
+	obj, err = NewSysDB("", "oc_test/123456@orcl136", 2, 2)
 	if obj != nil || err == nil {
 		t.Error("创建数据库连接失败:", err)
 	}
 	if obj != nil {
-		sql = "update oc_user_info t set t.traffic_wallet = t.traffic_wallet + 0 where t.user_id = :1"
-		args = []interface{}{"2223"}
+		sql = "update test t set t.money = t.money + 0 where t.id = :1"
+		args = []interface{}{"1"}
 		row, err = dbTrans.Execute(sql, args...)
 		if err != nil {
 			t.Errorf("执行%s失败：%v", sql, err)
@@ -151,13 +151,13 @@ func TestDBTRansExecute(t *testing.T) {
 	}
 
 	// sql错误
-	obj, err = NewSysDB("oracle", "oc_common/123456@orcl136", 2, 2)
+	obj, err = NewSysDB("oracle", "oc_test/123456@orcl136", 2, 2)
 	if err != nil {
 		t.Error("创建数据库连接失败:", err)
 	}
 	if obj != nil {
-		sql = "updates oc_user_info t set t.traffic_wallet = t.traffic_wallet + 0 where t.user_id = :1"
-		args = []interface{}{"2223"}
+		sql = "updates test t set t.money = t.money + 0 where t.id = :1"
+		args = []interface{}{"1"}
 		row, err = dbTrans.Execute(sql, args...)
 		if err == nil {
 			t.Errorf("测试失败")
@@ -165,13 +165,13 @@ func TestDBTRansExecute(t *testing.T) {
 	}
 
 	// sql错误
-	obj, err = NewSysDB("oracle", "oc_common/123456@orcl136", 2, 2)
+	obj, err = NewSysDB("oracle", "oc_test/123456@orcl136", 2, 2)
 	if err != nil {
 		t.Error("创建数据库连接失败:", err)
 	}
 	if obj != nil {
-		sql = "update oc_user_infos t set t.traffic_wallet = t.traffic_wallet + 0 where t.user_id = :1"
-		args = []interface{}{"2223"}
+		sql = "update tests t set t.money = t.money + 0 where t.id = :1"
+		args = []interface{}{"1"}
 		row, err = dbTrans.Execute(sql, args...)
 		if err == nil {
 			t.Errorf("测试失败")
