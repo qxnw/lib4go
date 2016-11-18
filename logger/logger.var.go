@@ -1,5 +1,10 @@
 package logger
 
+type IAppender interface {
+	Write(LogEvent)
+	Close()
+}
+
 const (
 	ILevel_ALL = iota
 	ILevel_Debug

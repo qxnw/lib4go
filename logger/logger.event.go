@@ -19,5 +19,5 @@ func NewLogEvent(name string, level string, session string, content string) LogE
 	e.Session = session
 	e.Content = content
 	return e
-
 }
+
