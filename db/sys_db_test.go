@@ -2,17 +2,19 @@ package db
 
 import "testing"
 
+const dbConnectStr = "oc_test/123456@orcl136"
+
 func TestNewSysDB(t *testing.T) {
 	input := []SysDB{
-		{"sqlite", "oc_test/123456@orcl136", nil, 2, 2},
-		{"oracle", "oc_test/123456@orcl136", nil, 2, 2},
-		{"oracle", "oc_test/123456@orcl136", nil, 4, 2},
-		{"oracle", "oc_test/123456@orcl136", nil, -2, 2},
-		{"oracle", "oc_test/123456@orcl136", nil, 2, -2},
-		// {"1231", "oc_test/123456@orcl136", nil, 1, 2},
+		{"sqlite", dbConnectStr, nil, 2, 2},
+		{"oracle", dbConnectStr, nil, 2, 2},
+		{"oracle", dbConnectStr, nil, 4, 2},
+		{"oracle", dbConnectStr, nil, -2, 2},
+		{"oracle", dbConnectStr, nil, 2, -2},
+		// {"1231", dbConnectStr, nil, 1, 2},
 		// {"oracle", "", nil, 2, 2},
 		// {"oracle", "^&&^@#@", nil, 2, 2},
-		// {"oracle", "oc_test/123456@orcl136", nil, 2, 2},
+		// {"oracle", dbConnectStr, nil, 2, 2},
 	}
 	for _, data := range input {
 		obj, err := NewSysDB(data.provider, data.connString, data.maxIdle, data.maxOpen)
@@ -22,13 +24,13 @@ func TestNewSysDB(t *testing.T) {
 	}
 
 	// 测试不支持的类型
-	_, err := NewSysDB("1231", "oc_test/123456@orcl136", 2, 2)
+	_, err := NewSysDB("1231", dbConnectStr, 2, 2)
 	if err == nil {
 		t.Error("测试失败")
 	}
 
 	// 空类型
-	_, err = NewSysDB("", "oc_test/123456@orcl136", 2, 2)
+	_, err = NewSysDB("", dbConnectStr, 2, 2)
 	if err == nil {
 		t.Error("测试失败")
 	}
@@ -46,13 +48,13 @@ func TestNewSysDB(t *testing.T) {
 	}
 
 	// 数据库配置错误
-	_, err = NewSysDB("oracle", "oc_test/123456@orcl136", -2, 2)
+	_, err = NewSysDB("oracle", dbConnectStr, -2, 2)
 	if err != nil {
 		t.Error("测试失败")
 	}
 
 	// 数据库配置错误
-	_, err = NewSysDB("oracle", "oc_test/123456@orcl136", 2, -2)
+	_, err = NewSysDB("oracle", dbConnectStr, 2, -2)
 	if err != nil {
 		t.Error("测试失败")
 	}
@@ -66,7 +68,7 @@ type testQueryResult struct {
 
 func TestQuery(t *testing.T) {
 	// 正常流程
-	obj, err := NewSysDB("oracle", "oc_test/123456@orcl136", 2, 2)
+	obj, err := NewSysDB("oracle", dbConnectStr, 2, 2)
 	if obj == nil || err != nil {
 		t.Error("创建数据库连接失败:", err)
 	}
@@ -105,7 +107,7 @@ func TestQuery(t *testing.T) {
 	}
 
 	// 数据库连接串错误测试
-	obj, err = NewSysDB("", "oc_test/123456@orcl136", 2, 2)
+	obj, err = NewSysDB("", dbConnectStr, 2, 2)
 	if obj != nil || err == nil {
 		t.Error("创建数据库连接失败:", err)
 	}
@@ -125,7 +127,7 @@ func TestQuery(t *testing.T) {
 	}
 
 	// sql错误
-	obj, err = NewSysDB("oracle", "oc_test/123456@orcl136", 2, 2)
+	obj, err = NewSysDB("oracle", dbConnectStr, 2, 2)
 	if obj == nil || err != nil {
 		t.Error("创建数据库连接失败:", err)
 	}
@@ -138,7 +140,7 @@ func TestQuery(t *testing.T) {
 	}
 
 	// sql错误
-	obj, err = NewSysDB("oracle", "oc_test/123456@orcl136", 2, 2)
+	obj, err = NewSysDB("oracle", dbConnectStr, 2, 2)
 	if obj == nil || err != nil {
 		t.Error("创建数据库连接失败:", err)
 	}
@@ -152,7 +154,7 @@ func TestQuery(t *testing.T) {
 }
 
 func TestExecute(t *testing.T) {
-	obj, err := NewSysDB("oracle", "oc_test/123456@orcl136", 2, 2)
+	obj, err := NewSysDB("oracle", dbConnectStr, 2, 2)
 	if obj == nil || err != nil {
 		t.Error("创建数据库连接失败:", err)
 	}
@@ -185,7 +187,7 @@ func TestExecute(t *testing.T) {
 	}
 
 	// 数据库连接串错误测试
-	obj, err = NewSysDB("", "oc_test/123456@orcl136", 2, 2)
+	obj, err = NewSysDB("", dbConnectStr, 2, 2)
 	if obj != nil || err == nil {
 		t.Error("创建数据库连接失败:", err)
 	}
@@ -202,7 +204,7 @@ func TestExecute(t *testing.T) {
 	}
 
 	// sql错误
-	obj, err = NewSysDB("oracle", "oc_test/123456@orcl136", 2, 2)
+	obj, err = NewSysDB("oracle", dbConnectStr, 2, 2)
 	if err != nil {
 		t.Error("创建数据库连接失败:", err)
 	}
@@ -216,7 +218,7 @@ func TestExecute(t *testing.T) {
 	}
 
 	// sql错误
-	obj, err = NewSysDB("oracle", "oc_test/123456@orcl136", 2, 2)
+	obj, err = NewSysDB("oracle", dbConnectStr, 2, 2)
 	if err != nil {
 		t.Error("创建数据库连接失败:", err)
 	}
@@ -231,7 +233,7 @@ func TestExecute(t *testing.T) {
 }
 
 func TestBegin(t *testing.T) {
-	obj, err := NewSysDB("oracle", "oc_test/123456@orcl136", 2, 2)
+	obj, err := NewSysDB("oracle", dbConnectStr, 2, 2)
 	if obj == nil || err != nil {
 		t.Error("创建数据库连接失败:", err)
 	}
@@ -243,7 +245,7 @@ func TestBegin(t *testing.T) {
 }
 
 func TestClose(t *testing.T) {
-	obj, err := NewSysDB("oracle", "oc_test/123456@orcl136", 2, 2)
+	obj, err := NewSysDB("oracle", dbConnectStr, 2, 2)
 	if obj == nil || err != nil {
 		t.Error("创建数据库连接失败:", err)
 	}
