@@ -1,3 +1,8 @@
+/*
+	关于Http Server的文档：
+		http://www.cnblogs.com/yjf512/archive/2012/08/22/2650873.html
+*/
+
 package webserver
 
 import (
@@ -30,6 +35,7 @@ func NewContext(loggerName string, w http.ResponseWriter, r *http.Request, addre
 	return context
 
 }
+
 func (c *Context) PassTime() time.Duration {
 	return time.Now().Sub(c.StartTime)
 }
