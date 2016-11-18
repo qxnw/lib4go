@@ -5,6 +5,7 @@ import (
 	"fmt"
 )
 
+// Encrypt SHA1加密
 func Encrypt(content string) string {
 	h := sha1.New()
 	h.Write([]byte(content))
