@@ -2,6 +2,7 @@ package hex
 
 import (
 	"encoding/hex"
+	"fmt"
 )
 
 // 把[]byte类型通过hex编码成string
@@ -13,7 +14,7 @@ func Encode(src []byte) string {
 func Decode(src string) (r string, err error) {
 	data, err := hex.DecodeString(src)
 	if err != nil {
-		return
+		return "", fmt.Errorf("hex decode fail:%v", err)
 	}
 	r = string(data)
 	return
