@@ -4,12 +4,12 @@ import (
 	"html"
 )
 
-// html编码
+// Encode html编码
 func Encode(input string) string {
 	return html.EscapeString(input)
 }
 
-// html解码
+// Decode html解码
 func Decode(input string) string {
 	return html.UnescapeString(input)
 }
