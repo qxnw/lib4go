@@ -4,10 +4,12 @@ import (
 	"html"
 )
 
-func HTMLEncode(input string) string {
+// html编码
+func Encode(input string) string {
 	return html.EscapeString(input)
 }
 
-func HTMLDecode(input string) string {
+// html解码
+func Decode(input string) string {
 	return html.UnescapeString(input)
 }
