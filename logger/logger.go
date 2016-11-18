@@ -19,11 +19,11 @@ type Logger struct {
 }
 
 var loggers cmap.ConcurrentMap
-var appenderManagers *appenderManager
+var manager *loggerManager
 
 func init() {
 	loggers = cmap.New()
-	appenderManagers = newAppenderManager()
+	manager = newLoggerManager()
 }
 
 //New 根据一个或多个日志名称构建日志对象，该日志对象具有新的session id系统不会缓存该日志组件
@@ -52,7 +52,7 @@ func (logger *Logger) Debug(content ...interface{}) {
 
 	for i, name := range logger.names {
 		event := NewLogEvent(name, SLevel_Debug, logger.sessions[i], fmt.Sprint(content...))
-		appenderManagers.Log(event)
+		manager.Log(event)
 	}
 }
 
@@ -60,7 +60,7 @@ func (logger *Logger) Debug(content ...interface{}) {
 func (logger *Logger) Debugf(format string, content ...interface{}) {
 	for i, name := range logger.names {
 		event := NewLogEvent(name, SLevel_Debug, logger.sessions[i], fmt.Sprintf(format, content...))
-		appenderManagers.Log(event)
+		manager.Log(event)
 	}
 }
 
@@ -68,7 +68,7 @@ func (logger *Logger) Debugf(format string, content ...interface{}) {
 func (logger *Logger) Info(content ...interface{}) {
 	for i, name := range logger.names {
 		event := NewLogEvent(name, SLevel_Info, logger.sessions[i], fmt.Sprint(content...))
-		appenderManagers.Log(event)
+		manager.Log(event)
 	}
 
 }
@@ -77,7 +77,7 @@ func (logger *Logger) Info(content ...interface{}) {
 func (logger *Logger) Infof(format string, content ...interface{}) {
 	for i, name := range logger.names {
 		event := NewLogEvent(name, SLevel_Info, logger.sessions[i], fmt.Sprintf(format, content...))
-		appenderManagers.Log(event)
+		manager.Log(event)
 	}
 }
 
@@ -85,7 +85,7 @@ func (logger *Logger) Infof(format string, content ...interface{}) {
 func (logger *Logger) Error(content ...interface{}) {
 	for i, name := range logger.names {
 		event := NewLogEvent(name, SLevel_Error, logger.sessions[i], fmt.Sprint(content...))
-		appenderManagers.Log(event)
+		manager.Log(event)
 	}
 
 }
@@ -94,7 +94,7 @@ func (logger *Logger) Error(content ...interface{}) {
 func (logger *Logger) Errorf(format string, content ...interface{}) {
 	for i, name := range logger.names {
 		event := NewLogEvent(name, SLevel_Error, logger.sessions[i], fmt.Sprintf(format, content...))
-		appenderManagers.Log(event)
+		manager.Log(event)
 	}
 }
 
@@ -102,7 +102,7 @@ func (logger *Logger) Errorf(format string, content ...interface{}) {
 func (logger *Logger) Fatal(content ...interface{}) {
 	for i, name := range logger.names {
 		event := NewLogEvent(name, SLevel_Fatal, logger.sessions[i], fmt.Sprint(content...))
-		appenderManagers.Log(event)
+		manager.Log(event)
 	}
 	os.Exit(999)
 
@@ -112,7 +112,7 @@ func (logger *Logger) Fatal(content ...interface{}) {
 func (logger *Logger) Fatalf(format string, content ...interface{}) {
 	for i, name := range logger.names {
 		event := NewLogEvent(name, SLevel_Fatal, logger.sessions[i], fmt.Sprintf(format, content...))
-		appenderManagers.Log(event)
+		manager.Log(event)
 	}
 	os.Exit(999)
 }
