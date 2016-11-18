@@ -86,19 +86,19 @@ func TestHTTPClientRequest(t *testing.T) {
 
 	client = NewHTTPClient()
 	method = ""
-	url = "http://192.168.0.181:8080"
+	url = "http://192.168.0.100"
 	httpClientRequest = client.NewRequest(method, url, "UTF-8")
 	if httpClientRequest == nil {
 		t.Error("Create Request Client fail")
 	}
 	content, status, err = httpClientRequest.Request()
-	if err != nil {
+	if err == nil {
 		t.Errorf("Request fail %v", err)
 	}
 	if status != 0 {
 		t.Errorf("Request fail status : %d", status)
 	}
 	if content != "" {
-		t.Error("Request fail whit not content")
+		t.Error("Request fail")
 	}
 }
