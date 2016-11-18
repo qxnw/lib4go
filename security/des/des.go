@@ -6,24 +6,18 @@ import (
 	"crypto/des"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"strings"
 )
 
-/*
-   DES加密
-   params:
-       input 要加密的字符串
-       skey  加密使用的秘钥【字符串的长度必须是8的倍数】
-   return
-        r    加密后的结果
-        err  加密的时候出现的异常
-*/
+// Encrypt DES加密
+// input 要加密的字符串	skey 加密使用的秘钥[字符串长度必须是8的倍数]
 func Encrypt(input string, skey string) (r string, err error) {
 	origData := []byte(input)
 	key := []byte(skey)
 	block, err := des.NewCipher(key)
 	if err != nil {
-		return
+		return "", fmt.Errorf("des NewCipher err:%v", err)
 	}
 	iv := []byte{0, 0, 0, 0, 0, 0, 0, 0}
 	origData = PKCS5Padding(origData, block.BlockSize())
@@ -34,30 +28,23 @@ func Encrypt(input string, skey string) (r string, err error) {
 	return
 }
 
-/*
-   DES解密
-   params:
-       input 要解密的字符串
-       skey  解密使用的秘钥【字符串的长度必须是8的倍数】
-   return
-        r    解密后的结果
-        err  解密的时候出现的异常
-*/
+// Decrypt DES解密
+// input 要解密的字符串	skey 加密使用的秘钥[字符串长度必须是8的倍数]
 func Decrypt(input string, skey string) (r string, err error) {
 	/*add by champly 2016年11月16日17:35:03*/
 	if len(input) < 1 {
-		return r, errors.New("解密的对象长度必须大于0")
+		return "", errors.New("解密的对象长度必须大于0")
 	}
 	/*end*/
 
 	crypted, err := hex.DecodeString(input)
 	if err != nil {
-		return
+		return "", fmt.Errorf("hex DecodeString err:%v", err)
 	}
 	key := []byte(skey)
 	block, err := des.NewCipher(key)
 	if err != nil {
-		return
+		return "", fmt.Errorf("des NewCipher err:%v", err)
 	}
 	iv := []byte{0, 0, 0, 0, 0, 0, 0, 0}
 	blockMode := cipher.NewCBCDecrypter(block, iv)
@@ -68,21 +55,14 @@ func Decrypt(input string, skey string) (r string, err error) {
 	return
 }
 
-/*
-   3DES加密
-   params:
-       input 要加密的字符串
-       skey  加密使用的秘钥【字符串的长度必须是24的倍数】
-   return
-        r    加密后的结果
-        err  加密的时候出现的异常
-*/
+// Encrypt3DES 3DES加密
+// input 要加密的字符串	skey 加密使用的秘钥[字符串长度必须是24的倍数]
 func Encrypt3DES(input string, skey string) (r string, err error) {
 	origData := []byte(input)
 	key := []byte(skey)
 	block, err := des.NewTripleDESCipher(key)
 	if err != nil {
-		return
+		return "", fmt.Errorf("des NewTripleDESCipher err:%v", err)
 	}
 	iv := []byte{0, 0, 0, 0, 0, 0, 0, 0}
 	origData = PKCS5Padding(origData, block.BlockSize())
@@ -93,30 +73,23 @@ func Encrypt3DES(input string, skey string) (r string, err error) {
 	return
 }
 
-/*
-   3DES解密
-   params:
-       input 要解密的字符串
-       skey  解密使用的秘钥【字符串的长度必须是24的倍数】
-   return
-        r    解密后的结果
-        err  解密的时候出现的异常
-*/
+// Decrypt3DES 3DES解密
+// input 要解密的字符串	skey 加密使用的秘钥[字符串长度必须是24的倍数]
 func Decrypt3DES(input, skey string) (r string, err error) {
 	/*add by champly 2016年11月16日17:35:03*/
 	if len(input) < 1 {
-		return r, errors.New("解密的对象长度必须大于0")
+		return "", errors.New("解密的对象长度必须大于0")
 	}
 	/*end*/
 
 	crypted, err := hex.DecodeString(input)
 	if err != nil {
-		return
+		return "", fmt.Errorf("des DecodeString err:%v", err)
 	}
 	key := []byte(skey)
 	block, err := des.NewTripleDESCipher(key)
 	if err != nil {
-		return
+		return "", fmt.Errorf("des NewTripleDESCipher err:%v", err)
 	}
 	iv := []byte{0, 0, 0, 0, 0, 0, 0, 0}
 	blockMode := cipher.NewCBCDecrypter(block, iv)
@@ -127,24 +100,28 @@ func Decrypt3DES(input, skey string) (r string, err error) {
 	return
 }
 
+// ZeroPadding Zero填充模式
 func ZeroPadding(ciphertext []byte, blockSize int) []byte {
 	padding := blockSize - len(ciphertext)%blockSize
 	padtext := bytes.Repeat([]byte{0}, padding)
 	return append(ciphertext, padtext...)
 }
 
+// ZeroUnPadding 去除Zero的补码
 func ZeroUnPadding(origData []byte) []byte {
 	return bytes.TrimRightFunc(origData, func(r rune) bool {
 		return r == rune(0)
 	})
 }
 
+// PKCS5Padding PKCS5填充模式
 func PKCS5Padding(ciphertext []byte, blockSize int) []byte {
 	padding := blockSize - len(ciphertext)%blockSize
 	padtext := bytes.Repeat([]byte{byte(padding)}, padding)
 	return append(ciphertext, padtext...)
 }
 
+// PKCS5UnPadding 去除PKCS5的补码
 func PKCS5UnPadding(origData []byte) []byte {
 	length := len(origData)
 	// 去掉最后一个字节 unpadding 次
@@ -152,6 +129,7 @@ func PKCS5UnPadding(origData []byte) []byte {
 	return origData[:(length - unpadding)]
 }
 
+// PKCS7Padding PKCS7填充模式
 func PKCS7Padding(data []byte) []byte {
 	blockSize := 16
 	padding := blockSize - len(data)%blockSize
@@ -160,9 +138,7 @@ func PKCS7Padding(data []byte) []byte {
 
 }
 
-/**
- *  去除PKCS7的补码
- */
+// UnPKCS7Padding 去除PKCS7的补码
 func UnPKCS7Padding(data []byte) []byte {
 	length := len(data)
 	// 去掉最后一个字节 unpadding 次
