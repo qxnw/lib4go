@@ -18,7 +18,7 @@ func GetParamsMap(urlQuery string) (result map[string]interface{}, err error) {
 
 	values, err := url.ParseQuery(urlQuery[index+1:])
 	if err != nil {
-		return
+		return nil, fmt.Errorf("url ParseQuery fail: %v", err)
 	}
 	result = make(map[string]interface{})
 	for k, v := range values {
@@ -35,6 +35,12 @@ func GetParamsMap(urlQuery string) (result map[string]interface{}, err error) {
 // GetParams 获取url链接上的数据，并且json格式化，通过&分割
 func GetParams(urlQuery string) (res string, err error) {
 	result, err := GetParamsMap(urlQuery)
+	if err != nil {
+		return "", fmt.Errorf("GetParamsMap error: %v", err)
+	}
+	if result == nil {
+		return "{}", nil
+	}
 	buffer, err := json.Marshal(&result)
 	if err != nil {
 		return "", fmt.Errorf("json format fail:%v", err)
