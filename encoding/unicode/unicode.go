@@ -5,7 +5,7 @@ import (
 	"strconv"
 )
 
-// 对字符串进行unicode编码
+// Encode 对字符串进行unicode编码
 func Encode(str string) string {
 	rs := []rune(str)
 	json := ""
@@ -22,7 +22,7 @@ func Encode(str string) string {
 	return json
 }
 
-// 对字符串进行unicode解码
+// Decode 对字符串进行unicode解码
 func Decode(unicodeStr string) string {
 	buf := bytes.NewBuffer(nil)
 	i, j := 0, len(unicodeStr)
