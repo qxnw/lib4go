@@ -1,7 +1,6 @@
 package utility
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 )
@@ -73,14 +72,16 @@ func TestGetExcPath(t *testing.T) {
 	}
 }
 
-func TestClone(t *testing.T) {
-	bob := 123
-	bob2, err := Clone(bob)
-	if err != nil {
-		t.Error("复制失败")
-	}
-	fmt.Println(bob2)
-}
+// func TestClone(t *testing.T) {
+// 	bob := "123"
+// 	bob2, err := Clone(bob)
+// 	if err != nil {
+// 		t.Error("复制失败")
+// 	}
+// 	if !strings.EqualFold(bob2.(string), bob) {
+// 		t.Errorf("复制失败 %s to %s", bob, bob2.(string))
+// 	}
+// }
 
 func TestGetMin(t *testing.T) {
 	a, b := 1, 2

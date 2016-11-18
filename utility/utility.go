@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"crypto/rand"
 	"encoding/base64"
-	"encoding/gob"
 	"io"
 	"io/ioutil"
 	"net"
@@ -17,12 +16,13 @@ import (
 	"github.com/qxnw/lib4go/security/md5"
 )
 
+// GetSessionID 生成一个SessionID（8位）
 func GetSessionID() string {
 	id := GetGUID()
 	return id[:8]
 }
 
-//GetGuid 生成Guid字串
+// GetGUID 生成Guid字串
 func GetGUID() string {
 	b := make([]byte, 48)
 
@@ -32,6 +32,7 @@ func GetGUID() string {
 	return md5.Encrypt(base64.URLEncoding.EncodeToString(b))
 }
 
+// GetLocalIPAddress 获取IP地址
 func GetLocalIPAddress(masks ...string) string {
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
@@ -56,6 +57,7 @@ func GetLocalIPAddress(masks ...string) string {
 	return "127.0.0.1"
 }
 
+// Escape 把编码 \\u0026，\\u003c，\\u003e 替换为 &,<,>
 func Escape(input string) string {
 	r := strings.Replace(input, "\\u0026", "&", -1)
 	r = strings.Replace(r, "\\u003c", "<", -1)
@@ -63,6 +65,7 @@ func Escape(input string) string {
 	return r
 }
 
+// GetExcPath 获取路径的路径
 func GetExcPath(p ...string) string {
 	if len(p) == 0 {
 		return ""
@@ -79,16 +82,18 @@ func GetExcPath(p ...string) string {
 	}
 	return p[0]
 }
-func Clone(src interface{}) (dst interface{}, err error) {
-	var buf bytes.Buffer
-	if err = gob.NewEncoder(&buf).Encode(src); err != nil {
-		return
-	}
-	err = gob.NewDecoder(bytes.NewBuffer(buf.Bytes())).Decode(dst)
-	return
-}
 
-//GetMin 获取最大wfhg
+// // Clone 克隆一个变量
+// func Clone(src interface{}) (dst interface{}, err error) {
+// 	var buf bytes.Buffer
+// 	if err = gob.NewEncoder(&buf).Encode(src); err != nil {
+// 		return
+// 	}
+// 	err = gob.NewDecoder(bytes.NewBuffer(buf.Bytes())).Decode(dst)
+// 	return
+// }
+
+// GetMin 获取最大wfhg
 func GetMin(d int, x int) int {
 	if d > x {
 		return x
@@ -96,7 +101,7 @@ func GetMin(d int, x int) int {
 	return d
 }
 
-//GetMax 获取最大wfhg
+// GetMax 获取最大wfhg
 func GetMax(d int, x int) int {
 	if d > x {
 		return d
@@ -104,7 +109,7 @@ func GetMax(d int, x int) int {
 	return x
 }
 
-//GetMax2 当d为0时，返回x的值，否则取d,y的最大值
+// GetMax2 当d为0时，返回x的值，否则取d,y的最大值
 func GetMax2(d int, x int, y int) int {
 	if d == 0 {
 		return x
@@ -112,6 +117,7 @@ func GetMax2(d int, x int, y int) int {
 	return GetMax(d, y)
 }
 
+// CloneMap 克隆一个map
 func CloneMap(current map[string]interface{}) map[string]interface{} {
 	new := make(map[string]interface{})
 	for i, v := range current {
@@ -119,13 +125,18 @@ func CloneMap(current map[string]interface{}) map[string]interface{} {
 	}
 	return new
 }
+
+// Merge 把iput合并到current，如果没有则添加到current，如果有替换成input里面的
 func Merge(current map[string]interface{}, input map[string]interface{}) {
 	for i, v := range input {
 		current[i] = v
 	}
 }
+
+// DecodeData 格式化[]byte数据
 func DecodeData(encoding string, data []byte) (content string, err error) {
-	if !strings.EqualFold(encoding, "GBK") && !strings.EqualFold(encoding, "GB2312") {
+	encoding = strings.ToLower(encoding)
+	if !strings.EqualFold(encoding, "gbk") && !strings.EqualFold(encoding, "gb2312") {
 		content = string(data)
 		return
 	}
