@@ -11,8 +11,10 @@ import (
 	"golang.org/x/text/transform"
 )
 
-//GetReader 获取
+// GetReader 获取
+// charset不区分大小写
 func GetReader(content string, charset string) io.Reader {
+	charset = strings.ToLower(charset)
 	if strings.EqualFold(charset, "gbk") || strings.EqualFold(charset, "gb2312") {
 		return transform.NewReader(bytes.NewReader([]byte(content)), simplifiedchinese.GBK.NewDecoder())
 	}
@@ -20,8 +22,10 @@ func GetReader(content string, charset string) io.Reader {
 
 }
 
-//Convert []byte转换为字符串
+// Convert []byte转换为字符串
+// encoding 支持gbk，gb2312，utf-8	不区分大小写
 func Convert(data []byte, encoding string) (content string, err error) {
+	encoding = strings.ToLower(encoding)
 	if !strings.EqualFold(encoding, "gbk") && !strings.EqualFold(encoding, "gb2312") &&
 		!strings.EqualFold(encoding, "utf-8") {
 		err = fmt.Errorf("不支持的编码方式：%s", encoding)
