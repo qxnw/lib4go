@@ -8,7 +8,7 @@ import (
 	"github.com/shirou/gopsutil/disk"
 )
 
-// Total总量，Idle空闲，Used使用率，Collercter总量，使用量
+// Useage Total总量，Idle空闲，Used使用率，Collercter总量，使用量
 type Useage struct {
 	Total     string `json:"total"`
 	Idle      string `json:"idle"`
@@ -16,7 +16,7 @@ type Useage struct {
 	Collecter []string
 }
 
-// 获取磁盘信息
+// GetInfo 获取磁盘信息
 func GetInfo() (data []map[string]interface{}) {
 	data = make([]map[string]interface{}, 0, 6)
 	defer func() {
@@ -41,7 +41,7 @@ func GetInfo() (data []map[string]interface{}) {
 	return
 }
 
-// 获取磁盘使用信息
+// GetAvaliabeInfo 获取磁盘使用信息
 func GetAvaliabeInfo() (useage Useage) {
 	dir := "/"
 	if runtime.GOOS == "windows" {
