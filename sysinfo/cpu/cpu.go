@@ -7,7 +7,7 @@ import (
 	"github.com/shirou/gopsutil/cpu"
 )
 
-// Total总量，Idle空闲，Used使用率，Collercter总量，使用量
+// Useage Total总量，Idle空闲，Used使用率，Collercter总量，使用量
 type Useage struct {
 	Total     string `json:"total"`
 	Idle      string `json:"idle"`
@@ -15,7 +15,7 @@ type Useage struct {
 	Collecter []string
 }
 
-// 获取当前系统CPU数据
+// GetInfo 获取当前系统CPU数据
 func GetInfo() []map[string]interface{} {
 	v, _ := cpu.Times(true)
 	buffer, _ := json.Marshal(&v)
@@ -24,7 +24,7 @@ func GetInfo() []map[string]interface{} {
 	return data
 }
 
-// 获取当前系统CPU使用的情况数据
+// GetAvaliabeInfo 获取当前系统CPU使用的情况数据
 func GetAvaliabeInfo() (useage Useage) {
 	cpus, _ := cpu.Times(true)
 	useage = Useage{}
