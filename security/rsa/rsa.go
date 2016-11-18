@@ -10,19 +10,13 @@ import (
 	"encoding/base64"
 	"encoding/pem"
 	"errors"
+	"fmt"
 	"io"
 	"strings"
 )
 
-/*
-	RSA加密
-	params
-		origData 要加密的参数
-		publicKey 加密时候用到的公钥
-	return
-		string 加密之后的字符串
-		error 加密时产生的错误
-*/
+// Encrypt RSA加密
+// publicKey 加密时候用到的公钥
 func Encrypt(origData string, publicKey string) (string, error) {
 	block, _ := pem.Decode([]byte(publicKey))
 	if block == nil {
@@ -30,7 +24,7 @@ func Encrypt(origData string, publicKey string) (string, error) {
 	}
 	pubInterface, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("x509 ParsePKIXPublicKey err:%v", err)
 	}
 	pub := pubInterface.(*rsa.PublicKey)
 	// return rsa.EncryptPKCS1v15(rand.Reader, pub, []byte(origData))
@@ -38,21 +32,14 @@ func Encrypt(origData string, publicKey string) (string, error) {
 	/*change by champly 2016年11月17日09:41:21*/
 	data, err := rsa.EncryptPKCS1v15(rand.Reader, pub, []byte(origData))
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("rsa EncryptPKCS1v15 err:%v", err)
 	}
 	return base64.URLEncoding.EncodeToString(data), nil
 	/*end*/
 }
 
-/*
-	RSA解密
-	params
-		ciphertext 要解密的参数
-		privateKey 解密时候用到的公钥
-	return
-		string 解密之后的字符串
-		error 解密时产生的错误
-*/
+// Decrypt RSA解密
+// privateKey 解密时候用到的秘钥
 func Decrypt(ciphertext string, privateKey string) (string, error) {
 	block, _ := pem.Decode([]byte(privateKey))
 	if block == nil {
@@ -60,34 +47,26 @@ func Decrypt(ciphertext string, privateKey string) (string, error) {
 	}
 	priv, err := x509.ParsePKCS1PrivateKey(block.Bytes)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("x509 ParsePKCS1PrivateKey err:%v", err)
 	}
 	// return rsa.DecryptPKCS1v15(rand.Reader, priv, []byte(ciphertext))
 
 	/*change by champly 2016年11月17日09:36:41*/
 	input, err := base64.URLEncoding.DecodeString(ciphertext)
 	if err != nil {
-		return "", nil
+		return "", fmt.Errorf("base64 URLEncoding DecodeString err:%v", err)
 	}
 	data, err := rsa.DecryptPKCS1v15(rand.Reader, priv, input)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("rsa DecryptPKCS1v15 err:%v", err)
 	}
 
 	return string(data), nil
 	/*end*/
 }
 
-/*
-	使用RSA生成签名
-	params
-		message 要签名的字符串
-		privateKey 加密时使用的秘钥
-		mode 加密的模式【目前只支持MD5，SHA1，不区分大小写】
-	return
-		string 签名之后的字符串
-		error 签名时产生成错误信息
-*/
+// Sign 使用RSA生成签名
+// privateKey 加密时使用的秘钥	mode 加密的模式[目前只支持MD5，SHA1，不区分大小写]
 func Sign(message string, privateKey string, mode string) (string, error) {
 	block, _ := pem.Decode([]byte(privateKey))
 	if block == nil {
@@ -129,17 +108,8 @@ func Sign(message string, privateKey string, mode string) (string, error) {
 
 }
 
-/*
-	Verify校验签名
-	params
-		src	要验证的签名字符串
-		sign 生成的签名字符串
-		publicKey 验证签名的公钥
-		mode 加密的模式【目前只支持MD5，SHA1，不区分大小写】
-	return
-		pass 是否通过校验
-		err 校验的时候产生的错误
-*/
+// Verify 校验签名
+// publicKey 验证签名的公钥	mode 加密的模式[目前只支持MD5，SHA1，不区分大小写]
 func Verify(src string, sign string, publicKey string, mode string) (pass bool, err error) {
 	//步骤1，加载RSA的公钥
 	block, _ := pem.Decode([]byte(publicKey))
