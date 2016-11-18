@@ -86,7 +86,7 @@ func TestHTTPClientRequest(t *testing.T) {
 
 	client = NewHTTPClient()
 	method = ""
-	url = "http://192.168.0.121"
+	url = "http://192.168.0.181:8080"
 	httpClientRequest = client.NewRequest(method, url, "UTF-8")
 	if httpClientRequest == nil {
 		t.Error("Create Request Client fail")
