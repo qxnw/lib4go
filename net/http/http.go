@@ -15,12 +15,12 @@ import (
 	"github.com/qxnw/lib4go/encoding"
 )
 
-//HTTPClient HTTP客户端
+// HTTPClient HTTP客户端
 type HTTPClient struct {
 	client *http.Client
 }
 
-//HTTPClientRequest  http请求
+// HTTPClientRequest  http请求
 type HTTPClientRequest struct {
 	headers  map[string]string
 	client   *http.Client
@@ -30,7 +30,7 @@ type HTTPClientRequest struct {
 	encoding string
 }
 
-//NewHTTPClientCert 根据pem证书初始化httpClient
+// NewHTTPClientCert 根据pem证书初始化httpClient
 func NewHTTPClientCert(certFile string, keyFile string, caFile string) (client *HTTPClient, err error) {
 	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
 	if err != nil {
@@ -66,7 +66,7 @@ func NewHTTPClientCert(certFile string, keyFile string, caFile string) (client *
 	return
 }
 
-//NewHTTPClient 构建HTTP客户端，用于发送GET POST等请求
+// NewHTTPClient 构建HTTP客户端，用于发送GET POST等请求
 func NewHTTPClient() (client *HTTPClient) {
 	client = &HTTPClient{}
 	client.client = &http.Client{
@@ -86,7 +86,7 @@ func NewHTTPClient() (client *HTTPClient) {
 	return
 }
 
-//NewHTTPClientProxy 根据代理服务器地址创建httpClient
+// NewHTTPClientProxy 根据代理服务器地址创建httpClient
 func NewHTTPClientProxy(proxy string) (client *HTTPClient) {
 	client = &HTTPClient{}
 	client.client = &http.Client{
@@ -109,8 +109,8 @@ func NewHTTPClientProxy(proxy string) (client *HTTPClient) {
 	return
 }
 
-//Download 发送http请求, method:http请求方法包括:get,post,delete,put等 url: 请求的HTTP地址,不包括参数,params:请求参数,
-//header,http请求头多个用/n分隔,每个键值之前用=号连接
+// Download 发送http请求, method:http请求方法包括:get,post,delete,put等 url: 请求的HTTP地址,不包括参数,params:请求参数,
+// header,http请求头多个用/n分隔,每个键值之前用=号连接
 func (c *HTTPClient) Download(method string, url string, params string, header map[string]string) (body []byte, status int, err error) {
 	req, err := http.NewRequest(strings.ToUpper(method), url, strings.NewReader(params))
 	if err != nil {
@@ -132,8 +132,8 @@ func (c *HTTPClient) Download(method string, url string, params string, header m
 	return
 }
 
-//Save 发送http请求, method:http请求方法包括:get,post,delete,put等 url: 请求的HTTP地址,不包括参数,params:请求参数,
-//header,http请求头多个用/n分隔,每个键值之前用=号连接
+// Save 发送http请求, method:http请求方法包括:get,post,delete,put等 url: 请求的HTTP地址,不包括参数,params:请求参数,
+// header,http请求头多个用/n分隔,每个键值之前用=号连接
 func (c *HTTPClient) Save(method string, url string, params string, header map[string]string, path string) (status int, err error) {
 	body, status, err := c.Download(method, url, params, header)
 	if err != nil {
@@ -151,8 +151,8 @@ func (c *HTTPClient) Save(method string, url string, params string, header map[s
 	return
 }
 
-//Request 发送http请求, method:http请求方法包括:get,post,delete,put等 url: 请求的HTTP地址,不包括参数,params:请求参数,
-//header,http请求头多个用/n分隔,每个键值之前用=号连接
+// Request 发送http请求, method:http请求方法包括:get,post,delete,put等 url: 请求的HTTP地址,不包括参数,params:请求参数,
+// header,http请求头多个用/n分隔,每个键值之前用=号连接
 func (c *HTTPClient) Request(method string, url string, params string, charset string, header map[string]string) (content string, status int, err error) {
 	req, err := http.NewRequest(strings.ToUpper(method), url, strings.NewReader(params))
 	if err != nil {
@@ -178,7 +178,7 @@ func (c *HTTPClient) Request(method string, url string, params string, charset s
 	return
 }
 
-//Get http get请求
+// Get http get请求
 func (c *HTTPClient) Get(url string, args ...string) (content string, status int, err error) {
 	charset := getEncoding(args...)
 	resp, err := c.client.Get(url)
@@ -198,7 +198,7 @@ func (c *HTTPClient) Get(url string, args ...string) (content string, status int
 	return
 }
 
-//Post http Post请求
+// Post http Post请求
 func (c *HTTPClient) Post(url string, params string, args ...string) (content string, status int, err error) {
 	charset := getEncoding(args...)
 	resp, err := c.client.Post(url, "application/x-www-form-urlencoded", encoding.GetReader(params, charset))
