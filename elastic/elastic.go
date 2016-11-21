@@ -2,14 +2,16 @@ package elastic
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
+
+	"github.com/mattbaird/elastigo/lib"
 )
 
 type ElasticSearch struct {
 	host []string
 	conn *elastigo.Conn
 }
+
 type elasticConfig struct {
 	Host []string `json:"hosts"`
 }
@@ -37,9 +39,11 @@ func (host *ElasticSearch) Create(name string, typeName string, jsonData string)
 	if response.Created {
 		return
 	}
-	err = errors.New(fmt.Sprintf("/%s/%s create error:%+v", name, typeName, response))
+	// err = errors.New(fmt.Sprintf("/%s/%s create error:%+v", name, typeName, response))
+	err = fmt.Errorf("/%s/%s create error:%+v", name, typeName, response)
 	return
 }
+
 func (host *ElasticSearch) Update(name string, typeName string, id string, jsonData string) (err error) {
 	response, err := host.conn.Index(name, typeName, id, nil, jsonData)
 	if err != nil {
@@ -49,7 +53,8 @@ func (host *ElasticSearch) Update(name string, typeName string, id string, jsonD
 	if response.Ok {
 		return
 	}
-	err = errors.New(fmt.Sprintf("/%s/%s update error:%+v", name, typeName, response))
+	// err = errors.New(fmt.Sprintf("/%s/%s update error:%+v", name, typeName, response))
+	err = fmt.Errorf("/%s/%s update error:%+v", name, typeName, response)
 	return
 }
 
