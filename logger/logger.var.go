@@ -23,7 +23,8 @@ const (
 )
 
 const (
-	appender_file = "file"
+	appender_file   = "file"
+	appender_stdout = "stdout"
 )
 
 var levelMap map[string]int

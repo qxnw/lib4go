@@ -5,6 +5,7 @@ import "os"
 import "time"
 import "sync"
 import "path/filepath"
+import "io"
 
 //FileAppender 文件输出器
 type FileAppender struct {
@@ -13,7 +14,7 @@ type FileAppender struct {
 	lastWrite time.Time
 	layout    *Appender
 	path      string
-	file      *os.File
+	file      io.Writer
 	ticker    *time.Ticker
 	locker    sync.Mutex
 	Level     int
@@ -61,6 +62,7 @@ func (f *FileAppender) Close() {
 
 //writeTo 定时写入文件
 func (f *FileAppender) writeTo() {
+START:
 	for {
 		select {
 		case _, ok := <-f.ticker.C:
@@ -68,6 +70,8 @@ func (f *FileAppender) writeTo() {
 				f.locker.Lock()
 				f.buffer.WriteTo(f.file)
 				f.locker.Unlock()
+			} else {
+				break START
 			}
 		}
 	}

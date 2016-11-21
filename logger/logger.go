@@ -47,9 +47,24 @@ func Get(names ...string) (logger *Logger) {
 	return logger
 }
 
+//GetSession 根据日志名称及session获取日志组件
+func GetSession(name string, sessionID string) (logger *Logger) {
+	logger = &Logger{}
+	logger.names = append(logger.names, name)
+	logger.sessions = append(logger.sessions, sessionID)
+	return logger
+}
+
+//GetSessionID 获取当前日志的session id
+func (logger *Logger) GetSessionID() string {
+	if len(logger.sessions) > 0 {
+		return logger.sessions[0]
+	}
+	return ""
+}
+
 //Debug 输出debug日志
 func (logger *Logger) Debug(content ...interface{}) {
-
 	for i, name := range logger.names {
 		event := NewLogEvent(name, SLevel_Debug, logger.sessions[i], fmt.Sprint(content...))
 		manager.Log(event)
