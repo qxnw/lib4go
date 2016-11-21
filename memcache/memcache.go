@@ -3,6 +3,8 @@ package memcache
 import (
 	"encoding/json"
 
+	"errors"
+
 	"github.com/bradfitz/gomemcache/memcache"
 )
 
@@ -15,6 +17,7 @@ func New(config string) (m *MemcacheClient, err error) {
 	m = &MemcacheClient{}
 	err = json.Unmarshal([]byte(config), &m)
 	if err != nil {
+		err = errors.New("memcache配置文件有误:" + err.Error())
 		return
 	}
 	m.client = memcache.New(m.Servers...)
