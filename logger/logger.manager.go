@@ -27,6 +27,7 @@ func (a *loggerManager) Log(event LogEvent) {
 			}, config)
 			if err == nil {
 				capp := currentAppender.(IAppender)
+				event.Output = transform(event.Content, event)
 				capp.Write(event)
 			} else {
 				sysLogWrite(SLevel_Error, err.Error())

@@ -39,7 +39,7 @@ func read() (appenders []*Appender, err error) {
 	loggerPath := utility.GetExcPath("./conf/ars.logger.json", "bin")
 	appenders = make([]*Appender, 0, 2)
 	if !exists(loggerPath) {
-		err = errors.New("配置文件不存在")
+		err = errors.New("配置文件不存在:" + loggerPath)
 		return
 	}
 	bytes, err := ioutil.ReadFile(loggerPath)
@@ -65,10 +65,15 @@ func writeToFile(loggerPath string, appenders []*Appender) {
 	return
 }
 func getDefConfig() (appenders []*Appender) {
-	appender := &Appender{Type: "file", Level: SLevel_ALL}
-	appender.Path = utility.GetExcPath("./logs/%name/%level_%date.log", "bin")
-	appender.Layout = "[%datetime][%l][%session] %content"
-	appenders = append(appenders, appender)
+	fileAppender := &Appender{Type: "file", Level: SLevel_ALL}
+	fileAppender.Path = utility.GetExcPath("./logs/%name/%level_%date.log", "bin")
+	fileAppender.Layout = "[%datetime][%l][%session] %content"
+	appenders = append(appenders, fileAppender)
+
+	sdtoutAppender := &Appender{Type: "stdout", Level: SLevel_ALL}
+	fileAppender.Layout = "[%datetime][%l][%session] %content"
+	appenders = append(appenders, sdtoutAppender)
+
 	return
 }
 func exists(p string) bool {
