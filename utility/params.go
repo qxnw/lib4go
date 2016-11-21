@@ -11,7 +11,7 @@ import (
 func GetParamsMap(urlQuery string) (result map[string]interface{}, err error) {
 	/*add by champly 2016年11月18日15:59:36*/
 	index := strings.IndexAny(urlQuery, "?")
-	if index == -1 || index >= len(urlQuery) {
+	if index == -1 || index >= len(urlQuery)-1 {
 		return nil, nil
 	}
 	/*end*/
