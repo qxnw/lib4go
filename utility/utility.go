@@ -65,7 +65,7 @@ func Escape(input string) string {
 	return r
 }
 
-// GetExcPath 获取路径
+// GetExcPath 第一个参数的路径，结果trim掉后面的参数
 func GetExcPath(p ...string) string {
 	if len(p) == 0 {
 		return ""
