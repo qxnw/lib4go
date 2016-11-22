@@ -65,7 +65,7 @@ func Escape(input string) string {
 	return r
 }
 
-// GetExcPath 获取路径的路径
+// GetExcPath 获取路径
 func GetExcPath(p ...string) string {
 	if len(p) == 0 {
 		return ""
