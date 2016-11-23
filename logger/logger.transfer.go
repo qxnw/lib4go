@@ -18,7 +18,7 @@ func transform(tpl string, event LogEvent) (result string) {
 		case "date":
 			return event.Now.Format("20060102")
 		case "datetime":
-			return event.Now.Format("2016/01/02 15:04:05")
+			return event.Now.Format("2006/01/02 15:04:05")
 		case "year":
 			return event.Now.Format("2006")
 		case "mm":
