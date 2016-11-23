@@ -1,7 +1,11 @@
 package logger
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
-func TestLogger(tx *testing.T) {
-
+func TestNew(t *testing.T) {
+	logger := New(nil...)
+	fmt.Println(logger)
 }
