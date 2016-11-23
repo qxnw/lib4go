@@ -1,11 +1,15 @@
 package logger
 
-import "bytes"
-import "os"
-import "time"
+import (
+	"bytes"
+	"time"
+
+	"io"
+
+	"github.com/qxnw/lib4go/file"
+)
+
 import "sync"
-import "path/filepath"
-import "io"
 
 //FileAppender 文件输出器
 type FileAppender struct {
@@ -13,8 +17,7 @@ type FileAppender struct {
 	buffer    *bytes.Buffer
 	lastWrite time.Time
 	layout    *Appender
-	path      string
-	file      io.Writer
+	file      io.WriteCloser
 	ticker    *time.Ticker
 	locker    sync.Mutex
 	Level     int
@@ -24,13 +27,9 @@ type FileAppender struct {
 func NewFileAppender(path string, layout *Appender) (fa *FileAppender, err error) {
 	fa = &FileAppender{layout: layout}
 	fa.Level = getLevel(layout.Level)
-	fa.buffer = bytes.NewBufferString("---------------------begin-------------------------\n")
+	fa.buffer = bytes.NewBufferString("\n---------------------begin-------------------------\n\n")
 	fa.ticker = time.NewTicker(time.Second)
-	fa.path, err = filepath.Abs(path)
-	if err != nil {
-		return
-	}
-	fa.file, err = os.Create(fa.path)
+	fa.file, err = file.CreateFile(path)
 	if err != nil {
 		return
 	}
@@ -55,8 +54,9 @@ func (f *FileAppender) Close() {
 	f.Level = ILevel_OFF
 	f.ticker.Stop()
 	f.locker.Lock()
-	f.buffer.WriteString("\n---------------------end-------------------------")
+	f.buffer.WriteString("\n---------------------end-------------------------\n")
 	f.buffer.WriteTo(f.file)
+	f.file.Close()
 	f.locker.Unlock()
 }
 

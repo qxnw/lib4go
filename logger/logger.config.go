@@ -10,7 +10,7 @@ import (
 
 	"errors"
 
-	"github.com/qxnw/lib4go/utility"
+	"github.com/qxnw/lib4go/file"
 )
 
 //Appender 输出器
@@ -24,19 +24,27 @@ type Appender struct {
 	Flush  int    `json:"flush"`
 }
 
+var loggerPath = file.GetAbs("../conf/ars.logger.json")
+
 //ReadConfig 读取配置文件
 func ReadConfig() (appenders []*Appender) {
 	var err error
 	appenders, err = read()
-	if err != nil {
-		appenders = getDefConfig()
-		sysLogWrite(SLevel_Error, err)
+	if err == nil {
+		return
 	}
+	appenders = getDefConfig()
+	sysLoggerError(err)
+	err = writeToFile(loggerPath, appenders)
+	if err != nil {
+		sysLoggerError(err)
+	}
+
 	return
 }
 
 func read() (appenders []*Appender, err error) {
-	loggerPath := utility.GetExcPath("./conf/ars.logger.json", "bin")
+
 	appenders = make([]*Appender, 0, 2)
 	if !exists(loggerPath) {
 		err = errors.New("配置文件不存在:" + loggerPath)
@@ -53,25 +61,35 @@ func read() (appenders []*Appender, err error) {
 	}
 	return
 }
-func writeToFile(loggerPath string, appenders []*Appender) {
+func writeToFile(loggerPath string, appenders []*Appender) (err error) {
 	if r := recover(); r != nil {
-		sysLogWrite(SLevel_Error, r)
+		err = r.(error)
 	}
-	data, _ := json.Marshal(appenders)
-	err := ioutil.WriteFile(loggerPath, data, os.ModeAppend)
+
+	fwriter, err := file.CreateFile(loggerPath)
 	if err != nil {
-		sysLogWrite(SLevel_Error, err)
+		return
 	}
+	data, err := json.Marshal(appenders)
+	if err != nil {
+		return
+	}
+	_, err = fwriter.Write(data)
+	if err != nil {
+		return
+	}
+	fwriter.Close()
+	sysLoggerError("已创建日志文件:", loggerPath)
 	return
 }
 func getDefConfig() (appenders []*Appender) {
 	fileAppender := &Appender{Type: "file", Level: SLevel_ALL}
-	fileAppender.Path = utility.GetExcPath("./logs/%name/%level_%date.log", "bin")
-	fileAppender.Layout = "[%datetime][%l][%session] %content"
+	fileAppender.Path = file.GetAbs("../logs/%name/%level_%date.log")
+	fileAppender.Layout = "[%datetime][%l][%session] %content%n"
 	appenders = append(appenders, fileAppender)
 
 	sdtoutAppender := &Appender{Type: "stdout", Level: SLevel_ALL}
-	fileAppender.Layout = "[%datetime][%l][%session] %content"
+	sdtoutAppender.Layout = "[%datetime][%l][%session] %content%n"
 	appenders = append(appenders, sdtoutAppender)
 
 	return

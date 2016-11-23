@@ -109,7 +109,7 @@ func (m ConcurrentMap) Get(key string) (interface{}, bool) {
 	// Get item from shard.
 	val, ok := shard.items[key]
 	shard.RUnlock()
-	return val, ok	
+	return val, ok
 }
 
 //Count  Returns the number of elements within the map.
@@ -289,6 +289,9 @@ func (m ConcurrentMap) Clear() {
 // but not across the shards
 type IterCb func(key string, v interface{})
 
+//RemoveCb Iterator callback,返回true从列表中移除key
+type RemoveCb func(key string, v interface{}) bool
+
 // Callback based iterator, cheapest way to read
 // all elements in a map.
 func (m *ConcurrentMap) IterCb(fn IterCb) {
@@ -300,6 +303,24 @@ func (m *ConcurrentMap) IterCb(fn IterCb) {
 		}
 		shard.RUnlock()
 	}
+}
+
+//RemoveIterCb 循环移除
+func (m *ConcurrentMap) RemoveIterCb(fn RemoveCb) int {
+	count := 0
+	for idx := range *m {
+		shard := (*m)[idx]
+		shard.RLock()
+		for key, value := range shard.items {
+			if fn(key, value) {
+				delete(shard.items, key)
+				count++
+			}
+
+		}
+		shard.RUnlock()
+	}
+	return count
 }
 
 //Keys Return all keys as []string

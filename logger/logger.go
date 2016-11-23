@@ -139,3 +139,8 @@ func getSessionID() string {
 	}
 	return md5.Encrypt(base64.URLEncoding.EncodeToString(b))[:8]
 }
+
+//Close 关闭所有日志组件
+func Close() {
+	manager.Close()
+}
