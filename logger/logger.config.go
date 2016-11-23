@@ -62,9 +62,17 @@ func read() (appenders []*Appender, err error) {
 	return
 }
 func writeToFile(loggerPath string, appenders []*Appender) (err error) {
-	if r := recover(); r != nil {
-		err = r.(error)
-	}
+	// if r := recover(); r != nil {
+	// 	err = r.(error)
+	// }
+
+	/*change by champly 2016年11月23日14:32:45*/
+	defer func() {
+		if r := recover(); r != nil {
+			err = r.(error)
+		}
+	}()
+	/*end*/
 
 	fwriter, err := file.CreateFile(loggerPath)
 	if err != nil {
