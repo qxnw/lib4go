@@ -3,6 +3,7 @@ package mq
 import (
 	"fmt"
 	"net"
+	"sync"
 	"time"
 
 	"github.com/gmallard/stompngo"
@@ -19,6 +20,7 @@ type ProducerConfig struct {
 type StompProducer struct {
 	config ProducerConfig
 	conn   *stompngo.Connection
+	lk     sync.Mutex
 	header []string
 }
 
@@ -26,17 +28,37 @@ type StompProducer struct {
 func NewStompProducer(config ProducerConfig) (producer *StompProducer, err error) {
 	producer = &StompProducer{}
 	producer.config = config
-	conn, err := net.Dial("tcp", config.Address)
-	if err != nil {
-		return
-	}
 	producer.header = stompngo.Headers{"accept-version", config.Version}
-	producer.conn, err = stompngo.Connect(conn, producer.header)
 	return
+}
+
+//Connect 连接到服务器
+func (producer *StompProducer) Connect() error {
+	if producer.conn != nil || producer.conn.Connected() {
+		return nil
+	}
+	producer.lk.Lock()
+	defer producer.lk.Unlock()
+	if producer.conn != nil || producer.conn.Connected() {
+		return nil
+	}
+	con, err := net.Dial("tcp", producer.config.Address)
+	if err != nil {
+		return fmt.Errorf("mq 无法连接到远程服务器:%v", err)
+	}
+	producer.conn, err = stompngo.Connect(con, producer.header)
+	if err != nil {
+		return fmt.Errorf("mq 无法连接到远程服务器:%v", err)
+	}
+
+	return nil
 }
 
 //Send 发送消息
 func (producer *StompProducer) Send(queue string, msg string, timeout int) (err error) {
+	if err = producer.Connect(); err != nil {
+		return
+	}
 	header := stompngo.Headers{"destination", queue, "persistent", producer.config.Persistent}
 	if timeout > 0 {
 		header = stompngo.Headers{"destination", fmt.Sprintf("/%s/%s", "queue", queue),
@@ -49,7 +71,7 @@ func (producer *StompProducer) Send(queue string, msg string, timeout int) (err 
 
 //Close 关闭当前连接
 func (producer *StompProducer) Close() {
-	if !producer.conn.Connected() {
+	if err := producer.Connect(); err != nil {
 		return
 	}
 	producer.conn.Disconnect(stompngo.Headers{})
