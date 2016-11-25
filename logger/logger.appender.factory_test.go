@@ -36,13 +36,14 @@ func (f *TestWriteCloser) Write(p []byte) (n int, err error) {
 	content := string(p)
 	fmt.Println("测试输出：", string(p))
 	if strings.Contains(content, "[d]") {
-		content = "debug"
-	} else if strings.Contains(content, "[i]") {
+		// r, _ := regexp.Compile("\[d\]")
+		// r.find
+	}
+	if strings.Contains(content, "[i]") {
 		content = "info"
-	} else if strings.Contains(content, "[f]") {
+	}
+	if strings.Contains(content, "[f]") {
 		content = "falat"
-	} else {
-		content = "other"
 	}
 	// if strings.Contains(content, "[d]") {
 	// 	r, _ := regexp.Compile(`\[d\]`)
