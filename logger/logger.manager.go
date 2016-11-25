@@ -3,9 +3,14 @@ package logger
 import "github.com/qxnw/lib4go/concurrent"
 import "time"
 
+type ILoggerAppenderFactory interface {
+	MakeAppender(*Appender, LogEvent) (IAppender, error)
+	MakeUniq(*Appender, LogEvent) string
+}
+
 type loggerManager struct {
 	appenders cmap.ConcurrentMap
-	factory   *loggerAppenderFactory
+	factory   ILoggerAppenderFactory
 	configs   []*Appender
 	ticker    *time.Ticker
 	isClose   bool

@@ -41,7 +41,6 @@ func TestRead(t *testing.T) {
 }
 
 func TestWriteToFile(t *testing.T) {
-	// 正常读取配置文件
 	loggerPath = "../conf/ars.logger.json"
 	appenders, err := read()
 	if err != nil {
@@ -50,20 +49,26 @@ func TestWriteToFile(t *testing.T) {
 	}
 
 	// 读取配置文件失败【没有权限】
-	err = writeToFile("/root/fail.log", appenders)
+	err = writeToFile("/root/ars.logger.json", appenders)
 	if err == nil {
 		t.Error("test fail")
 	}
 
 	// 配置文件不存在
-	err = writeToFile("../conf/no_ars.logger.json", appenders)
+	err = writeToFile("../log/newlogger/20161123.log", appenders)
 	if err != nil {
 		t.Errorf("test fail：%v", err)
 	}
 
 	// 正常写配置文件
-	err = writeToFile("../logs/test.log", appenders)
+	err = writeToFile("../log/newlogger/20161125.log", appenders)
 	if err != nil {
 		t.Errorf("test fail：%v", err)
+	}
+
+	// 路径包含特殊字符
+	err = writeToFile("../////", appenders)
+	if err == nil {
+		t.Error("test fail")
 	}
 }
