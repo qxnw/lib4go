@@ -44,7 +44,6 @@ func ReadConfig() (appenders []*Appender) {
 }
 
 func read() (appenders []*Appender, err error) {
-
 	appenders = make([]*Appender, 0, 2)
 	if !exists(loggerPath) {
 		err = errors.New("配置文件不存在:" + loggerPath)
@@ -62,17 +61,11 @@ func read() (appenders []*Appender, err error) {
 	return
 }
 func writeToFile(loggerPath string, appenders []*Appender) (err error) {
-	// if r := recover(); r != nil {
-	// 	err = r.(error)
-	// }
-
-	/*change by champly 2016年11月23日14:32:45*/
 	defer func() {
 		if r := recover(); r != nil {
 			err = r.(error)
 		}
 	}()
-	/*end*/
 
 	fwriter, err := file.CreateFile(loggerPath)
 	if err != nil {
@@ -87,7 +80,7 @@ func writeToFile(loggerPath string, appenders []*Appender) (err error) {
 		return
 	}
 	fwriter.Close()
-	sysLoggerError("已创建日志文件:", loggerPath)
+	sysLoggerError("已创建日志配置文件:", loggerPath)
 	return
 }
 func getDefConfig() (appenders []*Appender) {
