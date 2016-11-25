@@ -13,6 +13,7 @@ func (f *loggerAppenderFactory) MakeAppender(l *Appender, event LogEvent) (IAppe
 	switch strings.ToLower(l.Type) {
 	case appender_file:
 		return NewFileAppender(f.MakeUniq(l, event), l)
+
 	case appender_stdout:
 		return NewStudoutAppender(f.MakeUniq(l, event), l)
 	}

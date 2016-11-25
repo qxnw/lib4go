@@ -3,7 +3,9 @@ package logger
 import "testing"
 
 func TestNew(t *testing.T) {
-	// log := New("logger")
+
+	//log := New("logger")
+
 	// session := log.GetSessionID()
 	// if len(session) != 8 {
 	// 	t.Error("test fail")
