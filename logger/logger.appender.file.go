@@ -2,14 +2,12 @@ package logger
 
 import (
 	"bytes"
-	"time"
-
 	"io"
+	"sync"
+	"time"
 
 	"github.com/qxnw/lib4go/file"
 )
-
-import "sync"
 
 //FileAppender 文件输出器
 type FileAppender struct {
