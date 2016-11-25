@@ -49,19 +49,19 @@ func TestWriteToFile(t *testing.T) {
 		return
 	}
 
-	// 读取日志失败【没有权限】
+	// 读取配置文件失败【没有权限】
 	err = writeToFile("/root/fail.log", appenders)
 	if err == nil {
 		t.Error("test fail")
 	}
 
-	// 日志不存在
+	// 配置文件不存在
 	err = writeToFile("../conf/no_ars.logger.json", appenders)
 	if err != nil {
 		t.Errorf("test fail：%v", err)
 	}
 
-	// 正常写日志
+	// 正常写配置文件
 	err = writeToFile("../logs/test.log", appenders)
 	if err != nil {
 		t.Errorf("test fail：%v", err)
