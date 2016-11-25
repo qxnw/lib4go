@@ -21,18 +21,23 @@ type influxDbConfig struct {
 
 // InfluxDB 上下文
 type InfluxDB struct {
-	config *influxDbConfig
+	config influxDbConfig
 }
 
-// New 新建一个influxdb的环境
-func New(config string) (i *InfluxDB, err error) {
-	fmt.Println("new influxdb:", config)
-	i = &InfluxDB{}
-	i.config = &influxDbConfig{}
+//NewJSON 根据json初始化influxdb
+func NewJSON(config string) (i *InfluxDB, err error) {
+	conf := influxDbConfig{}
 	err = json.Unmarshal([]byte(config), &i.config)
 	if err != nil {
 		return nil, fmt.Errorf("influxdb 配置文件有误:%v", err)
 	}
+	return New(conf)
+}
+
+// New 新建一个influxdb的环境
+func New(config influxDbConfig) (i *InfluxDB, err error) {
+	i = &InfluxDB{}
+	i.config = config
 	if strings.EqualFold(i.config.Address, "") ||
 		strings.EqualFold(i.config.DbName, "") ||
 		strings.EqualFold(i.config.RowFormat, "") {

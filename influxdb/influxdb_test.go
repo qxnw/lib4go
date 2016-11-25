@@ -20,7 +20,7 @@ func TestNew(t *testing.T) {
     "password":"123456",
     "row":"test_table,name=@name,address=@address age=@age"
 }`
-	_, err := New(config)
+	_, err := NewJSON(config)
 	if err != nil {
 		t.Errorf("create influxdb context fail:%v", err)
 	}
@@ -32,7 +32,7 @@ func TestNew(t *testing.T) {
     "password":"123456",
     "row":"test_table,name=@name,address=@address age=@age"
 }`
-	_, err = New(config)
+	_, err = NewJSON(config)
 	if err == nil {
 		t.Error("test fail")
 	}
@@ -43,7 +43,7 @@ func TestNew(t *testing.T) {
     "db":"influxdb_test",
     "row":"test_table,name=@name,address=@address age=@age"
 }`
-	_, err = New(config)
+	_, err = NewJSON(config)
 	if err != nil {
 		t.Errorf("create influxdb context fail:%v", err)
 	}
@@ -55,7 +55,7 @@ func TestNew(t *testing.T) {
     "user":"admin",
     "password":"123456"
 }`
-	_, err = New(config)
+	_, err = NewJSON(config)
 	if err == nil {
 		t.Error("test fail")
 	}
@@ -67,7 +67,7 @@ func TestNew(t *testing.T) {
     "user":"admin",
     "password":"123456"
 }`
-	_, err = New(config)
+	_, err = NewJSON(config)
 	if err == nil {
 		t.Error("test fail")
 	}
@@ -82,7 +82,7 @@ func TestSaveString(t *testing.T) {
     "password":"123456",
     "row":"test_table,name=@name,address=@address age=@age"
 }`
-	i, err := New(config)
+	i, err := NewJSON(config)
 	if err != nil {
 		t.Errorf("create influxdb context fail:%v", err)
 	}
@@ -101,7 +101,7 @@ func TestSaveString(t *testing.T) {
     "password":"123456",
     "row":"test_table,name=@name,address=@address age=@age"
 }`
-	i, err = New(config)
+	i, err = NewJSON(config)
 	if err != nil {
 		t.Errorf("create influxdb context fail:%v", err)
 	}
@@ -120,7 +120,7 @@ func TestSaveString(t *testing.T) {
     "password":"123456",
     "row":"test_table,name=@name,address=@address age=@age"
 }`
-	i, err = New(config)
+	i, err = NewJSON(config)
 	if err != nil {
 		t.Errorf("create influxdb context fail:%v", err)
 	}
@@ -139,7 +139,7 @@ func TestSaveString(t *testing.T) {
     "password":"123456",
     "row":"test_table,name=@name,address=@address age=@age"
 }`
-	i, err = New(config)
+	i, err = NewJSON(config)
 	if err != nil {
 		t.Errorf("create influxdb context fail:%v", err)
 	}
@@ -158,7 +158,7 @@ func TestSaveString(t *testing.T) {
     "password":"123456",
     "row":"test_table,name=@name,address=@address age=@age"
 }`
-	i, err = New(config)
+	i, err = NewJSON(config)
 	if err != nil {
 		t.Errorf("create influxdb context fail:%v", err)
 	}
