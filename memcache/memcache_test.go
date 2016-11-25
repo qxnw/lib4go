@@ -7,7 +7,7 @@ import (
 )
 
 func TestMemcache(t *testing.T) {
-	mem, err := New(`{"servers": ["192.168.0.166:11212"]}`)
+	mem, err := NewJSON(`{"servers": ["192.168.0.166:11212"]}`)
 	if err != nil {
 		t.Error(err)
 		return
@@ -73,14 +73,14 @@ func TestMemcache(t *testing.T) {
 	}
 
 	// 配置文件错误
-	mem, err = New(`192.168.0.166:11212`)
+	mem, err = NewJSON(`192.168.0.166:11212`)
 	if err == nil {
 		t.Error(err)
 		return
 	}
 
 	// 配置文件错误
-	mem, err = New(`{"servers": ["192.168.0.165:11212"]}`)
+	mem, err = NewJSON(`{"servers": ["192.168.0.165:11212"]}`)
 	if err != nil {
 		t.Error(err)
 		return
