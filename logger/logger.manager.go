@@ -5,6 +5,7 @@ import "time"
 
 type loggerManager struct {
 	appenders cmap.ConcurrentMap
+	factory   *loggerAppenderFactory
 	configs   []*Appender
 	ticker    *time.Ticker
 	isClose   bool
@@ -16,6 +17,7 @@ type appenderEntity struct {
 
 func newLoggerManager() (m *loggerManager) {
 	m = &loggerManager{isClose: false}
+	m.factory = &loggerAppenderFactory{}
 	m.appenders = cmap.New()
 	m.configs = ReadConfig()
 	m.ticker = time.NewTicker(time.Second)
@@ -29,10 +31,10 @@ func (a *loggerManager) Log(event LogEvent) {
 		return
 	}
 	for _, config := range a.configs {
-		uniq := makeUniq(config, event)
+		uniq := a.factory.MakeUniq(config, event)
 		_, currentAppender, err := a.appenders.SetIfAbsentCb(uniq, func(p ...interface{}) (entity interface{}, err error) {
 			l := p[0].(*Appender)
-			app, err := makeAppender(l, event)
+			app, err := a.factory.MakeAppender(l, event)
 			if err != nil {
 				return
 			}
