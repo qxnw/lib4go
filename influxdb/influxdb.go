@@ -11,7 +11,7 @@ import (
 )
 
 // influxDbConfig influxdb配置
-type influxDbConfig struct {
+type InfluxDbConfig struct {
 	Address   string `json:"address"`
 	DbName    string `json:"db"`
 	UserName  string `json:"user"`
@@ -21,12 +21,12 @@ type influxDbConfig struct {
 
 // InfluxDB 上下文
 type InfluxDB struct {
-	config influxDbConfig
+	config InfluxDbConfig
 }
 
 //NewJSON 根据json初始化influxdb
 func NewJSON(config string) (i *InfluxDB, err error) {
-	conf := influxDbConfig{}
+	conf := InfluxDbConfig{}
 	err = json.Unmarshal([]byte(config), &i.config)
 	if err != nil {
 		return nil, fmt.Errorf("influxdb 配置文件有误:%v", err)
@@ -35,7 +35,7 @@ func NewJSON(config string) (i *InfluxDB, err error) {
 }
 
 // New 新建一个influxdb的环境
-func New(config influxDbConfig) (i *InfluxDB, err error) {
+func New(config InfluxDbConfig) (i *InfluxDB, err error) {
 	i = &InfluxDB{}
 	i.config = config
 	if strings.EqualFold(i.config.Address, "") ||
