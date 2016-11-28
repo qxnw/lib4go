@@ -1,42 +1,38 @@
 package scheduler
 
-import "github.com/arsgo/cron"
+import (
+	"sync/atomic"
 
-type Scheduler struct {
-	c *cron.Cron
-}
-
-var (
-	Schd *Scheduler = NewScheduler()
+	"github.com/arsgo/cron"
 )
 
-func NewScheduler() *Scheduler {
-	return &Scheduler{c: cron.New()}
+//Scheduler 定时任务调度组件
+type Scheduler struct {
+	c      *cron.Cron
+	status int32
 }
 
-func AddTask(trigger string, task *TaskDetail) {
-	Schd.c.AddJob(trigger, task)
-}
-func Start() {
-	Schd.c.Start()
+//New 创建 定时任务调度组件
+func New() *Scheduler {
+	return &Scheduler{c: cron.New(), status: 1}
 }
 
-func Stop() {
-	Schd.c.Stop()
-	Schd = &Scheduler{c: cron.New()}
-}
-
-func (s *Scheduler) AddTask(trigger string, task *TaskDetail) {
+//AddTask 添加调度任务
+func (s *Scheduler) AddTask(trigger string, task *Task) {
 	s.c.AddJob(trigger, task)
 }
+
+//Start 启动组件
 func (s *Scheduler) Start() {
-	s.c.Start()
-}
-func Count() int {
-	return len(Schd.c.Entries())
+	if atomic.CompareAndSwapInt32(&s.status, 1, 0) {
+		s.c.Start()
+	}
 }
 
+//Stop 停止组件并清空所有任务
 func (s *Scheduler) Stop() {
-	s.c.Stop()
-	s.c = cron.New()
+	if atomic.CompareAndSwapInt32(&s.status, 0, 1) {
+		s.c.Stop()
+		s.c = cron.New()
+	}
 }

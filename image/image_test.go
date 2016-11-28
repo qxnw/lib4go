@@ -1,39 +1,39 @@
-package draw
+package image
 
 import (
 	"testing"
 )
 
 func TestNewDraw(t *testing.T) {
-	img := NewDraw(100, 100)
+	img := NewImage(100, 100)
 	if img == nil {
 		t.Error("test fail")
 	}
 
-	img = NewDraw(0, 0)
+	img = NewImage(0, 0)
 	if img == nil {
 		t.Error("test fail")
 	}
 
-	img = NewDraw(-100, 100)
+	img = NewImage(-100, 100)
 	if img == nil {
 		t.Error("test fail")
 	}
 
-	img = NewDraw(-100, -100)
+	img = NewImage(-100, -100)
 	if img == nil {
 		t.Error("test fail")
 	}
 
-	img = NewDraw(100, -100)
+	img = NewImage(100, -100)
 	if img == nil {
 		t.Error("test fail")
 	}
 }
 
-func TestNewDrawFromFile(t *testing.T) {
+func TestNewImageFromFile(t *testing.T) {
 	path := "/home/champly/picture.png"
-	img, err := NewDrawFromFile(100, 100, path)
+	img, err := NewImageFromFile(100, 100, path)
 	if err != nil {
 		t.Errorf("test fail %v", err)
 	}
@@ -42,7 +42,7 @@ func TestNewDrawFromFile(t *testing.T) {
 	}
 
 	path = "/home/champly/picture.jpg"
-	img, err = NewDrawFromFile(-100, 100, path)
+	img, err = NewImageFromFile(-100, 100, path)
 	if err != nil {
 		t.Errorf("test fail %v", err)
 	}
@@ -51,7 +51,7 @@ func TestNewDrawFromFile(t *testing.T) {
 	}
 
 	path = "/home/champly/picture.jpg"
-	img, err = NewDrawFromFile(-100, -100, path)
+	img, err = NewImageFromFile(-100, -100, path)
 	if err != nil {
 		t.Errorf("test fail %v", err)
 	}
@@ -60,7 +60,7 @@ func TestNewDrawFromFile(t *testing.T) {
 	}
 
 	path = "/home/champly/picture.jpg"
-	img, err = NewDrawFromFile(100, -100, path)
+	img, err = NewImageFromFile(100, -100, path)
 	if err != nil {
 		t.Errorf("test fail %v", err)
 	}
@@ -69,13 +69,13 @@ func TestNewDrawFromFile(t *testing.T) {
 	}
 
 	path = "/home/champly/err_picture.jpg"
-	img, err = NewDrawFromFile(100, 100, path)
+	img, err = NewImageFromFile(100, 100, path)
 	if err == nil {
 		t.Error("test fail")
 	}
 
 	path = "/home/champly/picture.gif"
-	img, err = NewDrawFromFile(100, 100, path)
+	img, err = NewImageFromFile(100, 100, path)
 	if err == nil {
 		t.Error("test fail")
 	}
@@ -83,7 +83,7 @@ func TestNewDrawFromFile(t *testing.T) {
 
 func TestDrawFont(t *testing.T) {
 	path := "/home/champly/picture.jpg"
-	img, err := NewDrawFromFile(1920, 1080, path)
+	img, err := NewImageFromFile(1920, 1080, path)
 	if err != nil {
 		t.Errorf("test fail %v", err)
 	}
@@ -114,7 +114,7 @@ func TestDrawFont(t *testing.T) {
 
 func TestDrawImage(t *testing.T) {
 	path := "/home/champly/picture_test.png"
-	img, err := NewDrawFromFile(1920, 1080, path)
+	img, err := NewImageFromFile(1920, 1080, path)
 	if err != nil {
 		t.Errorf("test fail %v", err)
 	}
@@ -122,10 +122,6 @@ func TestDrawImage(t *testing.T) {
 		t.Error("test fail")
 	}
 
-	err = img.DrawImageWithScale("/home/champly/baidu.png", 100, 100, 200, 200, 100, 100)
-	if err != nil {
-		t.Errorf("test fail %v", err)
-	}
 	err = img.Save("/home/champly/picture_test.png")
 	if err != nil {
 		t.Errorf("test fail %v", err)

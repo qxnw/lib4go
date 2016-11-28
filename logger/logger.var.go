@@ -46,3 +46,17 @@ func getLevel(name string) int {
 	}
 	return ILevel_ALL
 }
+
+//ILogger 日志接口
+type ILogger interface {
+	Infof(format string, content ...interface{})
+	Info(content ...interface{})
+	Errorf(format string, content ...interface{})
+	Error(content ...interface{})
+
+	Debugf(format string, content ...interface{})
+	Debug(content ...interface{})
+
+	Fatalf(format string, content ...interface{})
+	Fatal(content ...interface{})
+}

@@ -1,4 +1,4 @@
-package draw
+package image
 
 import (
 	"fmt"
@@ -19,21 +19,21 @@ import (
 )
 
 //Draw 图片自定义处理类
-type Draw struct {
+type Image struct {
 	m *image.RGBA
 }
 
-//NewDraw 创建指定大小的画板
-func NewDraw(w int, h int) (img *Draw) {
-	img = &Draw{}
+//NewImage 创建指定大小的画板
+func NewImage(w int, h int) (img *Image) {
+	img = &Image{}
 	img.m = image.NewRGBA(image.Rect(0, 0, w, h))
 	draw.Draw(img.m, img.m.Bounds(), image.White, image.ZP, draw.Src)
 	return
 }
 
-//NewDrawFromFile 根据文件创建画板
-func NewDrawFromFile(w int, h int, p string) (img *Draw, err error) {
-	img = &Draw{}
+//NewImageFromFile 根据文件创建画板
+func NewImageFromFile(w int, h int, p string) (img *Image, err error) {
+	img = &Image{}
 	img.m = image.NewRGBA(image.Rect(0, 0, w, h))
 	ig, err := decodeImage(p)
 	if err != nil {
@@ -44,7 +44,7 @@ func NewDrawFromFile(w int, h int, p string) (img *Draw, err error) {
 }
 
 //DrawImage 在当前画版上绘制图片
-func (img *Draw) DrawImage(p string, sx int, sy int, ex int, ey int) (err error) {
+func (img *Image) DrawImage(p string, sx int, sy int, ex int, ey int) (err error) {
 	m, err := decodeImage(p)
 	if err != nil {
 		return
@@ -54,7 +54,7 @@ func (img *Draw) DrawImage(p string, sx int, sy int, ex int, ey int) (err error)
 }
 
 //DrawFont 绘制字体
-func (img *Draw) DrawFont(fontPath string, text string, col string, fontSize float64, sx int, sy int) (err error) {
+func (img *Image) DrawFont(fontPath string, text string, col string, fontSize float64, sx int, sy int) (err error) {
 	data, err := ioutil.ReadFile(fontPath)
 	if err != nil {
 		return
@@ -81,7 +81,7 @@ func (img *Draw) DrawFont(fontPath string, text string, col string, fontSize flo
 }
 
 //DrawImageWithScale 绘制图片并缩放原始图片
-func (img *Draw) DrawImageWithScale(p string, sx int, sy int, ex int, ey int, w int, h int) (err error) {
+func (img *Image) DrawImageWithScale(p string, sx int, sy int, ex int, ey int, w int, h int) (err error) {
 	m1, err := decodeImage(p)
 	if err != nil {
 		return
@@ -93,7 +93,7 @@ func (img *Draw) DrawImageWithScale(p string, sx int, sy int, ex int, ey int, w 
 }
 
 //Save 保存图片到指定路径
-func (img *Draw) Save(path string) error {
+func (img *Image) Save(path string) error {
 	imgfile, _ := os.Create(path)
 	defer imgfile.Close()
 	return png.Encode(imgfile, img.m)

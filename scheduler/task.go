@@ -2,32 +2,25 @@ package scheduler
 
 import "fmt"
 
-type TaskDetail struct {
-	obj interface{}
-	fun func(obj interface{})
+//Task 任务信息
+type Task struct {
+	input []interface{}
+	fun   func(input ...interface{})
 }
 
-func NewTask(obj interface{}, fun func(obj interface{})) *TaskDetail {
-	return &TaskDetail{obj: obj, fun: fun}
+//NewTask 创建任务
+func NewTask(fun func(input ...interface{}), input ...interface{}) *Task {
+	return &Task{input: input, fun: fun}
 }
 
-func (j *TaskDetail) Run() {
-	// defer func() {
-	// 	if err := recover(); err != nil {
-	// 		fmt.Println(err)
-	// 	}
-	// }()
-	// go j.fun(j.obj)
-
-	/*change by champly 2016年11月22日12:00:41*/
-	// 捕获异常
+//Run 执行任务
+func (j *Task) Run() {
 	go func() {
 		defer func() {
 			if err := recover(); err != nil {
 				fmt.Println(err)
 			}
 		}()
-		j.fun(j.obj)
+		j.fun(j.input...)
 	}()
-	/*end*/
 }

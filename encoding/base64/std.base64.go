@@ -7,15 +7,16 @@ func EncodeBytes(src []byte) string {
 	return base64.StdEncoding.EncodeToString(src)
 }
 
-// Encode 把一个string通过base64编码
-func Encode(src string) string {
-	return EncodeBytes([]byte(src))
-}
-
 // DecodeBytes 把一个string通过base64解码成[]byte
 func DecodeBytes(src string) (s []byte, err error) {
 	s, err = base64.StdEncoding.DecodeString(src)
 	return
+}
+
+
+// Encode 把一个string通过base64编码
+func Encode(src string) string {
+	return EncodeBytes([]byte(src))
 }
 
 // Decode 把一个string通过base64解码

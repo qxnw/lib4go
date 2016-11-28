@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/qxnw/lib4go/concurrent"
+	"github.com/qxnw/lib4go/concurrent/cmap"
 )
 
 type ILoggerAppenderFactory interface {

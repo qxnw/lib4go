@@ -7,7 +7,7 @@ import (
 	"sync"
 
 	"github.com/gmallard/stompngo"
-	"github.com/qxnw/lib4go/concurrent"
+	"github.com/qxnw/lib4go/concurrent/cmap"
 )
 
 //ConsumerConfig 配置信息
