@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
-
 	"os"
 
 	"github.com/qxnw/lib4go/concurrent"

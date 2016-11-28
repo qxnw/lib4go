@@ -3,17 +3,22 @@ package logger
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 )
 
-func sysLoggerInfo(content ...interface{}) {
-	sysLoggerWrite(SLevel_Info, fmt.Sprint(content...))
+func sysLoggerInfo(callBack func() string, content ...interface{}) {
+	sysLoggerWrite(SLevel_Info, fmt.Sprint(content...), callBack)
 }
-func sysLoggerError(content ...interface{}) {
-	sysLoggerWrite(SLevel_Error, fmt.Sprint(content...))
+func sysLoggerError(callBack func() string, content ...interface{}) {
+	sysLoggerWrite(SLevel_Error, fmt.Sprint(content...), callBack)
 }
 
-func sysLoggerWrite(level string, content interface{}) {
+func sysLoggerWrite(level string, content interface{}, callBack func() string) {
+	if strings.EqualFold(level, "") {
+		level = "All"
+	}
+
 	e := LogEvent{}
 	e.Now = time.Now()
 	e.Level = level
@@ -22,4 +27,7 @@ func sysLoggerWrite(level string, content interface{}) {
 	e.Content = fmt.Sprintf("%v", content)
 	e.Output = "[%datetime][%l][%session] %content%n"
 	os.Stderr.WriteString(transform(e.Output, e))
+	if callBack != nil {
+		callBack()
+	}
 }

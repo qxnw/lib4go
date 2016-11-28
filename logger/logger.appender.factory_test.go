@@ -34,22 +34,19 @@ type TestWriteCloser struct {
 
 func (f *TestWriteCloser) Write(p []byte) (n int, err error) {
 	content := string(p)
-	fmt.Println("测试输出：", string(p))
 	if strings.Contains(content, "[d]") {
-		// r, _ := regexp.Compile("\[d\]")
-		// r.find
+		count := strings.Count(content, "[d]")
+		SetResult("debug", count)
 	}
 	if strings.Contains(content, "[i]") {
-		content = "info"
+		count := strings.Count(content, "[i]")
+		SetResult("info", count)
 	}
 	if strings.Contains(content, "[f]") {
-		content = "falat"
+		count := strings.Count(content, "[f]")
+		SetResult("fatal", count)
 	}
-	// if strings.Contains(content, "[d]") {
-	// 	r, _ := regexp.Compile(`\[d\]`)
-	// }
 
-	SetResult(content)
 	return len(p), nil
 }
 
