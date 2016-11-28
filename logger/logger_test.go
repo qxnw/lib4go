@@ -374,8 +374,8 @@ func TestALL(t *testing.T) {
 		t.Error("test fail")
 	}
 
-	log = Get("newlogger")
-	log = GetSession("newlogger", log.GetSessionID())
+	// log = Get("newlogger")
+	// log = GetSession("newlogger", log.GetSessionID())
 
 	log.Debug("hello world")
 	log.Debugf("%s %s", "hello", "world")

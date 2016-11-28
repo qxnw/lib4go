@@ -3,6 +3,16 @@ package logger
 import (
 	"testing"
 	"time"
+
+	"os"
+
+	"bufio"
+
+	"io"
+
+	"strings"
+
+	"github.com/qxnw/lib4go/file"
 )
 
 func TestNewFailAppender(t *testing.T) {
@@ -45,15 +55,50 @@ func TestWriteToFileAndReadCheck(tx *testing.T) {
 	if err != nil {
 		tx.Errorf("test fail, %+v", err)
 	}
-	path := "../log/20161128.log"
-	layout := &Appender{Type: "file", Level: "debug", Path: path}
+	path := "../logs/20161128.log"
+	// layout := &Appender{Type: "file", Level: "All", Path: path}
+	layout := &Appender{Type: "file", Level: "All"}
 	fa, err := NewFileAppender(path, layout)
 	if err != nil {
 		tx.Errorf("test fail:%v", err)
 	}
-	event := []LogEvent{
-		LogEvent{Level: "debug", Now: t, Name: "test", Session: "12345678", Content: "content", Output: "output"},
+	events := []LogEvent{
+		LogEvent{Level: "Debug", Now: t, Name: "test", Session: "12345678", Content: "content", Output: "output1"},
+		LogEvent{Level: "Debug", Now: t, Name: "test", Session: "12345678", Content: "content", Output: "output2"},
+		LogEvent{Level: "Info", Now: t, Name: "test", Session: "12345678", Content: "content", Output: "output3"},
+		LogEvent{Level: "Fatal", Now: t, Name: "test", Session: "12345678", Content: "content", Output: "output4"},
+		LogEvent{Level: "Error", Now: t, Name: "test", Session: "12345678", Content: "content", Output: "output5"},
+		LogEvent{Level: "Error", Now: t, Name: "test", Session: "12345678", Content: "content", Output: "output6"},
 	}
+	for _, event := range events {
+		fa.Write(event)
+	}
+	fa.Close()
 
 	// 读取文件，进行校验
+	filePath := file.GetAbs(path)
+	f, err := os.Open(filePath)
+	if err != nil {
+		tx.Errorf("test fail:%v", err)
+	}
+	defer f.Close()
+	rd := bufio.NewReader(f)
+	for {
+		line, err := rd.ReadString('\n')
+		if err != nil || io.EOF == err {
+			tx.Errorf("test fail: %v", err)
+			break
+		}
+		if strings.Contains(line, "output1output2output3output4output5output6") {
+			tx.Log("test success!")
+			break
+		}
+	}
+
+	// 删除文件
+	f.Close()
+	err = os.Remove(filePath)
+	if err != nil {
+		tx.Errorf("test fail:%v", err)
+	}
 }

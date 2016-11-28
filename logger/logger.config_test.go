@@ -55,13 +55,13 @@ func TestWriteToFile(t *testing.T) {
 	}
 
 	// 配置文件不存在
-	err = writeToFile("../log/newlogger/20161123.log", appenders)
+	err = writeToFile("../logs/newlogger/20161123.log", appenders)
 	if err != nil {
 		t.Errorf("test fail：%v", err)
 	}
 
 	// 正常写配置文件
-	err = writeToFile("../log/newlogger/20161125.log", appenders)
+	err = writeToFile("../logs/newlogger/20161125.log", appenders)
 	if err != nil {
 		t.Errorf("test fail：%v", err)
 	}
