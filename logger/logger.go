@@ -8,7 +8,7 @@ import (
 
 	"os"
 
-	"github.com/qxnw/lib4go/concurrent"
+	"github.com/qxnw/lib4go/concurrent/cmap"
 	"github.com/qxnw/lib4go/security/md5"
 )
 

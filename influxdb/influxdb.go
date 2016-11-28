@@ -10,8 +10,8 @@ import (
 	"github.com/qxnw/lib4go/utility"
 )
 
-// influxDbConfig influxdb配置
-type InfluxDbConfig struct {
+// ConfigOptions influxdb配置
+type ConfigOptions struct {
 	Address   string `json:"address"`
 	DbName    string `json:"db"`
 	UserName  string `json:"user"`
@@ -21,12 +21,12 @@ type InfluxDbConfig struct {
 
 // InfluxDB 上下文
 type InfluxDB struct {
-	config InfluxDbConfig
+	config ConfigOptions
 }
 
 //NewJSON 根据json初始化influxdb
 func NewJSON(config string) (i *InfluxDB, err error) {
-	conf := InfluxDbConfig{}
+	conf := ConfigOptions{}
 	err = json.Unmarshal([]byte(config), &i.config)
 	if err != nil {
 		return nil, fmt.Errorf("influxdb 配置文件有误:%v", err)
@@ -35,13 +35,13 @@ func NewJSON(config string) (i *InfluxDB, err error) {
 }
 
 // New 新建一个influxdb的环境
-func New(config InfluxDbConfig) (i *InfluxDB, err error) {
+func New(config ConfigOptions) (i *InfluxDB, err error) {
 	i = &InfluxDB{}
 	i.config = config
 	if strings.EqualFold(i.config.Address, "") ||
 		strings.EqualFold(i.config.DbName, "") ||
 		strings.EqualFold(i.config.RowFormat, "") {
-		err = errors.New("influxDbConfig必须参数不能为空")
+		err = errors.New("ConfigOptions必须参数不能为空")
 		return
 	}
 	return
@@ -74,7 +74,6 @@ func (db *InfluxDB) Save(rows []map[string]interface{}) (err error) {
 	if resp.StatusCode == 204 {
 		return nil
 	}
-	// err = errors.New(fmt.Sprintf("influxdb save error:%d", resp.StatusCode))
 	err = fmt.Errorf("influxdb save error:%d", resp.StatusCode)
 	return
 }

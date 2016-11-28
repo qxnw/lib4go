@@ -7,19 +7,20 @@ import (
 	"github.com/bradfitz/gomemcache/memcache"
 )
 
-type MemcacheConfig struct {
+//MemcachedConfigOptions memcached配置选项
+type MemcachedConfigOptions struct {
 	Servers []string `json:"servers"`
 }
 
 // MemcacheClient memcache配置文件
 type MemcacheClient struct {
-	config *MemcacheConfig
+	config *MemcachedConfigOptions
 	client *memcache.Client
 }
 
 //NewJSON 根据json初始化memcache
 func NewJSON(config string) (m *MemcacheClient, err error) {
-	conf := MemcacheConfig{}
+	conf := MemcachedConfigOptions{}
 	err = json.Unmarshal([]byte(config), &conf)
 	if err != nil {
 		err = errors.New("memcache配置文件有误:" + err.Error())
@@ -29,7 +30,7 @@ func NewJSON(config string) (m *MemcacheClient, err error) {
 }
 
 // New 根据配置文件创建一个memcache连接
-func New(conf MemcacheConfig) (m *MemcacheClient, err error) {
+func New(conf MemcachedConfigOptions) (m *MemcacheClient, err error) {
 	m = &MemcacheClient{}
 	m.client = memcache.New(conf.Servers...)
 	return

@@ -7,28 +7,37 @@ import (
 	"github.com/mattbaird/elastigo/lib"
 )
 
+//ElasticSearch es组件
 type ElasticSearch struct {
 	host []string
 	conn *elastigo.Conn
 }
 
-type elasticConfig struct {
+//ESConfigOption 配置文件
+type ESConfigOption struct {
 	Host []string `json:"hosts"`
 }
 
-func New(config string) (host *ElasticSearch, err error) {
-	var elasticonfig elasticConfig
-	err = json.Unmarshal([]byte(config), &elasticonfig)
+//NewJSON 根据JSON配置文件初始化ElasticSearch组件
+func NewJSON(config string) (host *ElasticSearch, err error) {
+	var esco ESConfigOption
+	err = json.Unmarshal([]byte(config), &esco)
 	if err != nil {
 		return
 	}
+	return New(esco)
+}
+
+//New 根据配置文件初始化ElasticSearch组件
+func New(esco ESConfigOption) (host *ElasticSearch, err error) {
 	host = &ElasticSearch{}
 	host.conn = elastigo.NewConn()
-	host.host = elasticonfig.Host
-	host.conn.SetHosts(elasticonfig.Host)
+	host.host = esco.Host
+	host.conn.SetHosts(esco.Host)
 	return
 }
 
+//Create 创建索引
 func (host *ElasticSearch) Create(name string, typeName string, jsonData string) (id string, err error) {
 	response, err := host.conn.Index(name, typeName, "", nil, jsonData)
 	if err != nil {
@@ -39,11 +48,11 @@ func (host *ElasticSearch) Create(name string, typeName string, jsonData string)
 	if response.Created {
 		return
 	}
-	// err = errors.New(fmt.Sprintf("/%s/%s create error:%+v", name, typeName, response))
 	err = fmt.Errorf("/%s/%s create error:%+v", name, typeName, response)
 	return
 }
 
+//Update 更新索引
 func (host *ElasticSearch) Update(name string, typeName string, id string, jsonData string) (err error) {
 	response, err := host.conn.Index(name, typeName, id, nil, jsonData)
 	if err != nil {
@@ -58,6 +67,7 @@ func (host *ElasticSearch) Update(name string, typeName string, id string, jsonD
 	return
 }
 
+//Search 搜索数据
 func (host *ElasticSearch) Search(name string, typeName string, query string) (result string, err error) {
 	out, err := host.conn.Search(name, typeName, nil, query)
 	if err != nil {

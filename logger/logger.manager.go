@@ -1,7 +1,10 @@
 package logger
 
-import "github.com/qxnw/lib4go/concurrent"
-import "time"
+import (
+	"time"
+
+	"github.com/qxnw/lib4go/concurrent/cmap"
+)
 
 type ILoggerAppenderFactory interface {
 	MakeAppender(*Appender, LogEvent) (IAppender, error)

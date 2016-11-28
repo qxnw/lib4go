@@ -20,7 +20,7 @@ func GetAbs(path string) string {
 	return absPath
 }
 
-//CreateFile 获取文件的绝对路径，并创建文件如果文件所在的文件夹不存在则自动创建
+//CreateFile 根据文件路径(相对或绝对路径)创建文件，如果文件所在的文件夹不存在则自动创建
 func CreateFile(path string) (f *os.File, err error) {
 	absPath, err := filepath.Abs(path)
 	if err != nil {
