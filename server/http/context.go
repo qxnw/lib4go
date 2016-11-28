@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/arsgo/lib4go/logger"
+	"github.com/qxnw/lib4go/logger"
 	"github.com/qxnw/lib4go/utility"
 )
 
@@ -25,7 +25,7 @@ func NewContext(loggerName string, w http.ResponseWriter, r *http.Request, addre
 	context := &Context{Writer: w, Request: r, Address: address, Script: script}
 	context.StartTime = time.Now()
 	context.Session = utility.GetSessionID()
-	context.Log, _ = logger.NewSession(loggerName, context.Session)
+	context.Log = logger.GetSession(loggerName, context.Session)
 	return context
 
 }

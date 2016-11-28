@@ -14,7 +14,7 @@ import (
 
 //WebServer WEB服务
 type WebServer struct {
-	routes     []WebHandler
+	routes     []*WebHandler
 	address    string
 	loggerName string
 	Log        logger.ILogger
@@ -22,9 +22,9 @@ type WebServer struct {
 }
 
 //NewWebServer 创建WebServer服务
-func NewWebServer(address string, loggerName string, handlers ...WebHandler) (server *WebServer) {
+func NewWebServer(address string, loggerName string, handlers ...*WebHandler) (server *WebServer) {
 	server = &WebServer{routes: handlers, address: address, loggerName: loggerName}
-	server.Log, _ = logger.Get(loggerName)
+	server.Log = logger.Get(loggerName)
 	return
 }
 
@@ -46,7 +46,7 @@ func (s *WebServer) Serve() (err error) {
 
 //Stop 停止服务器
 func (s *WebServer) Stop() {
-	if w.l != nil {
-		w.l.Close()
+	if s.l != nil {
+		s.l.Close()
 	}
 }
