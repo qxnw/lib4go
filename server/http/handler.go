@@ -40,6 +40,7 @@ func (h *WebHandler) call(w http.ResponseWriter, r *http.Request) {
 	if strings.EqualFold(h.Method, "*") || strings.EqualFold(r.Method, h.Method) {
 		h.Handler(context)
 		return
+
 	}
 	w.WriteHeader(404)
 	w.Write([]byte("您访问的页面不存在"))
