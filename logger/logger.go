@@ -66,7 +66,7 @@ func (logger *Logger) GetSessionID() string {
 func (logger *Logger) Debug(content ...interface{}) {
 	for i, name := range logger.names {
 		event := NewLogEvent(name, SLevel_Debug, logger.sessions[i], fmt.Sprint(content...))
-		manager.Log(event)
+		manager.Log(event, nil)
 	}
 }
 
@@ -74,7 +74,7 @@ func (logger *Logger) Debug(content ...interface{}) {
 func (logger *Logger) Debugf(format string, content ...interface{}) {
 	for i, name := range logger.names {
 		event := NewLogEvent(name, SLevel_Debug, logger.sessions[i], fmt.Sprintf(format, content...))
-		manager.Log(event)
+		manager.Log(event, nil)
 	}
 }
 
@@ -82,7 +82,7 @@ func (logger *Logger) Debugf(format string, content ...interface{}) {
 func (logger *Logger) Info(content ...interface{}) {
 	for i, name := range logger.names {
 		event := NewLogEvent(name, SLevel_Info, logger.sessions[i], fmt.Sprint(content...))
-		manager.Log(event)
+		manager.Log(event, nil)
 	}
 
 }
@@ -91,7 +91,7 @@ func (logger *Logger) Info(content ...interface{}) {
 func (logger *Logger) Infof(format string, content ...interface{}) {
 	for i, name := range logger.names {
 		event := NewLogEvent(name, SLevel_Info, logger.sessions[i], fmt.Sprintf(format, content...))
-		manager.Log(event)
+		manager.Log(event, nil)
 	}
 }
 
@@ -99,7 +99,7 @@ func (logger *Logger) Infof(format string, content ...interface{}) {
 func (logger *Logger) Error(content ...interface{}) {
 	for i, name := range logger.names {
 		event := NewLogEvent(name, SLevel_Error, logger.sessions[i], fmt.Sprint(content...))
-		manager.Log(event)
+		manager.Log(event, nil)
 	}
 
 }
@@ -108,7 +108,7 @@ func (logger *Logger) Error(content ...interface{}) {
 func (logger *Logger) Errorf(format string, content ...interface{}) {
 	for i, name := range logger.names {
 		event := NewLogEvent(name, SLevel_Error, logger.sessions[i], fmt.Sprintf(format, content...))
-		manager.Log(event)
+		manager.Log(event, nil)
 	}
 }
 
@@ -116,7 +116,7 @@ func (logger *Logger) Errorf(format string, content ...interface{}) {
 func (logger *Logger) Fatal(content ...interface{}) {
 	for i, name := range logger.names {
 		event := NewLogEvent(name, SLevel_Fatal, logger.sessions[i], fmt.Sprint(content...))
-		manager.Log(event)
+		manager.Log(event, nil)
 	}
 	os.Exit(999)
 
@@ -126,7 +126,7 @@ func (logger *Logger) Fatal(content ...interface{}) {
 func (logger *Logger) Fatalf(format string, content ...interface{}) {
 	for i, name := range logger.names {
 		event := NewLogEvent(name, SLevel_Fatal, logger.sessions[i], fmt.Sprintf(format, content...))
-		manager.Log(event)
+		manager.Log(event, nil)
 	}
 	os.Exit(999)
 }

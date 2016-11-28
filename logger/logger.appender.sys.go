@@ -7,14 +7,14 @@ import (
 	"time"
 )
 
-func sysLoggerInfo(callBack func() string, content ...interface{}) {
-	sysLoggerWrite(SLevel_Info, fmt.Sprint(content...), callBack)
+func sysLoggerInfo(callBack func(error), content ...interface{}) {
+	sysLoggerWrite(callBack, SLevel_Info, fmt.Sprint(content...))
 }
-func sysLoggerError(callBack func() string, content ...interface{}) {
-	sysLoggerWrite(SLevel_Error, fmt.Sprint(content...), callBack)
+func sysLoggerError(callBack func(error), content ...interface{}) {
+	sysLoggerWrite(callBack, SLevel_Error, fmt.Sprint(content...))
 }
 
-func sysLoggerWrite(level string, content interface{}, callBack func() string) {
+func sysLoggerWrite(callBack func(error), level string, content interface{}) {
 	if strings.EqualFold(level, "") {
 		level = "All"
 	}
@@ -28,6 +28,6 @@ func sysLoggerWrite(level string, content interface{}, callBack func() string) {
 	e.Output = "[%datetime][%l][%session] %content%n"
 	os.Stderr.WriteString(transform(e.Output, e))
 	if callBack != nil {
-		callBack()
+		callBack(content.(error))
 	}
 }

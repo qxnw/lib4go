@@ -38,3 +38,8 @@ func GetResult(name string) int {
 	}
 	return 0
 }
+
+// Clear 清空测试结果
+func Clear() {
+	ACCOUNT = []*Account{}
+}

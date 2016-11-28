@@ -3,7 +3,6 @@ package logger
 import (
 	"time"
 
-	"github.com/qxnw/lib4go/concurrent"
 	"github.com/qxnw/lib4go/concurrent/cmap"
 )
 
@@ -29,13 +28,14 @@ func newLoggerManager() (m *loggerManager) {
 	m.factory = &loggerAppenderFactory{}
 	m.appenders = cmap.New()
 	m.configs = ReadConfig()
-	m.ticker = time.NewTicker(time.Second)
+	m.ticker = time.NewTicker(TIME)
 	go m.clearUp()
 	return m
 }
 
-//Log 将日志内容写入appender, 如果appender不存在则创建
-func (a *loggerManager) Log(event LogEvent) {
+// Log 将日志内容写入appender, 如果appender不存在则创建
+// callBack回调函数,如果不需要传nil
+func (a *loggerManager) Log(event LogEvent, callBack func(err error)) {
 	if a.isClose {
 		return
 	}
@@ -56,7 +56,7 @@ func (a *loggerManager) Log(event LogEvent) {
 			capp.appender.Write(event)
 			capp.last = time.Now()
 		} else {
-			sysLoggerError(err)
+			sysLoggerError(callBack, err)
 		}
 	}
 }
@@ -75,7 +75,7 @@ START:
 					return false
 				})
 				if count > 0 {
-					sysLoggerInfo("已移除:", count)
+					sysLoggerInfo(nil, "已移除:", count)
 				}
 			} else {
 				break START

@@ -219,7 +219,6 @@ func TestDebug(t *testing.T) {
 	// 写入结构体
 	log.Debug(TestType{name: "test", age: 11})
 
-	log.Debugf("%+v", TestType{name: "test", age: 11})
 	// 日志组件为空
 	log = New(nil...)
 	log.Debug("hello world")
@@ -244,6 +243,9 @@ func TestDebugf(t *testing.T) {
 
 	// 内容和格式化参数类型不匹配
 	log.Debugf("%s %d", "hello", "world")
+
+	// 内容为结构体
+	log.Debugf("%+v", TestType{name: "test", age: 11})
 
 	// 日志组件为空
 	log = New(nil...)
@@ -298,6 +300,9 @@ func TestInfof(t *testing.T) {
 	// 内容和格式化参数类型不匹配
 	log.Infof("%s %d", "hello", "world")
 
+	// 内容为结构体
+	log.Infof("%+v", TestType{name: "test", age: 11})
+
 	// 日志组件为空
 	log = New(nil...)
 	log.Infof("%s %s", "hello", "world")
@@ -347,6 +352,9 @@ func TestErrorf(t *testing.T) {
 
 	// 内容为nil
 	log.Errorf("hello", nil)
+
+	// 内容为结构体
+	log.Errorf("%+v", TestType{name: "test", age: 11})
 
 	// 内容和格式化参数类型不匹配
 	log.Errorf("%s %d", "hello", "world")
