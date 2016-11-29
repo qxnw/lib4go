@@ -40,6 +40,6 @@ func GetResult(name string) int {
 }
 
 // Clear 清空测试结果
-func Clear() {
+func ResultClear() {
 	ACCOUNT = []*Account{}
 }

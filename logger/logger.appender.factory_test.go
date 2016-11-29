@@ -46,6 +46,10 @@ func (f *TestWriteCloser) Write(p []byte) (n int, err error) {
 		count := strings.Count(content, "[f]")
 		SetResult("fatal", count)
 	}
+	if strings.Contains(content, "[e]") {
+		count := strings.Count(content, "[e]")
+		SetResult("error", count)
+	}
 
 	return len(p), nil
 }

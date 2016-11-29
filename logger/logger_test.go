@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 )
 
 type TestType struct {
@@ -197,12 +198,14 @@ func TestGetSessionID(t *testing.T) {
 }
 
 func TestDebug(t *testing.T) {
+	// 清空数据统计
+	manager.factory = &testLoggerAppenderFactory{}
+	ResultClear()
+
 	log := New("key1")
 
 	// 写入字符串
 	log.Debug("content1")
-	// // 每秒钟写入文件一次
-	// time.Sleep(time.Second * 2)
 
 	// 写入nil
 	log.Debug(nil)
@@ -222,9 +225,19 @@ func TestDebug(t *testing.T) {
 	// 日志组件为空
 	log = New(nil...)
 	log.Debug("hello world")
+
+	time.Sleep(time.Second * 2)
+	// 统计数据是否和预期的一致
+	if GetResult("debug") != 6 {
+		t.Errorf("test fail except : %d, actual : %d", 6, GetResult("debug"))
+	}
 }
 
 func TestDebugf(t *testing.T) {
+	// 清空数据统计
+	manager.factory = &testLoggerAppenderFactory{}
+	ResultClear()
+
 	log := New("key1")
 	// 参数正确
 	log.Debugf("%s %s", "hello", "world")
@@ -250,9 +263,19 @@ func TestDebugf(t *testing.T) {
 	// 日志组件为空
 	log = New(nil...)
 	log.Debugf("%s %s", "hello", "world")
+
+	time.Sleep(time.Second * 2)
+	// 统计数据是否和预期的一致
+	if GetResult("debug") != 7 {
+		t.Errorf("test fail except : %d, actual : %d", 7, GetResult("debug"))
+	}
 }
 
 func TestInfo(t *testing.T) {
+	// 清空数据统计
+	manager.factory = &testLoggerAppenderFactory{}
+	ResultClear()
+
 	log := New("key1")
 
 	// 写入字符串
@@ -278,9 +301,19 @@ func TestInfo(t *testing.T) {
 	// 日志组件为空
 	log = New(nil...)
 	log.Info("hello world")
+
+	time.Sleep(time.Second * 2)
+	// 统计数据是否和预期的一致
+	if GetResult("info") != 6 {
+		t.Errorf("test fail except : %d, actual : %d", 6, GetResult("info"))
+	}
 }
 
 func TestInfof(t *testing.T) {
+	// 清空数据统计
+	manager.factory = &testLoggerAppenderFactory{}
+	ResultClear()
+
 	log := New("key1")
 	// 参数正确
 	log.Infof("%s %s", "hello", "world")
@@ -306,15 +339,23 @@ func TestInfof(t *testing.T) {
 	// 日志组件为空
 	log = New(nil...)
 	log.Infof("%s %s", "hello", "world")
+
+	time.Sleep(time.Second * 2)
+	// 统计数据是否和预期的一致
+	if GetResult("info") != 7 {
+		t.Errorf("test fail except : %d, actual : %d", 7, GetResult("info"))
+	}
 }
 
 func TestError(t *testing.T) {
+	// 清空数据统计
+	manager.factory = &testLoggerAppenderFactory{}
+	ResultClear()
+
 	log := New("key1")
 
 	// 写入字符串
 	log.Error("content1")
-	// // 每秒钟写入文件一次
-	// time.Sleep(time.Second * 2)
 
 	// 写入nil
 	log.Error(nil)
@@ -334,9 +375,19 @@ func TestError(t *testing.T) {
 	// 日志组件为空
 	log = New(nil...)
 	log.Error("hello world")
+
+	time.Sleep(time.Second * 2)
+	// 统计数据是否和预期的一致
+	if GetResult("error") != 6 {
+		t.Errorf("test fail except : %d, actual : %d", 6, GetResult("error"))
+	}
 }
 
 func TestErrorf(t *testing.T) {
+	// 清空数据统计
+	manager.factory = &testLoggerAppenderFactory{}
+	ResultClear()
+
 	log := New("key1")
 	// 参数正确
 	log.Errorf("%s %s", "hello", "world")
@@ -362,6 +413,12 @@ func TestErrorf(t *testing.T) {
 	// 日志组件为空
 	log = New(nil...)
 	log.Errorf("%s %s", "hello", "world")
+
+	time.Sleep(time.Second * 2)
+	// 统计数据是否和预期的一致
+	if GetResult("error") != 7 {
+		t.Errorf("test fail except : %d, actual : %d", 7, GetResult("error"))
+	}
 }
 
 func TestALL(t *testing.T) {
