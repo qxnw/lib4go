@@ -3,6 +3,7 @@ package logger
 import (
 	"fmt"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 )
@@ -231,6 +232,9 @@ func TestDebug(t *testing.T) {
 	if GetResult("debug") != 6 {
 		t.Errorf("test fail except : %d, actual : %d", 6, GetResult("debug"))
 	}
+
+	Close()
+	manager = newLoggerManager()
 }
 
 func TestDebugf(t *testing.T) {
@@ -269,6 +273,9 @@ func TestDebugf(t *testing.T) {
 	if GetResult("debug") != 7 {
 		t.Errorf("test fail except : %d, actual : %d", 7, GetResult("debug"))
 	}
+
+	Close()
+	manager = newLoggerManager()
 }
 
 func TestInfo(t *testing.T) {
@@ -307,6 +314,9 @@ func TestInfo(t *testing.T) {
 	if GetResult("info") != 6 {
 		t.Errorf("test fail except : %d, actual : %d", 6, GetResult("info"))
 	}
+
+	Close()
+	manager = newLoggerManager()
 }
 
 func TestInfof(t *testing.T) {
@@ -345,6 +355,9 @@ func TestInfof(t *testing.T) {
 	if GetResult("info") != 7 {
 		t.Errorf("test fail except : %d, actual : %d", 7, GetResult("info"))
 	}
+
+	Close()
+	manager = newLoggerManager()
 }
 
 func TestError(t *testing.T) {
@@ -381,6 +394,9 @@ func TestError(t *testing.T) {
 	if GetResult("error") != 6 {
 		t.Errorf("test fail except : %d, actual : %d", 6, GetResult("error"))
 	}
+
+	Close()
+	manager = newLoggerManager()
 }
 
 func TestErrorf(t *testing.T) {
@@ -419,65 +435,77 @@ func TestErrorf(t *testing.T) {
 	if GetResult("error") != 7 {
 		t.Errorf("test fail except : %d, actual : %d", 7, GetResult("error"))
 	}
+
+	Close()
+	manager = newLoggerManager()
+}
+
+func doWrite(ch chan int, lk *sync.WaitGroup) {
+	log := New("abc")
+START:
+	for {
+		select {
+		case v, ok := <-ch:
+			if ok {
+				log.Debug(v)
+				log.Info(v)
+				log.Error(v)
+			} else {
+				break START
+			}
+		}
+	}
+	lk.Done()
 }
 
 func TestALL(t *testing.T) {
 	manager.factory = &testLoggerAppenderFactory{}
+	// 清空结果
+	ResultClear()
+	totalCount := 10000 * 5
+	ch := make(chan int, totalCount)
+	lk := sync.WaitGroup{}
 
-	log := New("logger")
-
-	session := log.GetSessionID()
-	if len(session) != 8 {
-		t.Error("test fail")
+	for i := 0; i < 100; i++ {
+		lk.Add(1)
+		go doWrite(ch, &lk)
 	}
 
-	// log = Get("newlogger")
-	// log = GetSession("newlogger", log.GetSessionID())
+	for i := 0; i < totalCount; i++ {
+		ch <- i
+	}
 
-	log.Debug("hello world")
-	log.Debugf("%s %s", "hello", "world")
-	log.Info("hello world")
-	log.Infof("%s %s", "hello", "world")
-	log.Debug("timeout")
-	// log.Fatal("fatal")
-	// log.Fatalf("%s %s", "hello", "world")
+	close(ch)
+	lk.Wait()
 
-	// n := 100
-	// l := New("test", "test1")
-	// for i := 0; i < n; i++ {
-	// 	go func(i int) {
-	// 		for j := 0; j < 10000; j++ {
-	// 			l.Debug("当前数量:", i)
-	// 		}
-	// 	}(i)
-	// }
+	// time.Sleep(time.Second * 2)
 
-	// time.Sleep(time.Second * 200)
+	Close()
 
-	// Close()
+	for i := 0; i < len(ACCOUNT); i++ {
+		fmt.Println(ACCOUNT[i].name, " ", ACCOUNT[i].count)
+		if strings.EqualFold(ACCOUNT[i].name, "debug") {
+			if ACCOUNT[i].count != totalCount {
+				t.Errorf("test fail, actual : %d", ACCOUNT[i].count)
+			}
+		}
+		if strings.EqualFold(ACCOUNT[i].name, "info") {
+			if ACCOUNT[i].count != totalCount {
+				t.Errorf("test fail, actual : %d", ACCOUNT[i].count)
+			}
+		}
+		// 测试不执行fatal日志记录
+		if strings.EqualFold(ACCOUNT[i].name, "fatal") {
+			if ACCOUNT[i].count != 0 {
+				t.Errorf("test fail, actual : %d", ACCOUNT[i].count)
+			}
+		}
+		if strings.EqualFold(ACCOUNT[i].name, "error") {
+			if ACCOUNT[i].count != totalCount {
+				t.Errorf("test fail, actual : %d", ACCOUNT[i].count)
+			}
+		}
+	}
 
-	// for i := 0; i < len(ACCOUNT); i++ {
-	// 	fmt.Println(ACCOUNT[i].name, " ", ACCOUNT[i].count)
-	// 	if strings.EqualFold(ACCOUNT[i].name, "debug") {
-	// 		if ACCOUNT[i].count != 3+100*10000*2 {
-	// 			t.Error("test fail")
-	// 		}
-	// 	}
-	// 	if strings.EqualFold(ACCOUNT[i].name, "info") {
-	// 		if ACCOUNT[i].count != 2 {
-	// 			t.Error("test fail")
-	// 		}
-	// 	}
-	// 	if strings.EqualFold(ACCOUNT[i].name, "fatal") {
-	// 		if ACCOUNT[i].count != 2 {
-	// 			t.Error("test fail")
-	// 		}
-	// 	}
-	// }
-	/*
-		测试结果：
-		debug   2000003
-		info    2
-		fatal   2
-	*/
+	manager = newLoggerManager()
 }

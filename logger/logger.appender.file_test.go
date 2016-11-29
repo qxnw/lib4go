@@ -62,6 +62,7 @@ func TestWriteToFileAndReadCheck(tx *testing.T) {
 	if err != nil {
 		tx.Errorf("test fail:%v", err)
 	}
+
 	events := []LogEvent{
 		LogEvent{Level: "Debug", Now: t, Name: "test", Session: "12345678", Content: "content", Output: "output1"},
 		LogEvent{Level: "Debug", Now: t, Name: "test", Session: "12345678", Content: "content", Output: "output2"},

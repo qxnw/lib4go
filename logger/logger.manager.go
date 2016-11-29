@@ -28,14 +28,14 @@ func newLoggerManager() (m *loggerManager) {
 	m.factory = &loggerAppenderFactory{}
 	m.appenders = cmap.New()
 	m.configs = ReadConfig()
-	m.ticker = time.NewTicker(TIME)
+	m.ticker = time.NewTicker(time.Second)
 	go m.clearUp()
 	return m
 }
 
 // Log 将日志内容写入appender, 如果appender不存在则创建
 // callBack回调函数,如果不需要传nil
-func (a *loggerManager) Log(event LogEvent, callBack func(err error)) {
+func (a *loggerManager) Log(event LogEvent) {
 	if a.isClose {
 		return
 	}
@@ -56,7 +56,7 @@ func (a *loggerManager) Log(event LogEvent, callBack func(err error)) {
 			capp.appender.Write(event)
 			capp.last = time.Now()
 		} else {
-			sysLoggerError(callBack, err)
+			sysLoggerError(err)
 		}
 	}
 }
@@ -75,7 +75,7 @@ START:
 					return false
 				})
 				if count > 0 {
-					sysLoggerInfo(nil, "已移除:", count)
+					sysLoggerInfo("已移除:", count)
 				}
 			} else {
 				break START

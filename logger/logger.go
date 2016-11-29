@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"time"
 
 	"github.com/qxnw/lib4go/concurrent/cmap"
 	"github.com/qxnw/lib4go/security/md5"
@@ -66,7 +67,7 @@ func (logger *Logger) GetSessionID() string {
 func (logger *Logger) Debug(content ...interface{}) {
 	for i, name := range logger.names {
 		event := NewLogEvent(name, SLevel_Debug, logger.sessions[i], fmt.Sprint(content...))
-		manager.Log(event, nil)
+		go manager.Log(event)
 	}
 }
 
@@ -74,7 +75,7 @@ func (logger *Logger) Debug(content ...interface{}) {
 func (logger *Logger) Debugf(format string, content ...interface{}) {
 	for i, name := range logger.names {
 		event := NewLogEvent(name, SLevel_Debug, logger.sessions[i], fmt.Sprintf(format, content...))
-		manager.Log(event, nil)
+		go manager.Log(event)
 	}
 }
 
@@ -82,7 +83,7 @@ func (logger *Logger) Debugf(format string, content ...interface{}) {
 func (logger *Logger) Info(content ...interface{}) {
 	for i, name := range logger.names {
 		event := NewLogEvent(name, SLevel_Info, logger.sessions[i], fmt.Sprint(content...))
-		manager.Log(event, nil)
+		go manager.Log(event)
 	}
 
 }
@@ -91,7 +92,7 @@ func (logger *Logger) Info(content ...interface{}) {
 func (logger *Logger) Infof(format string, content ...interface{}) {
 	for i, name := range logger.names {
 		event := NewLogEvent(name, SLevel_Info, logger.sessions[i], fmt.Sprintf(format, content...))
-		manager.Log(event, nil)
+		go manager.Log(event)
 	}
 }
 
@@ -99,7 +100,7 @@ func (logger *Logger) Infof(format string, content ...interface{}) {
 func (logger *Logger) Error(content ...interface{}) {
 	for i, name := range logger.names {
 		event := NewLogEvent(name, SLevel_Error, logger.sessions[i], fmt.Sprint(content...))
-		manager.Log(event, nil)
+		go manager.Log(event)
 	}
 
 }
@@ -108,7 +109,7 @@ func (logger *Logger) Error(content ...interface{}) {
 func (logger *Logger) Errorf(format string, content ...interface{}) {
 	for i, name := range logger.names {
 		event := NewLogEvent(name, SLevel_Error, logger.sessions[i], fmt.Sprintf(format, content...))
-		manager.Log(event, nil)
+		go manager.Log(event)
 	}
 }
 
@@ -116,7 +117,7 @@ func (logger *Logger) Errorf(format string, content ...interface{}) {
 func (logger *Logger) Fatal(content ...interface{}) {
 	for i, name := range logger.names {
 		event := NewLogEvent(name, SLevel_Fatal, logger.sessions[i], fmt.Sprint(content...))
-		manager.Log(event, nil)
+		go manager.Log(event)
 	}
 	os.Exit(999)
 
@@ -126,7 +127,7 @@ func (logger *Logger) Fatal(content ...interface{}) {
 func (logger *Logger) Fatalf(format string, content ...interface{}) {
 	for i, name := range logger.names {
 		event := NewLogEvent(name, SLevel_Fatal, logger.sessions[i], fmt.Sprintf(format, content...))
-		manager.Log(event, nil)
+		go manager.Log(event)
 	}
 	os.Exit(999)
 }
@@ -141,5 +142,7 @@ func getSessionID() string {
 
 //Close 关闭所有日志组件
 func Close() {
+	// 使所有的携程都能写入到文件，要不然会漏掉日志
+	time.Sleep(TimeWriteToFile * 2)
 	manager.Close()
 }

@@ -36,17 +36,20 @@ func ReadConfig() (appenders []*Appender) {
 		return
 	}
 	appenders = getDefConfig()
-	sysLoggerError(nil, nil, err)
+	sysLoggerError(err)
 	err = writeToFile(loggerPath, appenders)
 	if err != nil {
-		sysLoggerError(nil, nil, err)
+		sysLoggerError(err)
 	}
 
 	return
 }
 
-// TIME 定时写入到文件间隔
-var TIME = time.Second
+// // TimeClear 定时清理loggermanager时间间隔
+// var TimeClear = time.Second
+
+// TimeWriteToFile 定时写入文件时间间隔
+var TimeWriteToFile = time.Second
 
 func read() (appenders []*Appender, err error) {
 	appenders = make([]*Appender, 0, 2)
@@ -85,7 +88,7 @@ func writeToFile(loggerPath string, appenders []*Appender) (err error) {
 		return
 	}
 	fwriter.Close()
-	sysLoggerError(nil, nil, "已创建日志配置文件:", loggerPath)
+	sysLoggerError("已创建日志配置文件:", loggerPath)
 	return
 }
 func getDefConfig() (appenders []*Appender) {

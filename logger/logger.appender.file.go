@@ -26,7 +26,7 @@ func NewFileAppender(path string, layout *Appender) (fa *FileAppender, err error
 	fa = &FileAppender{layout: layout}
 	fa.Level = getLevel(layout.Level)
 	fa.buffer = bytes.NewBufferString("\n---------------------begin-------------------------\n\n")
-	fa.ticker = time.NewTicker(time.Second)
+	fa.ticker = time.NewTicker(TimeWriteToFile)
 	fa.file, err = file.CreateFile(path)
 	if err != nil {
 		return

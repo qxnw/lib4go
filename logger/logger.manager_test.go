@@ -20,17 +20,20 @@ func TestLog(tx *testing.T) {
 	if err != nil {
 		tx.Errorf("test fail, %+v", err)
 	}
-	manager.Log(LogEvent{Level: "Info", Now: t, Name: "name1", Session: "12345678", Content: "content1", Output: "output1"}, nil)
+	manager.Log(LogEvent{Level: "Info", Now: t, Name: "name1", Session: "12345678", Content: "content1", Output: "output1"})
 
 	// 测试完成打开appender，否则影响其他测试
 	manager.isClose = false
 
 	// 写入一个类型不存在的日志，进入记录系统日志的方法
-	manager.Log(LogEvent{Level: "test", Now: t, Name: "name1", Session: "12345678", Content: "content1", Output: "output1"}, func(err error) {
+	testCallBack = func(err error) {
+		tx.Logf("进入到回调函数:%v", err)
 		if !strings.EqualFold("不支持的日志类型:test", err.Error()) {
 			tx.Errorf("test fail:%v", err)
 		}
-	})
+	}
+	manager.Log(LogEvent{Level: "test", Now: t, Name: "name1", Session: "12345678", Content: "content1", Output: "output1"})
+	testCallBack = nil
 }
 
 // 单独测试clearUp中的关键代码
@@ -44,7 +47,7 @@ func (a *loggerManager) testclearUp() {
 		return false
 	})
 	if count > 0 {
-		sysLoggerInfo(nil, "已移除:", count)
+		sysLoggerInfo("已移除:", count)
 	}
 }
 
@@ -54,7 +57,7 @@ func TestClearUp(tx *testing.T) {
 	if err != nil {
 		tx.Errorf("test fail, %+v", err)
 	}
-	manager.Log(LogEvent{Level: "Info", Now: t, Name: "name1", Session: "12345678", Content: "content1", Output: "output1"}, nil)
+	manager.Log(LogEvent{Level: "Info", Now: t, Name: "name1", Session: "12345678", Content: "content1", Output: "output1"})
 	count := len(manager.appenders.Keys())
 
 	// 休眠6秒
@@ -72,7 +75,7 @@ func TestManagerClose(tx *testing.T) {
 	if err != nil {
 		tx.Errorf("test fail, %+v", err)
 	}
-	manager.Log(LogEvent{Level: "Info", Now: t, Name: "name1", Session: "12345678", Content: "content1", Output: "output1"}, nil)
+	manager.Log(LogEvent{Level: "Info", Now: t, Name: "name1", Session: "12345678", Content: "content1", Output: "output1"})
 	if len(manager.appenders.Keys()) == 0 {
 		tx.Error("test fail")
 	}
@@ -106,15 +109,12 @@ func TestLogToFile(tx *testing.T) {
 	filePath := file.GetAbs("../logs/tofile/20161128.log")
 
 	// 删除文件，多次测试前面的测试会覆盖掉结果
-	err = os.Remove(filePath)
-	if err != nil {
-		tx.Errorf("test fail : %v", err)
-	}
+	os.Remove(filePath)
 
 	excepts := []string{}
 	for event, except := range data {
 		// 写内容到buffer
-		manager.Log(event, nil)
+		manager.Log(event)
 		// 添加预期的结果【测试的时候map顺序不确定】
 		excepts = append(excepts, fmt.Sprintf(`[2016/11/28 16:38:27]%s[12345678] %s`, except[0], except[1]))
 	}
