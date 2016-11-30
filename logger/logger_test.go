@@ -3,6 +3,7 @@ package logger
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"strings"
 	"sync"
 	"testing"
@@ -16,6 +17,7 @@ type TestType struct {
 	age  int
 }
 
+// TestNew 测试通过New构建一个logger对象
 func TestNew(t *testing.T) {
 	// 日志对象名正确
 	log := New("key")
@@ -63,6 +65,7 @@ func TestNew(t *testing.T) {
 	}
 }
 
+// TestGet 测试通过Get构建一个logger对象
 func TestGet(t *testing.T) {
 	// 创建一个日志组件
 	// 获取日志组件，判断session id是否为8位
@@ -134,6 +137,7 @@ func TestGet(t *testing.T) {
 
 }
 
+// TestGetSession 测试通过GetSession构建一个logger对象
 func TestGetSession(t *testing.T) {
 	// name, session为正常字符串
 	log := GetSession("key", "12345678")
@@ -172,6 +176,7 @@ func TestGetSession(t *testing.T) {
 	}
 }
 
+// TestGetSessionID 测试获取logger对象的session id
 func TestGetSessionID(t *testing.T) {
 	// 随机生成session id(New)
 	log := Get("key1", "key2")
@@ -201,6 +206,7 @@ func TestGetSessionID(t *testing.T) {
 	}
 }
 
+// TestDebug 测试记录Debug日志
 func TestDebug(t *testing.T) {
 	// 清空数据统计
 	manager.factory = &testLoggerAppenderFactory{}
@@ -240,6 +246,7 @@ func TestDebug(t *testing.T) {
 	manager = newLoggerManager()
 }
 
+// TestDebug 测试记录Debugf日志【format】
 func TestDebugf(t *testing.T) {
 	// 清空数据统计
 	manager.factory = &testLoggerAppenderFactory{}
@@ -281,6 +288,7 @@ func TestDebugf(t *testing.T) {
 	manager = newLoggerManager()
 }
 
+// TestInfo 测试记录Info日志
 func TestInfo(t *testing.T) {
 	// 清空数据统计
 	manager.factory = &testLoggerAppenderFactory{}
@@ -322,6 +330,7 @@ func TestInfo(t *testing.T) {
 	manager = newLoggerManager()
 }
 
+// TestInfof 测试记录Info日志【format】
 func TestInfof(t *testing.T) {
 	// 清空数据统计
 	manager.factory = &testLoggerAppenderFactory{}
@@ -363,6 +372,7 @@ func TestInfof(t *testing.T) {
 	manager = newLoggerManager()
 }
 
+// TestError 测试记录Error日志
 func TestError(t *testing.T) {
 	// 清空数据统计
 	manager.factory = &testLoggerAppenderFactory{}
@@ -402,6 +412,7 @@ func TestError(t *testing.T) {
 	manager = newLoggerManager()
 }
 
+// TestErrorf 测试记录Error日志【format】
 func TestErrorf(t *testing.T) {
 	// 清空数据统计
 	manager.factory = &testLoggerAppenderFactory{}
@@ -443,31 +454,32 @@ func TestErrorf(t *testing.T) {
 	manager = newLoggerManager()
 }
 
-func doWrite(ch chan int, lk *sync.WaitGroup) {
-	log := New("abc")
-START:
-	for {
-		select {
-		case v, ok := <-ch:
-			if ok {
-				log.Debug(v)
-				log.Info(v)
-				log.Error(v)
-			} else {
-				break START
-			}
-		}
-	}
-	lk.Done()
-}
-
-func TestALL(t *testing.T) {
+// TestWriteToBuffer 测试写入日志的时候，是否漏掉了日志记录，通过测试的testLoggerAppenderFactory来不进行真的日志记录
+func TestWriteToBuffer(t *testing.T) {
 	manager.factory = &testLoggerAppenderFactory{}
 	// 清空结果
 	ResultClear()
 	totalCount := 10000 * 1
 	ch := make(chan int, totalCount)
 	lk := sync.WaitGroup{}
+
+	doWrite := func(ch chan int, lk *sync.WaitGroup) {
+		log := New("abc")
+	START:
+		for {
+			select {
+			case v, ok := <-ch:
+				if ok {
+					log.Debug(v)
+					log.Info(v)
+					log.Error(v)
+				} else {
+					break START
+				}
+			}
+		}
+		lk.Done()
+	}
 
 	for i := 0; i < 100; i++ {
 		lk.Add(1)
@@ -513,7 +525,7 @@ func TestALL(t *testing.T) {
 	manager = newLoggerManager()
 }
 
-// 测试输出到文件
+// TestLoggerToFile 测试输出到文件，并检验日志数量
 func TestLoggerToFile(t *testing.T) {
 	// 把数据写入文件
 	totalAccount := 10000 * 1
@@ -566,15 +578,21 @@ func TestLoggerToFile(t *testing.T) {
 	if count != totalAccount*3+6 {
 		t.Errorf("test fail, actual:%d, except:%d", count, totalAccount*3+6)
 	}
+
+	// 删除日志防止下次进行测试的时候数据错误
+	os.Remove(filePath)
 }
 
+// Account 日志记录的对象
 type Account struct {
 	name  string
 	count int
 }
 
+// mutex 保证日志记录是原子操作
 var mutex sync.Mutex
 
+// ACCOUNT 记录日志的结果
 var ACCOUNT []*Account
 
 // SetResult 存放测试结果

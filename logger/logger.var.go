@@ -51,6 +51,7 @@ func getLevel(name string) int {
 type ILogger interface {
 	Infof(format string, content ...interface{})
 	Info(content ...interface{})
+
 	Errorf(format string, content ...interface{})
 	Error(content ...interface{})
 

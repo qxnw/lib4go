@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+// TestTransform 测试日志格式转换成具体日志的模块
 func TestTransform(tx *testing.T) {
 	t, err := time.Parse("2006/01/02 15:04:05", "2016/11/28 16:38:27")
 	if err != nil {

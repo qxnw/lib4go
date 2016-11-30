@@ -2,6 +2,7 @@ package logger
 
 import "testing"
 
+// TestRead 测试读取配置文件的时候可能遇到的问题
 func TestRead(t *testing.T) {
 	// 配置文件不存在
 	loggerPath = "../conf/no_ars.logger.json"
@@ -40,6 +41,7 @@ func TestRead(t *testing.T) {
 	}
 }
 
+// TestWriteToFile 测试如果配置文件不存在，创建默认配置文件
 func TestWriteToFile(t *testing.T) {
 	loggerPath = "../conf/ars.logger.json"
 	appenders, err := read()

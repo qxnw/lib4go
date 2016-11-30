@@ -1,19 +1,17 @@
 package logger
 
 import (
+	"fmt"
 	"io/ioutil"
+	"os"
+	"strings"
 	"testing"
 	"time"
-
-	"os"
-
-	"fmt"
-
-	"strings"
 
 	"github.com/qxnw/lib4go/file"
 )
 
+// TestLog 测试manager的Log方法可能遇到的情况
 func TestLog(tx *testing.T) {
 	manager.isClose = true
 	t, err := time.Parse("2006/01/02 15:04:05", "2016/11/28 16:38:27")
@@ -36,7 +34,7 @@ func TestLog(tx *testing.T) {
 	testCallBack = nil
 }
 
-// 单独测试clearUp中的关键代码
+// testclearUp 单独测试clearUp中的关键代码
 func (a *loggerManager) testclearUp() {
 	count := a.appenders.RemoveIterCb(func(key string, v interface{}) bool {
 		apd := v.(*appenderEntity)
@@ -51,6 +49,7 @@ func (a *loggerManager) testclearUp() {
 	}
 }
 
+// TestClearUp 测试testclearUp代码，就是manager中的clearUp， 只是时间减少了
 func TestClearUp(tx *testing.T) {
 	// 保证至少有一个appender
 	t, err := time.Parse("2006/01/02 15:04:05", "2016/11/28 16:38:27")
@@ -70,6 +69,7 @@ func TestClearUp(tx *testing.T) {
 	}
 }
 
+// TestManagerClose 测试manager的Close方法
 func TestManagerClose(tx *testing.T) {
 	t, err := time.Parse("2006/01/02 15:04:05", "2016/11/28 16:38:27")
 	if err != nil {
@@ -86,6 +86,7 @@ func TestManagerClose(tx *testing.T) {
 	}
 }
 
+// TestLogToFile 测试通过Log方法写入到文件之后的顺序是否和预期的一致，使用map，可以使顺序不一致，最后读取文件进行校验
 func TestLogToFile(tx *testing.T) {
 	// 写入日志到文件
 	manager = newLoggerManager()

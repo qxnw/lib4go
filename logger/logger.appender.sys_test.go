@@ -4,6 +4,7 @@ import (
 	"testing"
 )
 
+// TestSysLoogerInfo 测试记录系统的Info日志
 func TestSysLoogerInfo(t *testing.T) {
 	sysLoggerInfo("content")
 	sysLoggerInfo(nil)
@@ -13,6 +14,7 @@ func TestSysLoogerInfo(t *testing.T) {
 	sysLoggerInfo("content")
 }
 
+// TestLoggerError 测试记录系统的Error日志
 func TestLoggerError(t *testing.T) {
 	sysLoggerError("content")
 	sysLoggerError(nil)
@@ -22,6 +24,7 @@ func TestLoggerError(t *testing.T) {
 	sysLoggerError("content")
 }
 
+// TestSysLoggerWrite 测试记录系统日志
 func TestSysLoggerWrite(t *testing.T) {
 	sysLoggerWrite("info", "content")
 	sysLoggerWrite("test", nil)

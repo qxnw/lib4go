@@ -15,6 +15,7 @@ import (
 	"github.com/qxnw/lib4go/file"
 )
 
+// TestNewFailAppender 测试构建一个日志输出对象appender
 func TestNewFailAppender(t *testing.T) {
 	// 创建日志输出对象，创建文件成功
 	path := "../logs/test.log"
@@ -33,6 +34,7 @@ func TestNewFailAppender(t *testing.T) {
 	}
 }
 
+// TestWrite 测试写日志到buffer
 func TestWrite(t *testing.T) {
 	path := "../logs/test.log"
 	layout := &Appender{Type: "file", Level: "All"}
@@ -49,6 +51,7 @@ func TestWrite(t *testing.T) {
 	f.Write(event)
 }
 
+// TestWriteToFileAndReadCheck 测试写入buffer的内容和最后在文件中读取到的内容是否一致
 func TestWriteToFileAndReadCheck(tx *testing.T) {
 	// 写入文件中
 	t, err := time.Parse("2006/01/02 15:04:05", "2016/11/28 16:38:27")
