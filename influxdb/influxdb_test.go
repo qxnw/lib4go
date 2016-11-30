@@ -11,7 +11,7 @@ package influxdb
 
 import "testing"
 
-func TestNew(t *testing.T) {
+func TestNewJSON(t *testing.T) {
 	// 参数正确
 	config := `{
     "address":"http://192.168.0.185:8086",
@@ -19,7 +19,7 @@ func TestNew(t *testing.T) {
     "user":"admin",
     "password":"123456",
     "row":"test_table,name=@name,address=@address age=@age"
-}`
+	}`
 	_, err := NewJSON(config)
 	if err != nil {
 		t.Errorf("create influxdb context fail:%v", err)
@@ -27,11 +27,11 @@ func TestNew(t *testing.T) {
 
 	// 缺少参数
 	config = `{
-    "address":"http://192.168.0.185:8086",
-    "user":"admin",
-    "password":"123456",
-    "row":"test_table,name=@name,address=@address age=@age"
-}`
+	"address":"http://192.168.0.185:8086",
+	"user":"admin",
+	"password":"123456",
+	"row":"test_table,name=@name,address=@address age=@age"
+	}`
 	_, err = NewJSON(config)
 	if err == nil {
 		t.Error("test fail")
@@ -39,10 +39,10 @@ func TestNew(t *testing.T) {
 
 	// 缺少参数
 	config = `{
-    "address":"http://192.168.0.185:8086",
-    "db":"influxdb_test",
-    "row":"test_table,name=@name,address=@address age=@age"
-}`
+	"address":"http://192.168.0.185:8086",
+	"db":"influxdb_test",
+	"row":"test_table,name=@name,address=@address age=@age"
+	}`
 	_, err = NewJSON(config)
 	if err != nil {
 		t.Errorf("create influxdb context fail:%v", err)
@@ -50,23 +50,23 @@ func TestNew(t *testing.T) {
 
 	// 缺少参数
 	config = `{
-    "address":"http://192.168.0.185:8086",
-    "db":"influxdb_test",
-    "user":"admin",
-    "password":"123456"
-}`
+	"address":"http://192.168.0.185:8086",
+	"db":"influxdb_test",
+	"user":"admin",
+	"password":"123456"
+	}`
 	_, err = NewJSON(config)
 	if err == nil {
 		t.Error("test fail")
 	}
 
-	// 缺少参数
+	// 配置有误
 	config = `
-    "address":"http://192.168.0.185:8086",
-    "db":"influxdb_test",
-    "user":"admin",
-    "password":"123456"
-}`
+	"address":"http://192.168.0.185:8086",
+	"db":"influxdb_test",
+	"user":"admin",
+	"password":"123456"
+	}`
 	_, err = NewJSON(config)
 	if err == nil {
 		t.Error("test fail")
@@ -81,7 +81,7 @@ func TestSaveString(t *testing.T) {
     "user":"admin",
     "password":"123456",
     "row":"test_table,name=@name,address=@address age=@age"
-}`
+	}`
 	i, err := NewJSON(config)
 	if err != nil {
 		t.Errorf("create influxdb context fail:%v", err)
@@ -100,7 +100,7 @@ func TestSaveString(t *testing.T) {
     "user":"admin",
     "password":"123456",
     "row":"test_table,name=@name,address=@address age=@age"
-}`
+	}`
 	i, err = NewJSON(config)
 	if err != nil {
 		t.Errorf("create influxdb context fail:%v", err)
@@ -119,7 +119,7 @@ func TestSaveString(t *testing.T) {
     "user":"admin",
     "password":"123456",
     "row":"test_table,name=@name,address=@address age=@age"
-}`
+	}`
 	i, err = NewJSON(config)
 	if err != nil {
 		t.Errorf("create influxdb context fail:%v", err)
@@ -138,7 +138,7 @@ func TestSaveString(t *testing.T) {
     "user":"admin",
     "password":"123456",
     "row":"test_table,name=@name,address=@address age=@age"
-}`
+	}`
 	i, err = NewJSON(config)
 	if err != nil {
 		t.Errorf("create influxdb context fail:%v", err)
@@ -157,7 +157,7 @@ func TestSaveString(t *testing.T) {
     "user":"admin",
     "password":"123456",
     "row":"test_table,name=@name,address=@address age=@age"
-}`
+	}`
 	i, err = NewJSON(config)
 	if err != nil {
 		t.Errorf("create influxdb context fail:%v", err)
