@@ -1,7 +1,6 @@
 package disk
 
 import (
-	"encoding/json"
 	"fmt"
 	"runtime"
 
@@ -16,33 +15,8 @@ type Useage struct {
 	Collecter []string
 }
 
-// GetInfo 获取磁盘信息
-func GetInfo() (data []map[string]interface{}) {
-	data = make([]map[string]interface{}, 0, 6)
-	defer func() {
-		if er := recover(); er != nil {
-			fmt.Println("get DISK error", er)
-		}
-	}()
-	var stats []*disk.UsageStat
-	if runtime.GOOS == "windows" {
-		v, _ := disk.Partitions(true)
-		for _, p := range v {
-			s, _ := disk.Usage(p.Device)
-			stats = append(stats, s)
-		}
-	} else {
-		s, _ := disk.Usage("/")
-		stats = append(stats, s)
-	}
-
-	buffer, _ := json.Marshal(&stats)
-	json.Unmarshal(buffer, &data)
-	return
-}
-
-// GetAvaliabeInfo 获取磁盘使用信息
-func GetAvaliabeInfo() (useage Useage) {
+// GetInfo 获取磁盘使用信息
+func GetInfo() (useage Useage) {
 	dir := "/"
 	if runtime.GOOS == "windows" {
 		dir = "c:"

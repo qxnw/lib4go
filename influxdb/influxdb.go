@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/qxnw/lib4go/utility"
+	"github.com/qxnw/transform"
 )
 
 // ConfigOptions influxdb配置
@@ -62,7 +62,7 @@ func (db *InfluxDB) Save(rows []map[string]interface{}) (err error) {
 	url := fmt.Sprintf("%s/write?db=%s", db.config.Address, db.config.DbName)
 	var datas []string
 	for i := 0; i < len(rows); i++ {
-		d := utility.NewDataMaps(rows[i])
+		d := transform.NewMaps(rows[i])
 		datas = append(datas, d.Translate(db.config.RowFormat))
 	}
 	data := strings.Join(datas, "\n")
