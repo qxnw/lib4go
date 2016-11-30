@@ -36,7 +36,7 @@ func TestNewStompProducer(t *testing.T) {
 	// }
 }
 
-func TestConnect(t *testing.T) {
+func TestProducerConnect(t *testing.T) {
 	// 正常连接到服务器
 	version := "1.1"
 	producerConfig := ProducerConfig{Address: address, Version: version, Persistent: "persistent"}
@@ -134,7 +134,7 @@ func TestConnect(t *testing.T) {
 	}
 }
 
-func TestSend(t *testing.T) {
+func TestProducerSend(t *testing.T) {
 	// 正常连接到服务器
 	version := "1.1"
 	producerConfig := ProducerConfig{Address: address, Version: version, Persistent: "persistent"}
@@ -211,7 +211,7 @@ func TestSend(t *testing.T) {
 	}
 }
 
-func TestClose(t *testing.T) {
+func TestProducerClose(t *testing.T) {
 	// 正常连接到服务器
 	version := "1.1"
 	producerConfig := ProducerConfig{Address: address, Version: version, Persistent: "persistent"}
