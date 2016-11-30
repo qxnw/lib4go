@@ -156,61 +156,61 @@ func SendMsg(queue, msg string) {
 }
 
 func TestConsume(t *testing.T) {
-	// // 正常连接到服务器
-	// version := "1.1"
-	// consumerConfig := ConsumerConfig{Address: address, Version: version, Persistent: "persistent"}
-	// consumer, err := NewStompConsumer(consumerConfig)
-	// if err != nil {
-	// 	t.Errorf("NewStompConsumer fail : %v", err)
-	// }
+	// 正常连接到服务器
+	version := "1.1"
+	consumerConfig := ConsumerConfig{Address: address, Version: version, Persistent: "persistent"}
+	consumer, err := NewStompConsumer(consumerConfig)
+	if err != nil {
+		t.Errorf("NewStompConsumer fail : %v", err)
+	}
 
-	// // 回调函数正常
-	// go func() {
-	// 	err = consumer.Consume(consumerQueue, func(m IMessage) {
-	// 		if !strings.EqualFold(m.GetMessage(), consumerMsg) {
-	// 			t.Errorf("test fail actual:%s, except:%s", m.GetMessage(), consumerMsg)
-	// 		}
-	// 	})
-	// 	if err != nil {
-	// 		t.Errorf("test fail: %v", err)
-	// 	}
-	// }()
-	// // 发送一个队列，测试回调
-	// SendMsg(consumerQueue, consumerMsg)
+	// 回调函数正常
+	go func() {
+		err = consumer.Consume(consumerQueue, func(m IMessage) {
+			if !strings.EqualFold(m.GetMessage(), consumerMsg) {
+				t.Errorf("test fail actual:%s, except:%s", m.GetMessage(), consumerMsg)
+			}
+		})
+		if err != nil {
+			t.Errorf("test fail: %v", err)
+		}
+	}()
+	// 发送一个队列，测试回调
+	SendMsg(consumerQueue, consumerMsg)
 
-	// // 重复订阅
-	// go func() {
-	// 	err = consumer.Consume(consumerQueue, func(m IMessage) {
-	// 		if !strings.EqualFold(m.GetMessage(), consumerMsg) {
-	// 			t.Errorf("test fail actual:%s, except:%s", m.GetMessage(), consumerMsg)
-	// 		}
-	// 	})
-	// 	if !strings.EqualFold(err.Error(), fmt.Sprintf("重复订阅消息:%s", consumerQueue)) {
-	// 		t.Errorf("test fail :%v", err)
-	// 	}
-	// }()
+	// 重复订阅
+	go func() {
+		err = consumer.Consume(consumerQueue, func(m IMessage) {
+			if !strings.EqualFold(m.GetMessage(), consumerMsg) {
+				t.Errorf("test fail actual:%s, except:%s", m.GetMessage(), consumerMsg)
+			}
+		})
+		if !strings.EqualFold(err.Error(), fmt.Sprintf("重复订阅消息:%s", consumerQueue)) {
+			t.Errorf("test fail :%v", err)
+		}
+	}()
 
-	// // 回调函数为nil
-	// errQueue := "err_queue"
-	// err = consumer.Consume(errQueue, nil)
-	// if err == nil {
-	// 	t.Error("test fail")
-	// }
-	// // 发送一个队列，测试回调
-	// SendMsg(errQueue, consumerMsg)
+	// 回调函数为nil
+	errQueue := "err_queue"
+	err = consumer.Consume(errQueue, nil)
+	if err == nil {
+		t.Error("test fail")
+	}
+	// 发送一个队列，测试回调
+	SendMsg(errQueue, consumerMsg)
 
-	// // 队列名为空字符串
-	// go func() {
-	// 	err = consumer.Consume("", func(m IMessage) {
-	// 		if !strings.EqualFold(m.GetMessage(), consumerMsg) {
-	// 			t.Errorf("test fail actual:%s, except:%s", m.GetMessage(), consumerMsg)
-	// 		}
-	// 	})
-	// 	if err != nil {
-	// 		t.Errorf("test fail: %v", err)
-	// 	}
-	// }()
-	// SendMsg("", consumerMsg)
+	// 队列名为空字符串
+	go func() {
+		err = consumer.Consume("", func(m IMessage) {
+			if !strings.EqualFold(m.GetMessage(), consumerMsg) {
+				t.Errorf("test fail actual:%s, except:%s", m.GetMessage(), consumerMsg)
+			}
+		})
+		if err != nil {
+			t.Errorf("test fail: %v", err)
+		}
+	}()
+	SendMsg("", consumerMsg)
 }
 
 func TestUnConsume(t *testing.T) {
