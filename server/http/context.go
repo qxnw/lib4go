@@ -1,14 +1,11 @@
 package http
 
 import (
-	"crypto/rand"
-	"encoding/base64"
-	"io"
 	"net/http"
 	"time"
 
+	"github.com/arsgo/lib4go/utility"
 	"github.com/qxnw/lib4go/logger"
-	"github.com/qxnw/lib4go/security/md5"
 )
 
 //Context 上下文
@@ -33,11 +30,7 @@ func NewContext(loggerName string, w http.ResponseWriter, r *http.Request, addre
 
 }
 func getSession() string {
-	b := make([]byte, 48)
-	if _, err := io.ReadFull(rand.Reader, b); err != nil {
-		return ""
-	}
-	id := md5.Encrypt(base64.URLEncoding.EncodeToString(b))
+	id := utility.GetGUID()
 	return id[:8]
 }
 
