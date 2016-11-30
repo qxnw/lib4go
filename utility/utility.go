@@ -70,18 +70,6 @@ func GetExcPath(p ...string) string {
 	if len(p) == 0 {
 		return ""
 	}
-	/*change by champly*/
-	// if strings.HasPrefix(p[0], ".") {
-	// 	path, err := getExecRoot()
-	// 	if err != nil {
-	// 		return p[0]
-	// 	}
-	// 	for i := 1; i < len(p); i++ {
-	// 		path = strings.Trim(path, p[i])
-	// 	}
-	// 	return filepath.Join(path, strings.Trim(p[0], "."))
-	// }
-	/*end*/
 
 	if strings.HasPrefix(p[0], "../") {
 		path, err := getExecRoot()
