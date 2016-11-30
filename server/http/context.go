@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/arsgo/lib4go/utility"
 	"github.com/qxnw/lib4go/logger"
-	"github.com/qxnw/lib4go/utility"
 )
 
 //Context 上下文
@@ -24,10 +24,14 @@ type Context struct {
 func NewContext(loggerName string, w http.ResponseWriter, r *http.Request, address string, script string) *Context {
 	context := &Context{Writer: w, Request: r, Address: address, Script: script}
 	context.StartTime = time.Now()
-	context.Session = utility.GetSessionID()
+	context.Session = getSession()
 	context.Log = logger.GetSession(loggerName, context.Session)
 	return context
 
+}
+func getSession() string {
+	id := utility.GetGUID()
+	return id[:8]
 }
 
 //PassTime 计算当前使用已过去的时间

@@ -1,9 +1,7 @@
 package memory
 
 import (
-	"encoding/json"
 	"fmt"
-	"runtime"
 
 	"github.com/shirou/gopsutil/mem"
 )
@@ -16,26 +14,8 @@ type Useage struct {
 	Collecter []string
 }
 
-// GetAPPInfo 获取App内存信息
-func GetAPPInfo() uint64 {
-	var mem runtime.MemStats
-	runtime.ReadMemStats(&mem)
-	return mem.Alloc >> 20
-}
-
-// GetInfo 获取当前系统的内存信息
-func GetInfo() []map[string]interface{} {
-	v, _ := mem.VirtualMemory()
-	data := make(map[string]interface{})
-	buffer, _ := json.Marshal(&v)
-	json.Unmarshal(buffer, &data)
-	var result []map[string]interface{}
-	result = append(result, data)
-	return result
-}
-
-// GetAvaliabeInfo 获取当前系统内存使用数据
-func GetAvaliabeInfo() (useage Useage) {
+// GetInfo 获取当前系统内存使用数据
+func GetInfo() (useage Useage) {
 	vm, _ := mem.VirtualMemory()
 	useage.Total = fmt.Sprintf("%d", vm.Total)
 	useage.Idle = fmt.Sprintf("%d", vm.Total-vm.Used)

@@ -1,7 +1,6 @@
 package cpu
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/shirou/gopsutil/cpu"
@@ -15,17 +14,8 @@ type Useage struct {
 	Collecter []string
 }
 
-// GetInfo 获取当前系统CPU数据
-func GetInfo() []map[string]interface{} {
-	v, _ := cpu.Times(true)
-	buffer, _ := json.Marshal(&v)
-	var data []map[string]interface{}
-	json.Unmarshal(buffer, &data)
-	return data
-}
-
-// GetAvaliabeInfo 获取当前系统CPU使用的情况数据
-func GetAvaliabeInfo() (useage Useage) {
+// GetInfo 获取当前系统CPU使用的情况数据
+func GetInfo() (useage Useage) {
 	cpus, _ := cpu.Times(true)
 	useage = Useage{}
 	var total, idle float64

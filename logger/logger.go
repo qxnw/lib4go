@@ -1,14 +1,11 @@
 package logger
 
 import (
-	"crypto/rand"
-	"encoding/base64"
 	"fmt"
-	"io"
 	"os"
 
 	"github.com/qxnw/lib4go/concurrent/cmap"
-	"github.com/qxnw/lib4go/security/md5"
+	"github.com/qxnw/lib4go/utility"
 )
 
 //Logger 日志对象
@@ -132,11 +129,8 @@ func (logger *Logger) Fatalf(format string, content ...interface{}) {
 }
 
 func getSessionID() string {
-	b := make([]byte, 48)
-	if _, err := io.ReadFull(rand.Reader, b); err != nil {
-		return "00000000"
-	}
-	return md5.Encrypt(base64.URLEncoding.EncodeToString(b))[:8]
+	id := utility.GetGUID()
+	return id[:8]
 }
 
 //Close 关闭所有日志组件
