@@ -219,11 +219,23 @@ func TestProducerClose(t *testing.T) {
 	if err != nil {
 		t.Errorf("NewStompProducer fail : %v", err)
 	}
+
+	// conn为nil
+	producer.Close()
+
+	// 连接之后关闭
 	err = producer.Connect()
 	if err != nil {
 		t.Errorf("Connect to servicer fail : %v", err)
 	}
-
-	// 正常关闭
 	producer.Close()
+	if producer.conn.Connected() {
+		t.Error("test fail")
+	}
+
+	// 没有连接就关闭
+	producer.Close()
+	if producer.conn.Connected() {
+		t.Error("test fail")
+	}
 }

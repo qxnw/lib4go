@@ -167,6 +167,7 @@ func TestConsume(t *testing.T) {
 	// 回调函数正常
 	go func() {
 		err = consumer.Consume(consumerQueue, func(m IMessage) {
+			t.Log("进入回调函数")
 			if !strings.EqualFold(m.GetMessage(), consumerMsg) {
 				t.Errorf("test fail actual:%s, except:%s", m.GetMessage(), consumerMsg)
 			}
@@ -181,36 +182,38 @@ func TestConsume(t *testing.T) {
 	// 重复订阅
 	go func() {
 		err = consumer.Consume(consumerQueue, func(m IMessage) {
+			t.Log("进入回调函数")
 			if !strings.EqualFold(m.GetMessage(), consumerMsg) {
 				t.Errorf("test fail actual:%s, except:%s", m.GetMessage(), consumerMsg)
 			}
 		})
+		t.Log(err)
 		if !strings.EqualFold(err.Error(), fmt.Sprintf("重复订阅消息:%s", consumerQueue)) {
 			t.Errorf("test fail :%v", err)
 		}
 	}()
 
-	// 回调函数为nil
-	errQueue := "err_queue"
-	err = consumer.Consume(errQueue, nil)
-	if err == nil {
-		t.Error("test fail")
-	}
-	// 发送一个队列，测试回调
-	SendMsg(errQueue, consumerMsg)
-
-	// 队列名为空字符串
-	go func() {
-		err = consumer.Consume("", func(m IMessage) {
-			if !strings.EqualFold(m.GetMessage(), consumerMsg) {
-				t.Errorf("test fail actual:%s, except:%s", m.GetMessage(), consumerMsg)
-			}
-		})
-		if err != nil {
-			t.Errorf("test fail: %v", err)
-		}
-	}()
-	SendMsg("", consumerMsg)
+	// // 回调函数为nil
+	// errQueue := "err_queue"
+	// err = consumer.Consume(errQueue, nil)
+	// if err == nil {
+	// 	t.Error("test fail")
+	// }
+	// // 发送一个队列，测试回调
+	// SendMsg(errQueue, consumerMsg)
+	//
+	// // 队列名为空字符串
+	// go func() {
+	// 	err = consumer.Consume("", func(m IMessage) {
+	// 		if !strings.EqualFold(m.GetMessage(), consumerMsg) {
+	// 			t.Errorf("test fail actual:%s, except:%s", m.GetMessage(), consumerMsg)
+	// 		}
+	// 	})
+	// 	if err != nil {
+	// 		t.Errorf("test fail: %v", err)
+	// 	}
+	// }()
+	// SendMsg("", consumerMsg)
 }
 
 func TestUnConsume(t *testing.T) {
@@ -244,7 +247,7 @@ func TestConsumeClose(t *testing.T) {
 		t.Errorf("NewStompConsumer fail : %v", err)
 	}
 
-	// 没有连接就关闭
+	// conn为nil
 	consumer.Close()
 
 	// 连接之后关闭
@@ -253,4 +256,13 @@ func TestConsumeClose(t *testing.T) {
 		t.Errorf("Connect to servicer fail : %v", err)
 	}
 	consumer.Close()
+	if consumer.conn.Connected() {
+		t.Error("test fail")
+	}
+
+	// 没有连接就关闭
+	consumer.Close()
+	if consumer.conn.Connected() {
+		t.Error("test fail")
+	}
 }

@@ -109,8 +109,15 @@ func (consumer *StompConsumer) UnConsume(queue string) {
 
 //Close 关闭当前连接
 func (consumer *StompConsumer) Close() {
-	if err := consumer.Connect(); err != nil {
+	// if err := consumer.Connect(); err != nil {
+	// 	return
+	// }
+
+	/*change by champly 2016年11月30日15:21:45*/
+	if consumer.conn == nil || !consumer.conn.Connected() {
 		return
 	}
+	/*end*/
+
 	consumer.conn.Disconnect(stompngo.Headers{})
 }

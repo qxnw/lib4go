@@ -72,8 +72,14 @@ func (producer *StompProducer) Send(queue string, msg string, timeout int) (err 
 
 //Close 关闭当前连接
 func (producer *StompProducer) Close() {
-	if err := producer.Connect(); err != nil {
+	// if err := producer.Connect(); err != nil {
+	// 	return
+	// }
+	/*change by champly 2016年11月30日15:20:28*/
+	if producer.conn == nil || !producer.conn.Connected() {
 		return
 	}
+	/*end*/
+
 	producer.conn.Disconnect(stompngo.Headers{})
 }
