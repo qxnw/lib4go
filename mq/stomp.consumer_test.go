@@ -13,6 +13,7 @@ var consumerQueue = "queue_test"
 var consumerMsg = "msg_test"
 var consumerTimeOut = 10
 
+// TestNewStompConsumer 测试创建一个消费者对象
 func TestNewStompConsumer(t *testing.T) {
 	// 正常调用
 	version := "1.1"
@@ -35,6 +36,7 @@ func TestNewStompConsumer(t *testing.T) {
 	// }
 }
 
+// TestConsumerConnect 测试消费者对象连接到服务器
 func TestConsumerConnect(t *testing.T) {
 	// 正常连接到服务器
 	version := "1.1"
@@ -155,7 +157,9 @@ func SendMsg(queue, msg string) {
 	return
 }
 
+// TestConsume 测试注册一个消费信息
 func TestConsume(t *testing.T) {
+	normalAccount := 0
 	// 正常连接到服务器
 	version := "1.1"
 	consumerConfig := ConsumerConfig{Address: address, Version: version, Persistent: "persistent"}
@@ -168,15 +172,19 @@ func TestConsume(t *testing.T) {
 	go func() {
 		err = consumer.Consume(consumerQueue, func(m IMessage) {
 			t.Log("进入回调函数")
+			normalAccount++
 			if !strings.EqualFold(m.GetMessage(), consumerMsg) {
 				t.Errorf("test fail actual:%s, except:%s", m.GetMessage(), consumerMsg)
 			}
+			// 确定消息
+			m.Ack()
 		})
 		if err != nil {
 			t.Errorf("test fail: %v", err)
 		}
 	}()
 	// 发送一个队列，测试回调
+	SendMsg(consumerQueue, consumerMsg)
 	SendMsg(consumerQueue, consumerMsg)
 
 	// 重复订阅
@@ -193,29 +201,36 @@ func TestConsume(t *testing.T) {
 		}
 	}()
 
-	// // 回调函数为nil
-	// errQueue := "err_queue"
-	// err = consumer.Consume(errQueue, nil)
-	// if err == nil {
-	// 	t.Error("test fail")
-	// }
-	// // 发送一个队列，测试回调
-	// SendMsg(errQueue, consumerMsg)
-	//
-	// // 队列名为空字符串
-	// go func() {
-	// 	err = consumer.Consume("", func(m IMessage) {
-	// 		if !strings.EqualFold(m.GetMessage(), consumerMsg) {
-	// 			t.Errorf("test fail actual:%s, except:%s", m.GetMessage(), consumerMsg)
-	// 		}
-	// 	})
-	// 	if err != nil {
-	// 		t.Errorf("test fail: %v", err)
-	// 	}
-	// }()
-	// SendMsg("", consumerMsg)
+	// 回调函数为nil
+	errQueue := "err_queue"
+	err = consumer.Consume(errQueue, nil)
+	if !strings.EqualFold(err.Error(), "回调函数不能为nil") {
+		t.Error("test fail")
+	}
+	// 发送两个队列，测试回调
+	SendMsg(errQueue, consumerMsg)
+
+	// 队列名为空字符串
+	go func() {
+		err = consumer.Consume("", func(m IMessage) {
+			if !strings.EqualFold(m.GetMessage(), consumerMsg) {
+				t.Errorf("test fail actual:%s, except:%s", m.GetMessage(), consumerMsg)
+			}
+		})
+		if !strings.EqualFold(err.Error(), "队列名字不能为空") {
+			t.Error("test fail")
+		}
+	}()
+
+	// 等待能接收到消息
+	time.Sleep(time.Second * 2)
+	// 判断是否进入回调函数的次数
+	if normalAccount != 2 {
+		t.Errorf("test fail normalAccount:%d", normalAccount)
+	}
 }
 
+// TestUnConsume 测试取消注册消费信息
 func TestUnConsume(t *testing.T) {
 	// 正常连接到服务器
 	version := "1.1"
@@ -227,6 +242,18 @@ func TestUnConsume(t *testing.T) {
 
 	// 取消一个存在的队列
 	consumer.UnConsume(consumerQueue)
+	// 再次注册，判断是否取消
+	go func() {
+		err = consumer.Consume(consumerQueue, func(m IMessage) {
+			t.Log("进入回调函数")
+			if !strings.EqualFold(m.GetMessage(), consumerMsg) {
+				t.Errorf("test fail actual:%s, except:%s", m.GetMessage(), consumerMsg)
+			}
+		})
+		if err != nil {
+			t.Errorf("test fail: %v", err)
+		}
+	}()
 
 	// 取消一个不存在的队列
 	consumer.UnConsume("afdasd")
@@ -238,6 +265,7 @@ func TestUnConsume(t *testing.T) {
 	consumer.UnConsume("\\//!@#$!")
 }
 
+// TestConsumeClose 测试关闭连接
 func TestConsumeClose(t *testing.T) {
 	// 正常连接到服务器
 	version := "1.1"
@@ -264,5 +292,60 @@ func TestConsumeClose(t *testing.T) {
 	consumer.Close()
 	if consumer.conn.Connected() {
 		t.Error("test fail")
+	}
+}
+
+// TestSpecialSituation 测试特殊情况
+func TestSpecialSituation(t *testing.T) {
+	// 先注册一个消费信息，然后模拟断网，然后网络恢复，然后发送数据，看数据是否能收到
+	// 正常连接到服务器
+	version := "1.1"
+	consumerConfig := ConsumerConfig{Address: address, Version: version, Persistent: "persistent"}
+	consumer, err := NewStompConsumer(consumerConfig)
+	if err != nil {
+		t.Errorf("NewStompConsumer fail : %v", err)
+	}
+	err = consumer.Connect()
+	if err != nil {
+		t.Errorf("Connect to servicer fail : %v", err)
+	}
+
+	specialAccount := 0
+
+	// 注册一个消费信息
+	go func() {
+		err = consumer.Consume("sepcialQueue", func(m IMessage) {
+			fmt.Println("进入回调函数SpecialSituation,收到的数据Message:", m.GetMessage())
+			if !strings.EqualFold(m.GetMessage(), consumerMsg) {
+				t.Errorf("test fail actual:%s, except:%s", m.GetMessage(), consumerMsg)
+			}
+			specialAccount++
+			// 确定消息
+			m.Ack()
+		})
+		t.Log(err)
+		if err != nil {
+			t.Errorf("test fail: %v", err)
+		}
+	}()
+
+	// 手动断网
+	fmt.Println("开始关闭网络")
+	time.Sleep(time.Second * 5)
+	fmt.Println("网络已经关闭……等待60s")
+	time.Sleep(time.Second * 60)
+	fmt.Println("开始启动网络")
+	// 恢复网络
+	time.Sleep(time.Second * 10)
+	fmt.Println("网络已启用")
+
+	// 发送消息
+	SendMsg("sepcialQueue", consumerMsg)
+
+	// 等待接收消息
+	fmt.Println("开始等待处理结果")
+	time.Sleep(time.Second * 2)
+	if specialAccount != 1 {
+		t.Errorf("test fail specialAccount : %d", specialAccount)
 	}
 }
