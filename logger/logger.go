@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"time"
 
 	"github.com/qxnw/lib4go/concurrent/cmap"
 	"github.com/qxnw/lib4go/security/md5"
@@ -142,7 +141,5 @@ func getSessionID() string {
 
 //Close 关闭所有日志组件
 func Close() {
-	// 使所有的携程都能写入到文件，要不然会漏掉日志
-	time.Sleep(TimeWriteToFile * 2)
 	manager.Close()
 }

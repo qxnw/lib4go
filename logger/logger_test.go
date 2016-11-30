@@ -2,10 +2,13 @@ package logger
 
 import (
 	"fmt"
+	"io/ioutil"
 	"strings"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/qxnw/lib4go/file"
 )
 
 type TestType struct {
@@ -462,7 +465,7 @@ func TestALL(t *testing.T) {
 	manager.factory = &testLoggerAppenderFactory{}
 	// 清空结果
 	ResultClear()
-	totalCount := 10000 * 5
+	totalCount := 10000 * 1
 	ch := make(chan int, totalCount)
 	lk := sync.WaitGroup{}
 
@@ -478,7 +481,7 @@ func TestALL(t *testing.T) {
 	close(ch)
 	lk.Wait()
 
-	// time.Sleep(time.Second * 2)
+	time.Sleep(time.Second * 2)
 
 	Close()
 
@@ -508,4 +511,100 @@ func TestALL(t *testing.T) {
 	}
 
 	manager = newLoggerManager()
+}
+
+// 测试输出到文件
+func TestLoggerToFile(t *testing.T) {
+	// 把数据写入文件
+	totalAccount := 10000 * 1
+	lk := sync.WaitGroup{}
+	ch := make(chan int, totalAccount)
+	name := "ABC"
+
+	log := New(name)
+
+	doWriteToFile := func(ch chan int, lk *sync.WaitGroup) {
+	START:
+		for {
+			select {
+			case l, ok := <-ch:
+				if ok {
+					log.Debug(l)
+					log.Info(l)
+					log.Error(l)
+				} else {
+					break START
+				}
+				lk.Done()
+			}
+		}
+	}
+
+	for i := 0; i < 100; i++ {
+		go doWriteToFile(ch, &lk)
+	}
+
+	for i := 0; i < totalAccount; i++ {
+		lk.Add(1)
+		ch <- i
+	}
+	close(ch)
+	lk.Wait()
+
+	time.Sleep(time.Second * 1)
+
+	Close()
+
+	// 开始读取文件
+	path := fmt.Sprintf("../logs/%s/%d%d%d.log", name, time.Now().Year(), time.Now().Month(), time.Now().Day())
+	filePath := file.GetAbs(path)
+	data, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		t.Errorf("test fail : %v", err)
+	}
+	count := len(strings.Split(string(data), "\n"))
+	if count != totalAccount*3+6 {
+		t.Errorf("test fail, actual:%d, except:%d", count, totalAccount*3+6)
+	}
+}
+
+type Account struct {
+	name  string
+	count int
+}
+
+var mutex sync.Mutex
+
+var ACCOUNT []*Account
+
+// SetResult 存放测试结果
+func SetResult(name string, n int) {
+	for i := 0; i < len(ACCOUNT); i++ {
+		if strings.EqualFold(ACCOUNT[i].name, name) {
+			mutex.Lock()
+			ACCOUNT[i].count = ACCOUNT[i].count + n
+			mutex.Unlock()
+			return
+		}
+	}
+
+	mutex.Lock()
+	account := &Account{name: name, count: n}
+	ACCOUNT = append(ACCOUNT, account)
+	mutex.Unlock()
+}
+
+// GetResult 获取测试结果
+func GetResult(name string) int {
+	for i := 0; i < len(ACCOUNT); i++ {
+		if strings.EqualFold(ACCOUNT[i].name, name) {
+			return ACCOUNT[i].count
+		}
+	}
+	return 0
+}
+
+// ResultClear 清空测试结果
+func ResultClear() {
+	ACCOUNT = []*Account{}
 }

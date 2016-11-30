@@ -52,13 +52,22 @@ func (a *loggerManager) Log(event LogEvent) {
 		}, config)
 		if err == nil {
 			capp := currentAppender.(*appenderEntity)
-			event.Output = transform(config.Layout, event)
-			capp.appender.Write(event)
-			capp.last = time.Now()
+			a.write(capp, config.Layout, event)
+
 		} else {
 			sysLoggerError(err)
 		}
 	}
+}
+func (a *loggerManager) write(capp *appenderEntity, format string, event LogEvent) {
+	defer func() {
+		if r := recover(); r != nil {
+			sysLoggerError(r)
+		}
+	}()
+	capp.last = time.Now()
+	event.Output = transform(format, event)
+	capp.appender.Write(event)
 }
 func (a *loggerManager) clearUp() {
 START:
