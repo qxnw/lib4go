@@ -34,15 +34,12 @@ func NewStompProducer(config ProducerConfig) (producer *StompProducer, err error
 
 //Connect 连接到服务器
 func (producer *StompProducer) Connect() error {
-	// change by champly 2016年11月29日17:56:38
-	// if producer.conn != nil || producer.conn.Connected() {
 	if producer.conn != nil && producer.conn.Connected() {
 		return nil
 	}
 
 	producer.lk.Lock()
 	defer producer.lk.Unlock()
-	// if producer.conn != nil || producer.conn.Connected() {
 	if producer.conn != nil && producer.conn.Connected() {
 		return nil
 	}

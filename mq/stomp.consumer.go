@@ -37,14 +37,11 @@ func NewStompConsumer(config ConsumerConfig) (consumer *StompConsumer, err error
 
 //Connect 连接到服务器
 func (consumer *StompConsumer) Connect() error {
-	// change by champly 2016年11月29日17:56:38
-	// if consumer.conn != nil || consumer.conn.Connected() {
 	if consumer.conn != nil && consumer.conn.Connected() {
 		return nil
 	}
 	consumer.lk.Lock()
 	defer consumer.lk.Unlock()
-	// if consumer.conn != nil || consumer.conn.Connected() {
 	if consumer.conn != nil && consumer.conn.Connected() {
 		return nil
 	}
