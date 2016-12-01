@@ -10,12 +10,13 @@ import (
 func QueryStringToMap(urlQuery string) (result map[string]interface{}, err error) {
 	index := strings.IndexAny(urlQuery, "?")
 	if index == -1 || index >= len(urlQuery)-1 {
-		return nil, nil
+		return
 	}
 
 	values, err := url.ParseQuery(urlQuery[index+1:])
 	if err != nil {
-		return nil, fmt.Errorf("url ParseQuery fail: %v", err)
+		err = fmt.Errorf("url ParseQuery fail: %v", err)
+		return
 	}
 	result = make(map[string]interface{})
 	for k, v := range values {
