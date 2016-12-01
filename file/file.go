@@ -11,7 +11,6 @@ func CreateFile(path string) (f *os.File, err error) {
 	if err != nil {
 		return
 	}
-
 	dir := filepath.Dir(absPath)
 	err = os.MkdirAll(dir, 0777)
 	if err != nil {
