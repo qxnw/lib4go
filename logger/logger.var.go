@@ -49,6 +49,9 @@ func getLevel(name string) int {
 
 //ILogger 日志接口
 type ILogger interface {
+	Printf(format string, content ...interface{})
+	Print(content ...interface{})
+
 	Infof(format string, content ...interface{})
 	Info(content ...interface{})
 
