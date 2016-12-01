@@ -4,8 +4,26 @@ import (
 	"strings"
 	"testing"
 
+	"time"
+
 	"github.com/qxnw/lib4go/net/http"
 )
+
+// method, url, params, charset, header
+type TestRequestType struct {
+	method string
+	url    string
+	// params  string
+	// charset string
+	// header  map[string]string
+}
+
+type TestResponseType struct {
+	method  string
+	context string
+	status  int
+	err     error
+}
 
 // TestNewWebServer 测试创建一个webserver服务
 func TestNewWebServer(t *testing.T) {
@@ -25,6 +43,7 @@ func TestNewWebServer(t *testing.T) {
 
 	// 开启server服务
 	go server.Serve()
+	time.Sleep(time.Second)
 
 	// 通过http请求，访问Server服务，校验数据
 	client := http.NewHTTPClient()
@@ -68,6 +87,40 @@ func TestNewWebServer(t *testing.T) {
 	// 关闭掉Server服务
 	server.Stop()
 
+	datas := map[TestRequestType]TestResponseType{
+		TestRequestType{method: "*", url: "http://localhost:8080/api/test"}:       TestResponseType{method: "put", context: "hello world", status: 200, err: nil},
+		TestRequestType{method: "put", url: "http://localhost:8080/api/test"}:     TestResponseType{method: "put", context: "hello world", status: 200, err: nil},
+		TestRequestType{method: "post", url: "http://localhost:8080/api/test"}:    TestResponseType{method: "post", context: "hello world", status: 200, err: nil},
+		TestRequestType{method: "head", url: "http://localhost:8080/api/test"}:    TestResponseType{method: "head", context: "", status: 200, err: nil},
+		TestRequestType{method: "options", url: "http://localhost:8080/api/test"}: TestResponseType{method: "options", context: "hello world", status: 200, err: nil},
+		TestRequestType{method: "get", url: "http://localhost:8080/api/test"}:     TestResponseType{method: "get", context: "hello world", status: 200, err: nil},
+		TestRequestType{method: "delete", url: "http://localhost:8080/api/test"}:  TestResponseType{method: "delete", context: "hello world", status: 200, err: nil},
+		TestRequestType{method: "trace", url: "http://localhost:8080/api/test"}:   TestResponseType{method: "trace", context: "hello world", status: 200, err: nil},
+		TestRequestType{method: "put", url: "http://localhost:8080/api/test123"}:  TestResponseType{method: "put", context: "404 page not found", status: 404, err: nil},
+		TestRequestType{method: "put", url: "http://localhost:8080/api/test"}:     TestResponseType{method: "post", context: "您访问的页面不存在", status: 404, err: nil},
+	}
+
+	for request, response := range datas {
+		handlers := NewHandler(loggerName, path, script, request.method, encoding, handler)
+		server = NewWebServer(address, loggerName, handlers)
+
+		go server.Serve()
+		time.Sleep(time.Second)
+
+		context, status, err := client.Request(response.method, request.url, "", "utf-8", nil)
+		if err != response.err {
+			t.Errorf("test fail actual : %v, except : %v", err, response.err)
+		}
+		if status != response.status {
+			t.Errorf("test fail actual : %d, except : %d", status, response.status)
+		}
+		if !strings.Contains(context, response.context) {
+			t.Errorf("test fail actual : %s, except : %s", context, response.context)
+		}
+
+		server.Stop()
+	}
+
 }
 
 // TestSepcialSituation 测试特殊情况
@@ -100,6 +153,7 @@ func TestSepcialSituation(t *testing.T) {
 	server = NewWebServer(address, loggerName, handlers)
 
 	go server.Serve()
+	time.Sleep(time.Second)
 
 	// 通过http请求，访问Server服务，校验数据
 	client := http.NewHTTPClient()
