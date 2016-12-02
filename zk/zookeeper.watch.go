@@ -35,7 +35,7 @@ func (client *ZookeeperClient) UnbindWatchValue(path string) {
 	client.watchValueEvents.Set(path, -1)
 }
 
-//BindWatchChildren 监控指定节点的值是否发生变化，变化时返回变化后的值
+//BindWatchChildren 监控子节点是否发生变化，变化时返回变化后的值
 func (client *ZookeeperClient) BindWatchChildren(path string, data chan []string) (err error) {
 	_, value := client.watchChilrenEvents.SetIfAbsent(path, 0) //添加/更新监控时间
 	if value.(int) == -1 {
@@ -48,8 +48,10 @@ func (client *ZookeeperClient) BindWatchChildren(path string, data chan []string
 	}
 	select {
 	case e := <-event:
-		data <- []string{e.Type.String()}
-
+		switch e.Type {
+		case zk.EventNodeChildrenChanged:
+			data <- []string{e.Type.String()}
+		}
 	}
 	return client.BindWatchChildren(path, data)
 }
