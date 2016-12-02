@@ -248,8 +248,8 @@ func TestDisconnect(t *testing.T) {
 	}
 }
 
-// TestExistAny 测试是否有一个路径存在
-func TestExistAny(t *testing.T) {
+// TestExistsAny 测试是否有一个路径存在
+func TestExistsAny(t *testing.T) {
 	// zk_test节点存在
 	paths := "/zk_test"
 	timeout := time.Second * 1
@@ -271,7 +271,7 @@ func TestExistAny(t *testing.T) {
 	}
 
 	// 有一个节点存在
-	b, actual, err := client.ExistAny(paths, "/home", "/err_path")
+	b, actual, err := client.ExistsAny(paths, "/home", "/err_path")
 	if err != nil {
 		t.Errorf("test fail %v", err)
 	}
@@ -283,7 +283,7 @@ func TestExistAny(t *testing.T) {
 	}
 
 	// 没有存在的节点
-	b, actual, err = client.ExistAny("/home", "/err_path")
+	b, actual, err = client.ExistsAny("/home", "/err_path")
 	if err != nil {
 		t.Errorf("test fail %v", err)
 	}
@@ -292,7 +292,7 @@ func TestExistAny(t *testing.T) {
 	}
 
 	// 路径包含特殊字符
-	b, actual, err = client.ExistAny("/home", "！@#！@！@")
+	b, actual, err = client.ExistsAny("/home", "！@#！@！@")
 	if err != nil {
 		t.Errorf("test fail %v", err)
 	}
@@ -307,7 +307,7 @@ func TestExistAny(t *testing.T) {
 	if err != nil {
 		t.Errorf("test fail %v", err)
 	}
-	b, actual, err = client.ExistAny("/home", "！@#！@！@")
+	b, actual, err = client.ExistsAny("/home", "！@#！@！@")
 	if err == nil {
 		t.Errorf("test fail")
 	}
