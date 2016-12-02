@@ -424,5 +424,13 @@ func TestDelete(t *testing.T) {
 			t.Errorf("test fail %v", err)
 		}
 	}
+}
 
+// TestGetPaths 测试获取当前路径下的所有子路径
+func TestGetPaths(t *testing.T) {
+	// 节点存在
+
+	// 节点不存在
+
+	// 没有子节点
 }
