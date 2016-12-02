@@ -218,7 +218,6 @@ START:
 	for {
 		select {
 		case v, ok := <-client.eventChan:
-			client.Log.Print(v.State.String())
 			if ok {
 				switch v.State {
 				case zk.StateAuthFailed:
