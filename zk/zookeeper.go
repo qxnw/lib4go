@@ -84,7 +84,7 @@ func (client *ZookeeperClient) Disconnect() {
 }
 
 //ExistAny 是否有一个路径已经存在
-func (client *ZookeeperClient) ExistAny(paths ...string) (b bool, path string, err error) {
+func (client *ZookeeperClient) ExistsAny(paths ...string) (b bool, path string, err error) {
 	for _, path = range paths {
 		if b, err = client.Exists(path); err != nil || b {
 			return
