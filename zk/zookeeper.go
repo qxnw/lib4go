@@ -82,7 +82,7 @@ func (client *ZookeeperClient) ExistAny(paths ...string) (b bool, path string, e
 }
 
 //Exist 检查路径是否存在
-func (client *ZookeeperClient) Exist(path string) (b bool, err error) {
+func (client *ZookeeperClient) Exists(path string) (b bool, err error) {
 	if !client.isConnect {
 		err = errors.New("未连接到zk服务器")
 		return
