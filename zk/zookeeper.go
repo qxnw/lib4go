@@ -71,8 +71,18 @@ func (client *ZookeeperClient) Disconnect() {
 	client.conn.Close()
 }
 
-//Exists 检查路径是否存在
-func (client *ZookeeperClient) Exists(path string) (b bool, err error) {
+//ExistAny 是否有一个路径已经存在
+func (client *ZookeeperClient) ExistAny(paths ...string) (b bool, path string, err error) {
+	for _, path = range paths {
+		if b, err = client.Exists(path); err != nil || b {
+			return
+		}
+	}
+	return
+}
+
+//Exist 检查路径是否存在
+func (client *ZookeeperClient) Exist(path string) (b bool, err error) {
 	if !client.isConnect {
 		err = errors.New("未连接到zk服务器")
 		return
