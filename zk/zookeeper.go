@@ -33,7 +33,9 @@ func New(servers []string, timeout time.Duration, loggerName string) (*Zookeeper
 	client.watchChilrenEvents = cmap.New()
 
 	client.Log = logger.New(loggerName)
-	client.conn.SetLogger(client.Log)
+	/*change by champly 2016年12月02日16:21:40*/
+	// client.conn.SetLogger(client.Log)
+	/*end*/
 	return client, nil
 }
 
@@ -67,8 +69,18 @@ func (client *ZookeeperClient) Disconnect() {
 	if client.useCount > 0 {
 		return
 	}
+	// client.isConnect = false
+	// client.conn.Close()
+
+	/*add by champly 2016年12月02日16:21:16*/
+	if client.conn != nil {
+		client.conn.Close()
+	}
+
 	client.isConnect = false
-	client.conn.Close()
+	client.conn = nil
+	/*end*/
+
 }
 
 //ExistsAny 是否有一个路径已经存在
@@ -211,6 +223,9 @@ START:
 				case zk.StateAuthFailed:
 					client.isConnect = false
 				case zk.StateConnected:
+					/*change by champly 2016年12月02日16:21:40*/
+					client.conn.SetLogger(client.Log)
+					/*end*/
 					client.isConnect = true
 				case zk.StateExpired:
 					client.isConnect = false
