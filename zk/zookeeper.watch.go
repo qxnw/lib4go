@@ -1,10 +1,6 @@
 package zk
 
-import (
-	"fmt"
-
-	"github.com/samuel/go-zookeeper/zk"
-)
+import "github.com/samuel/go-zookeeper/zk"
 
 //BindWatchValue 监控指定节点的值是否发生变化，变化时返回变化后的值
 func (client *ZookeeperClient) BindWatchValue(path string, data chan string) error {
@@ -58,7 +54,6 @@ func (client *ZookeeperClient) BindWatchChildren(path string, data chan []string
 	}
 	select {
 	case e := <-event:
-		fmt.Println(e.Type)
 		switch e.Type {
 		case zk.EventNodeChildrenChanged:
 			data <- []string{e.Type.String()}
