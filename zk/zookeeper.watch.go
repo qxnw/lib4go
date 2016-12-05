@@ -14,7 +14,10 @@ func (client *ZookeeperClient) BindWatchValue(path string, data chan string) err
 		return err
 	}
 	select {
-	case e := <-event:
+	case e, ok := <-event:
+		if !ok {
+			return nil
+		}
 		switch e.Type {
 		case zk.EventNodeCreated:
 		case zk.EventNodeDataChanged:
@@ -53,7 +56,10 @@ func (client *ZookeeperClient) BindWatchChildren(path string, data chan []string
 		return
 	}
 	select {
-	case e := <-event:
+	case e, ok := <-event:
+		if !ok {
+			return nil
+		}
 		switch e.Type {
 		case zk.EventNodeChildrenChanged:
 			data <- []string{e.Type.String()}

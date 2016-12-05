@@ -33,9 +33,6 @@ func New(servers []string, timeout time.Duration, loggerName string) (*Zookeeper
 	client.watchChilrenEvents = cmap.New()
 
 	client.Log = logger.New(loggerName)
-	/*change by champly 2016年12月02日16:21:40*/
-	// client.conn.SetLogger(client.Log)
-	/*end*/
 	return client, nil
 }
 
@@ -47,6 +44,7 @@ func (client *ZookeeperClient) Connect() (err error) {
 			return err
 		}
 		client.conn = conn
+		client.conn.SetLogger(client.Log)
 		client.eventChan = eventChan
 		go client.eventWatch()
 	}
@@ -223,9 +221,6 @@ START:
 				case zk.StateAuthFailed:
 					client.isConnect = false
 				case zk.StateConnected:
-					/*change by champly 2016年12月02日16:21:40*/
-					client.conn.SetLogger(client.Log)
-					/*end*/
 					client.isConnect = true
 				case zk.StateExpired:
 					client.isConnect = false
