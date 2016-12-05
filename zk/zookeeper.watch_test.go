@@ -76,8 +76,6 @@ func TestBindWatchValue(t *testing.T) {
 			masterClient.UnbindWatchValue(path)
 			t.Log("释放监控")
 		}()
-
-		close(data)
 	}
 
 	// 监控一个存在的节点
@@ -101,17 +99,11 @@ func TestBindWatchValue(t *testing.T) {
 			t.Log("释放监控")
 		}()
 
-		// err = masterClient.Delete(path)
-		// fmt.Println("delete :", err)
-		// err = masterClient.CreatePersistentNode(path, "test")
-		// fmt.Println("create :", err)
-
+		fmt.Println("修改master节点的值")
 		actual := <-data
 		if !strings.EqualFold(actual, "test") {
 			t.Errorf("test fail actual:%s, except:%s", actual, "test")
 		}
-
-		close(data)
 	}
 
 	// 监控master上的一个节点，然后修改follow对应的节点的值
@@ -126,24 +118,29 @@ func TestBindWatchValue(t *testing.T) {
 		}
 
 		go func() {
-			err = masterClient.BindWatchValue(path, data)
 			// 确认节点存在
 			if b, err := masterClient.Exists(path); !b || err != nil {
 				t.Error("test fail")
 				return
 			}
+			// 监控节点值的变化
+			err = masterClient.BindWatchValue(path, data)
+			if err != nil {
+				t.Errorf("test fail %v", err)
+			}
 			masterClient.UnbindWatchValue(path)
 			t.Log("释放监控")
 		}()
 
+		fmt.Println("修改follow对应节点的值")
 		// 修改follow点对应节点的值
 		actual := <-data
 		if !strings.EqualFold(actual, "test") {
 			t.Errorf("test fail actual:%s, except:%s", actual, "test")
 		}
-
-		close(data)
 	}
+
+	time.Sleep(time.Second * 1)
 
 	masterClient.Disconnect()
 	followClient.Disconnect()
@@ -180,6 +177,21 @@ func TestUnbindWatchValue(t *testing.T) {
 	// 取消一个不存在的节点
 	path = "/zk_err_test/err_test"
 	masterClient.UnbindWatchValue(path)
+
+	// 取消一个正在监控的节点
+	path = "/zk_test/123"
+	go func() {
+		data := make(chan string, 1)
+		err = masterClient.BindWatchValue(path, data)
+		if err != nil {
+			t.Errorf("test fail %v", err)
+		}
+	}()
+
+	masterClient.UnbindWatchValue(path)
+	t.Log("释放监控")
+	time.Sleep(time.Second * 1)
+	masterClient.Disconnect()
 }
 
 // TestBindWatchChildren 测试监控一个节点的子节点
@@ -221,11 +233,12 @@ func TestBindWatchChildren(t *testing.T) {
 			masterClient.UnbindWatchChildren(path)
 		}()
 
-		fmt.Println("手动修改子节点的值")
+		// 创建一个节点
+		fmt.Println("自动创建一个子节点")
+		masterClient.CreateTempNode("/zk_test/123/4", "4")
+
 		actual := <-data
 		t.Log(actual)
-
-		close(data)
 	}
 
 	// 删除子节点
@@ -241,15 +254,10 @@ func TestBindWatchChildren(t *testing.T) {
 		}()
 
 		// 删除子节点
-		masterClient.Delete("/zk_test/123/3")
-		if b, err := masterClient.Exists("/zk_test/123/3"); b || err != nil {
-			t.Errorf("delete temp node fail")
-		}
+		fmt.Println("手动删除一个子节点")
 
 		actual := <-data
 		t.Log(actual)
-
-		close(data)
 	}
 
 	// 修改follow对应监控的子节点
@@ -267,8 +275,6 @@ func TestBindWatchChildren(t *testing.T) {
 		fmt.Println("手动修改follow子节点的值")
 		actual := <-data
 		t.Log(actual)
-
-		close(data)
 	}
 
 	masterClient.Disconnect()
@@ -294,25 +300,41 @@ func TestUnbindWatchChildren(t *testing.T) {
 	}
 
 	// 创建一个子节点
-	path := "/zk_test/123/1"
+	path := "/zk_test/123"
 	masterClient.CreateTempNode(path, "")
 
 	// 取消一个没有监控过的节点
-	masterClient.UnbindWatchValue(path)
-
-	// 取消一个监控过的节点
-	data := make(chan []string, 1)
-	err = masterClient.BindWatchChildren(path, data)
-	if err != nil {
-		t.Errorf("test fail %v", err)
-	}
 	masterClient.UnbindWatchChildren(path)
+
+	// // 取消一个监控过的节点
+	// data := make(chan []string, 1)
+	// go func() {
+	// 	// 创建一些子节点
+	// 	masterClient.CreateTempNode(path+"/1", "1")
+	// 	masterClient.CreateTempNode(path+"/2", "2")
+	// 	masterClient.CreateTempNode(path+"/3", "3")
+	// 	err = masterClient.BindWatchChildren(path, data)
+	// 	if err != nil {
+	// 		t.Errorf("test fail %v", err)
+	// 	}
+	// }()
+	// masterClient.UnbindWatchChildren(path)
+
+	// // 关闭连接
+	// time.Sleep(time.Second * 1)
+	// masterClient.Disconnect()
+
+	// // 启动连接
+	// masterClient.Connect()
 
 	// 取消一个路径错误的节点
 	path = "home"
-	masterClient.UnbindWatchValue(path)
+	masterClient.UnbindWatchChildren(path)
 
 	// 取消一个不存在的节点
 	path = "/zk_err_test/err_test"
-	masterClient.UnbindWatchValue(path)
+	masterClient.UnbindWatchChildren(path)
+
+	time.Sleep(time.Second * 1)
+	masterClient.Disconnect()
 }
