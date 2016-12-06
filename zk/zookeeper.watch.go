@@ -1,6 +1,10 @@
 package zk
 
-import "github.com/samuel/go-zookeeper/zk"
+import (
+	"fmt"
+
+	"github.com/samuel/go-zookeeper/zk"
+)
 
 //BindWatchValue 监控指定节点的值是否发生变化，变化时返回变化后的值
 func (client *ZookeeperClient) BindWatchValue(path string, data chan string) error {
@@ -23,24 +27,14 @@ func (client *ZookeeperClient) BindWatchValue(path string, data chan string) err
 		case zk.EventNodeDataChanged:
 			v, _ := client.GetValue(path)
 			data <- v
-
-		/*add by champly 2016年12月5日17:15:35*/
-		// 关闭连接的时候报错处理
 		case zk.EventNotWatching:
 			// 如果是手动关闭，则不继续监控
 			if client.isCloseManually {
 				return nil
 			}
-			/*end*/
+			fmt.Println("EventNotWatching")
 		}
 	}
-
-	// /*add by champly 2016年12月6日16:08:32*/
-	// // 如果是手动关闭，则不继续监控
-	// if client.isCloseManually {
-	// 	return nil
-	// }
-	// /*end*/
 
 	//继续监控值变化
 	return client.BindWatchValue(path, data)
