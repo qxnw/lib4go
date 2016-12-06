@@ -91,6 +91,24 @@ func TestConnect(t *testing.T) {
 	if err == nil {
 		t.Errorf("test fail %v", err)
 	}
+
+	// 多个user连接判断useCount
+	servers = []string{address}
+	client, err = New(servers, timeout, loggerName)
+	if err != nil {
+		t.Errorf("test fail %v", err)
+	}
+	err = client.Connect()
+	if err != nil {
+		t.Errorf("test fail")
+	}
+	err = client.Connect()
+	if err != nil {
+		t.Errorf("test fail")
+	}
+	if client.useCount != 2 {
+		t.Error("test fail")
+	}
 }
 
 // TestReconnect 测试重新连接服务器

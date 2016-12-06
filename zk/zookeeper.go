@@ -24,6 +24,9 @@ type ZookeeperClient struct {
 	Log                logger.ILogger
 	useCount           int32
 	isConnect          bool
+
+	// 是否是手动关闭
+	isCloseManually bool
 }
 
 //New 连接到Zookeeper服务器
@@ -76,6 +79,7 @@ func (client *ZookeeperClient) Disconnect() {
 	}
 
 	client.isConnect = false
+	client.isCloseManually = true
 	client.conn = nil
 	/*end*/
 
@@ -211,6 +215,37 @@ func (client *ZookeeperClient) GetChildren(path string) (paths []string, err err
 }
 
 //eventWatch 服务器事件监控[重点测试]
+// StateAuthFailed: 未测试
+// StateConnected: 连接到服务器成功；网络从异常中恢复之后会出现
+// StateExpired: 连接成功之后网络出现异常，从异常中恢复之后首先会出现这个状态
+// StateDisconnected: 网络连接断开
+// StateConnecting: 网络连接断开，如果没有关闭链接（网络异常），会一直发送请求，直到网络成功连接
+// StateHasSession: 连接成功，获取到服务器的Session
+// 状态顺序描述：【linux系统：修改防火墙规则：iptables -A OUTPUT -p tcp --dport 2181 -j DROP && iptables -A OUTPUT -p tcp --sport 2181 -j DROP】
+// 		开始连接：
+//			StateConnecting :	{Type:EventSession State:StateConnecting Path: Err:<nil> Server:192.168.0.159:2181}	true
+//			->StateConnected :	{Type:EventSession State:StateConnected Path: Err:<nil> Server:192.168.0.159:2181}	true
+//			->StateHasSession : {Type:EventSession State:StateHasSession Path: Err:<nil> Server:192.168.0.159:2181}	true
+//			(连接成功)
+//		断开网络：
+//			StateDisconnected :	{Type:EventSession State:StateDisconnected Path: Err:<nil> Server:192.168.0.159:2181}	true
+//			->StateConnecting :	{Type:EventSession State:StateConnecting Path: Err:<nil> Server:192.168.0.159:2181}		true
+//			(一直到网络恢复)
+//		网络恢复：
+//			StateExpired(网络异常时间过短不会出现) : {Type:EventSession State:StateExpired Path: Err:<nil> Server:192.168.0.159:2181}	true
+//			->StateDisconnected : {Type:EventSession State:StateDisconnected Path: Err:<nil> Server:192.168.0.159:2181} true
+//			->StateConnecting :   {Type:EventSession State:StateConnecting Path: Err:<nil> Server:192.168.0.159:2181}   true
+//			->StateConnected :	  {Type:EventSession State:StateConnected Path: Err:<nil> Server:192.168.0.159:2181}    true
+//			->StateHasSession :	  {Type:EventSession State:StateHasSession Path: Err:<nil> Server:192.168.0.159:2181}   true
+//			(连接成功)
+//		正常关闭连接:
+//			StateDisconnected :   {Type:EventSession State:StateDisconnected Path: Err:<nil> Server:192.168.0.159:2181} true
+//			->StateDisconnected : {Type:Unknown State:StateDisconnected Path: Err:<nil> Server:}						false
+//			(连接关闭)
+//		网络断开取消监控节点值的变化:
+//			StateExpired : {Type:EventSession State:StateExpired Path: Err:<nil> Server:192.168.0.159:2181}      true
+//		网络正常取消监控节点值的变化:
+//          Unknown : {Type:EventNodeDataChanged State:Unknown Path:/zk_test/123 Err:<nil> Server:} true
 func (client *ZookeeperClient) eventWatch() {
 START:
 	for {
@@ -220,12 +255,22 @@ START:
 				switch v.State {
 				case zk.StateAuthFailed:
 					client.isConnect = false
+				// 已经连接成功
 				case zk.StateConnected:
 					client.isConnect = true
+				// 连接Session失效
 				case zk.StateExpired:
 					client.isConnect = false
+				// 网络连接不成功
 				case zk.StateDisconnected:
 					client.isConnect = false
+				/*add by champly 2016年12月6日10:37:10*/
+				// 网络断开，正在连接
+				case zk.StateConnecting:
+					client.isConnect = false
+				case zk.StateHasSession:
+					client.isConnect = true
+					/*end*/
 				}
 			} else {
 				client.isConnect = false

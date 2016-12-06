@@ -306,26 +306,26 @@ func TestUnbindWatchChildren(t *testing.T) {
 	// 取消一个没有监控过的节点
 	masterClient.UnbindWatchChildren(path)
 
-	// // 取消一个监控过的节点
-	// data := make(chan []string, 1)
-	// go func() {
-	// 	// 创建一些子节点
-	// 	masterClient.CreateTempNode(path+"/1", "1")
-	// 	masterClient.CreateTempNode(path+"/2", "2")
-	// 	masterClient.CreateTempNode(path+"/3", "3")
-	// 	err = masterClient.BindWatchChildren(path, data)
-	// 	if err != nil {
-	// 		t.Errorf("test fail %v", err)
-	// 	}
-	// }()
-	// masterClient.UnbindWatchChildren(path)
+	// 取消一个监控过的节点
+	data := make(chan []string, 1)
+	go func() {
+		// 创建一些子节点
+		masterClient.CreateTempNode(path+"/1", "1")
+		masterClient.CreateTempNode(path+"/2", "2")
+		masterClient.CreateTempNode(path+"/3", "3")
+		err = masterClient.BindWatchChildren(path, data)
+		if err != nil {
+			t.Errorf("test fail %v", err)
+		}
+	}()
+	masterClient.UnbindWatchChildren(path)
 
-	// // 关闭连接
-	// time.Sleep(time.Second * 1)
-	// masterClient.Disconnect()
+	// 关闭连接
+	time.Sleep(time.Second * 1)
+	masterClient.Disconnect()
 
-	// // 启动连接
-	// masterClient.Connect()
+	// 启动连接
+	masterClient.Connect()
 
 	// 取消一个路径错误的节点
 	path = "home"

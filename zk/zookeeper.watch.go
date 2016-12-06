@@ -27,10 +27,20 @@ func (client *ZookeeperClient) BindWatchValue(path string, data chan string) err
 		/*add by champly 2016年12月5日17:15:35*/
 		// 关闭连接的时候报错处理
 		case zk.EventNotWatching:
-			return nil
+			// 如果是手动关闭，则不继续监控
+			if client.isCloseManually {
+				return nil
+			}
 			/*end*/
 		}
 	}
+
+	// /*add by champly 2016年12月6日16:08:32*/
+	// // 如果是手动关闭，则不继续监控
+	// if client.isCloseManually {
+	// 	return nil
+	// }
+	// /*end*/
 
 	//继续监控值变化
 	return client.BindWatchValue(path, data)
@@ -62,9 +72,22 @@ func (client *ZookeeperClient) BindWatchChildren(path string, data chan []string
 		}
 		switch e.Type {
 		case zk.EventNodeChildrenChanged:
-			data <- []string{e.Type.String()}
+			// data <- []string{e.Type.String()}
+			value, err := client.GetChildren(path)
+			if err != nil {
+				return err
+			}
+			data <- value
 		}
 	}
+
+	/*add by champly 2016年12月6日16:08:32*/
+	// 如果是手动关闭，则不继续监控
+	if client.isCloseManually {
+		return nil
+	}
+	/*end*/
+
 	return client.BindWatchChildren(path, data)
 }
 
