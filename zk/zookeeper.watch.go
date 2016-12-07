@@ -1,17 +1,15 @@
 package zk
 
-import (
-	"fmt"
-
-	"github.com/samuel/go-zookeeper/zk"
-)
+import "github.com/samuel/go-zookeeper/zk"
 
 //BindWatchValue 监控指定节点的值是否发生变化，变化时返回变化后的值
 // 测试情况：
 //		网络正常时修改节点的值：
 //			EventNodeDataChanged : {Type:EventNodeDataChanged State:Unknown Path:/zk_test/123 Err:<nil> Server:}   true
-// 		网络断开之后，节点值的修改不会触发，直到网络恢复正常之后修改节点的值：
-//			EventNodeDataChanged : {Type:EventNodeDataChanged State:Unknown Path:/zk_test/123 Err:<nil> Server:}   true
+// 		网络断开之后，节点值的修改不会触发，直到网络恢复正常：
+//			EventNotWatching(断开时间过短不会出现) : {Type:EventNotWatching State:StateDisconnected Path:/zk_test/123 Err:zk: session has been expired by the server Server:} true
+//		关闭连接:
+//			EventNotWatching : {Type:EventNotWatching State:StateDisconnected Path:/zk_test/123 Err:zk: zookeeper is closing Server:}      true
 func (client *ZookeeperClient) BindWatchValue(path string, data chan string) error {
 	_, value := client.watchValueEvents.SetIfAbsent(path, 0) //添加/更新监控时间
 	if value.(int) == -1 {
@@ -24,7 +22,7 @@ func (client *ZookeeperClient) BindWatchValue(path string, data chan string) err
 	}
 	select {
 	case e, ok := <-event:
-		client.Log.Infof("watch:value %s[%+v]%t", path, e, ok)
+		client.Log.Infof("watch:value %+v[%+v]%t", path, e, ok)
 		if !ok {
 			return nil
 		}
@@ -38,7 +36,6 @@ func (client *ZookeeperClient) BindWatchValue(path string, data chan string) err
 			if client.isCloseManually {
 				return nil
 			}
-			fmt.Println("EventNotWatching")
 		}
 	}
 
@@ -47,13 +44,6 @@ func (client *ZookeeperClient) BindWatchValue(path string, data chan string) err
 }
 
 //UnbindWatchValue 取消绑定
-// 测试情况：
-//		网络正常时取消绑定不会触发，直到节点值变化：
-//			EventNodeDataChanged ： {Type:EventNodeDataChanged State:Unknown Path:/zk_test/123 Err:<nil> Server:}   true
-//			BindWatchValue返回err
-// 		网络断开之后，取消绑定，不会触发，直到网络恢复正常之后：
-//			EventNotWatching : {Type:EventNotWatching State:StateDisconnected Path:/zk_test/123 Err:zk: session has been expired by the server Server:}        true
-//			BindWatchValue返回err
 func (client *ZookeeperClient) UnbindWatchValue(path string) {
 	if v, ok := client.watchValueEvents.Get(path); !ok || v.(int) == -1 {
 		return
@@ -65,8 +55,10 @@ func (client *ZookeeperClient) UnbindWatchValue(path string) {
 // 测试情况：
 //		网络正常时修改节点的值：
 //			EventNodeChildrenChanged : {Type:EventNodeChildrenChanged State:Unknown Path:/zk_test Err:<nil> Server:}   true
-// 		网络断开之后，节点值的修改不会触发，直到网络恢复正常之后修改节点的值：
-//			EventNodeChildrenChanged : {Type:EventNodeChildrenChanged State:Unknown Path:/zk_test Err:<nil> Server:}   true
+// 		网络断开之后，节点值的修改不会触发，直到网络恢复正常：
+//			EventNotWatching(断开时间过短不会出现) : {Type:EventNotWatching State:StateDisconnected Path:/zk_test Err:zk: session has been expired by the server Server:} true
+//		关闭连接
+//			EventNotWatching : {Type:EventNotWatching State:StateDisconnected Path:/zk_test Err:zk: zookeeper is closing Server:}       true
 func (client *ZookeeperClient) BindWatchChildren(path string, data chan []string) (err error) {
 	_, value := client.watchChilrenEvents.SetIfAbsent(path, 0) //添加/更新监控时间
 	if value.(int) == -1 {
@@ -108,13 +100,6 @@ func (client *ZookeeperClient) BindWatchChildren(path string, data chan []string
 }
 
 //UnbindWatchChildren 取消绑定
-// 测试情况：
-//		网络正常时取消绑定不会触发，直到节点值变化：
-//			EventNodeChildrenChanged : {Type:EventNodeChildrenChanged State:Unknown Path:/zk_test Err:<nil> Server:}   true
-//			BindWatchChildren返回err
-// 		网络断开之后，取消绑定，不会触发，直到网络恢复正常之后：
-//			EventNotWatching : {Type:EventNotWatching State:StateDisconnected Path:/zk_test Err:zk: session has been expired by the server Server:}    true
-//			BindWatchChildren返回err
 func (client *ZookeeperClient) UnbindWatchChildren(path string) {
 	if v, ok := client.watchChilrenEvents.Get(path); !ok || v.(int) == -1 {
 		return

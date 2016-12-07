@@ -242,10 +242,6 @@ func (client *ZookeeperClient) GetChildren(path string) (paths []string, err err
 //			StateDisconnected :   {Type:EventSession State:StateDisconnected Path: Err:<nil> Server:192.168.0.159:2181} true
 //			->StateDisconnected : {Type:Unknown State:StateDisconnected Path: Err:<nil> Server:}						false
 //			(连接关闭)
-//		网络断开取消监控节点值的变化:
-//			StateExpired : {Type:EventSession State:StateExpired Path: Err:<nil> Server:192.168.0.159:2181}      true
-//		网络正常取消监控节点值的变化:
-//          Unknown : {Type:EventNodeDataChanged State:Unknown Path:/zk_test/123 Err:<nil> Server:} true
 func (client *ZookeeperClient) eventWatch() {
 START:
 	for {
