@@ -77,7 +77,10 @@ func (client *ZookeeperClient) BindWatchChildren(path string, data chan []string
 		}
 		switch e.Type {
 		case zk.EventNodeChildrenChanged:
-			data <- []string{e.Type.String()}
+			if client.isConnect {
+				data <- []string{e.Type.String()}
+			}
+
 			// value, err := client.GetChildren(path)
 			// if err != nil {
 			// 	return err
