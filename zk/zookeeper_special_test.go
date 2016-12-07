@@ -180,11 +180,11 @@ func TestNoNetworkUnBindWatchValue(t *testing.T) {
 	data := make(chan string, 1)
 	go func() {
 		err = client.BindWatchValue(path, data)
-		fmt.Println(err)
+		fmt.Println("收到的返回值：", err)
 	}()
 
 	fmt.Println("修改/zk_test/123节点的值")
-	fmt.Println(<-data)
+	fmt.Println("结果：", <-data)
 
 	fmt.Println("断开连接")
 	time.Sleep(time.Second * 10)
@@ -193,7 +193,7 @@ func TestNoNetworkUnBindWatchValue(t *testing.T) {
 	client.UnbindWatchValue(path)
 
 	fmt.Println("恢复连接")
-	// fmt.Println(<-data)
+	// fmt.Println("结果：", <-data)
 
 	time.Sleep(time.Second * 20)
 
@@ -279,9 +279,10 @@ func TestNoNetworkUnBindWatchChildren(t *testing.T) {
 	fmt.Println("断开连接")
 	time.Sleep(time.Second * 10)
 	fmt.Println("取消绑定")
-	client.UnbindWatchChildren(path)
+	// client.UnbindWatchChildren(path)
 
 	fmt.Println("恢复连接")
+	time.Sleep(time.Second * 10)
 	// fmt.Println("修改/zk_test的子节点")
 	// fmt.Println(<-data)
 

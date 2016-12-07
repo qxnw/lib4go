@@ -314,8 +314,8 @@ func TestUnbindWatchChildren(t *testing.T) {
 		masterClient.CreateTempNode(path+"/2", "2")
 		masterClient.CreateTempNode(path+"/3", "3")
 		err = masterClient.BindWatchChildren(path, data)
-		if err != nil {
-			t.Errorf("test fail %v", err)
+		if err == nil {
+			t.Errorf("test fail")
 		}
 	}()
 	masterClient.UnbindWatchChildren(path)
