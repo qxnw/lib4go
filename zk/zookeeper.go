@@ -252,6 +252,7 @@ START:
 		select {
 		case v, ok := <-client.eventChan:
 			if ok {
+				client.Log.Infof("event.watch:%+v", v)
 				switch v.State {
 				case zk.StateAuthFailed:
 					client.isConnect = false
