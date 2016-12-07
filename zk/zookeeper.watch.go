@@ -1,6 +1,11 @@
 package zk
 
-import "github.com/samuel/go-zookeeper/zk"
+import (
+	"errors"
+	"time"
+
+	"github.com/samuel/go-zookeeper/zk"
+)
 
 //BindWatchValue 监控指定节点的值是否发生变化，变化时返回变化后的值
 // 测试情况：
@@ -14,7 +19,7 @@ func (client *ZookeeperClient) BindWatchValue(path string, data chan string) err
 	_, value := client.watchValueEvents.SetIfAbsent(path, 0) //添加/更新监控时间
 	if value.(int) == -1 {
 		client.watchValueEvents.Remove(path)
-		return nil
+		return errors.New(path + " is UnbindWatchValue")
 	}
 	_, _, event, err := client.conn.GetW(path)
 	if err != nil {
@@ -24,17 +29,20 @@ func (client *ZookeeperClient) BindWatchValue(path string, data chan string) err
 	case e, ok := <-event:
 		client.Log.Infof("watch:value %+v[%+v]%t", path, e, ok)
 		if !ok {
-			return nil
+			return e.Err
 		}
 		switch e.Type {
-		case zk.EventNodeCreated:
 		case zk.EventNodeDataChanged:
-			v, _ := client.GetValue(path)
-			data <- v
+			v, err := client.GetValue(path)
+			if err != nil {
+				client.Log.Error(err)
+			} else {
+				data <- v
+			}
 		case zk.EventNotWatching:
-			// 如果是手动关闭，则不继续监控
-			if client.isCloseManually {
-				return nil
+			err = client.checkConnectStatus(path, false)
+			if err != nil {
+				return err
 			}
 		}
 	}
@@ -63,41 +71,34 @@ func (client *ZookeeperClient) BindWatchChildren(path string, data chan []string
 	_, value := client.watchChilrenEvents.SetIfAbsent(path, 0) //添加/更新监控时间
 	if value.(int) == -1 {
 		client.watchChilrenEvents.Remove(path)
-		return nil
+		return errors.New(path + " is UnbindWatchChildren")
 	}
 	_, _, event, err := client.conn.ChildrenW(path)
 	if err != nil {
-		return
+		return err
 	}
 	select {
 	case e, ok := <-event:
 		client.Log.Infof("watch:children %s[%+v]%t", path, e, ok)
 		if !ok {
-			return nil
+			return e.Err
 		}
 		switch e.Type {
 		case zk.EventNodeChildrenChanged:
-			if client.isConnect {
-				data <- []string{e.Type.String()}
+			paths, err := client.GetChildren(path)
+			if err != nil {
+				client.Log.Error(err)
+			} else {
+				data <- paths
 			}
-
-			// value, err := client.GetChildren(path)
-			// if err != nil {
-			// 	return err
-			// }
-			// data <- value
-
-			// // 网络重新连接
-			// case zk.EventNotWatching:
+		// 网络重新连接
+		case zk.EventNotWatching:
+			err = client.checkConnectStatus(path, true)
+			if err != nil {
+				return err
+			}
 		}
 	}
-
-	/*add by champly 2016年12月6日16:08:32*/
-	// 如果是手动关闭，则不继续监控
-	if client.isCloseManually {
-		return nil
-	}
-	/*end*/
 
 	return client.BindWatchChildren(path, data)
 }
@@ -108,4 +109,45 @@ func (client *ZookeeperClient) UnbindWatchChildren(path string) {
 		return
 	}
 	client.watchChilrenEvents.Set(path, -1)
+}
+
+// checkConnectStatus 检查当前的连接状态
+func (client *ZookeeperClient) checkConnectStatus(path string, isWatchChildren bool) error {
+	if client.isCloseManually {
+		return zk.ErrClosing
+	}
+	ticker := time.NewTicker(time.Second)
+START:
+	for {
+		select {
+		case _, ok := <-ticker.C:
+			if ok {
+				// 检查是否手动关闭连接
+				if client.isCloseManually {
+					ticker.Stop()
+					return zk.ErrClosing
+				}
+
+				if isWatchChildren {
+					if v, ok := client.watchChilrenEvents.Get(path); !ok || v.(int) == -1 {
+						ticker.Stop()
+						return errors.New(path + " is UnbindWatchChildren")
+					}
+				} else {
+					// 检查是否取消绑定
+					if v, ok := client.watchValueEvents.Get(path); !ok || v.(int) == -1 {
+						ticker.Stop()
+						return errors.New(path + " is UnbindWatchValue")
+					}
+				}
+
+				// 检查是否连接成功
+				if client.isConnect {
+					ticker.Stop()
+					break START
+				}
+			}
+		}
+	}
+	return nil
 }

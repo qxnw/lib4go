@@ -187,30 +187,86 @@ func (client *ZookeeperClient) CreateSeqNode(path string, data string) (rpath st
 	return
 }
 
+type getValueType struct {
+	data []byte
+	err  error
+}
+
 //GetValue 获取节点的值
 func (client *ZookeeperClient) GetValue(path string) (value string, err error) {
-	if !client.isConnect {
+	if !client.isConnect || client.conn == nil {
 		err = errors.New("未连接到zk服务器")
 		return
 	}
-	data, _, err := client.conn.Get(path)
-	if err != nil {
-		return "", err
+
+	ch := make(chan interface{})
+	go func(ch chan interface{}) {
+		data, _, err := client.conn.Get(path)
+
+		if err != nil {
+			ch <- getValueType{data: []byte(""), err: err}
+		}
+		ch <- getValueType{data: data, err: err}
+	}(ch)
+
+	var data interface{}
+
+	tk := time.NewTicker(time.Second * 2)
+	select {
+	case _, ok := <-tk.C:
+		if ok {
+			return "", errors.New("connect to zk timeout")
+		}
+	case data = <-ch:
+		tk.Stop()
+		if data.(getValueType).err != nil {
+			return "", err
+		}
+		value, err = encoding.Convert(data.(getValueType).data, "gbk")
 	}
-	value, err = encoding.Convert(data, "gbk")
+
 	return
+}
+
+type getChildrenType struct {
+	data []string
+	err  error
 }
 
 //GetChildren 获取子节点路径
 func (client *ZookeeperClient) GetChildren(path string) (paths []string, err error) {
-	if !client.isConnect {
+	if !client.isConnect || client.conn == nil {
 		err = errors.New("未连接到zk服务器")
 		return
 	}
 	if b, err := client.Exists(path); !b || err != nil {
 		return nil, err
 	}
-	paths, _, err = client.conn.Children(path)
+
+	ch := make(chan interface{})
+	go func(ch chan interface{}) {
+		data, _, err := client.conn.Children(path)
+
+		if err != nil {
+			ch <- getChildrenType{data: nil, err: err}
+		}
+		ch <- getChildrenType{data: data, err: err}
+	}(ch)
+
+	var data interface{}
+
+	tk := time.NewTicker(time.Second * 2)
+	select {
+	case _, ok := <-tk.C:
+		if ok {
+			return []string{""}, errors.New("connect to zk timeout")
+		}
+	case data = <-ch:
+		tk.Stop()
+		paths = data.(getChildrenType).data
+		err = data.(getChildrenType).err
+	}
+
 	return
 }
 
