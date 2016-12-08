@@ -2,7 +2,7 @@ package event
 
 import "time"
 
-//DelayCallback 延迟回调
+//DelayCallback 延迟回调，多次触发任务时延迟到一定时间后执行，且只执行一次
 type DelayCallback struct {
 	msg        chan []interface{}
 	delayTime  time.Duration
