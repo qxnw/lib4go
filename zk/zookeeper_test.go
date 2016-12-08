@@ -1183,3 +1183,49 @@ func TestGetChildren(t *testing.T) {
 
 	client.Disconnect()
 }
+
+// TestUpdate 测试更新一个节点
+func TestUpdate(t *testing.T) {
+	// zk_test节点存在
+	timeout := time.Second * 1
+	loggerName := "zookeeper"
+	servers := []string{address}
+	client, err := New(servers, timeout, loggerName)
+	if err != nil {
+		t.Errorf("test fail %v", err)
+	}
+	err = client.Connect()
+	if err != nil {
+		t.Errorf("test fail %v", err)
+	}
+
+	time.Sleep(time.Second * 1)
+
+	if !client.isConnect {
+		t.Error("test fail")
+	}
+
+	// 更新一个不存在的节点
+	path := "/err_path/err_node"
+	err = client.Update(path, "err")
+	if err == nil {
+		t.Error("test fail")
+	}
+
+	// 更新一个存在的节点
+	path = "/zk_test/111"
+	data := time.Now().String()
+	err = client.Update(path, data)
+	if err != nil {
+		t.Errorf("test fail %v", err)
+	}
+	actual, err := client.GetValue(path)
+	if err != nil {
+		t.Errorf("test fail")
+	}
+	if !strings.EqualFold(data, actual) {
+		t.Errorf("test fail actual:%s, except:%s", actual, data)
+	}
+
+	client.Disconnect()
+}

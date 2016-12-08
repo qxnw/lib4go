@@ -173,17 +173,15 @@ func TestUnbindWatchValue(t *testing.T) {
 	// 取消一个路径错误的节点
 	path = "home"
 	masterClient.UnbindWatchValue(path)
-
 	// 取消一个不存在的节点
 	path = "/zk_err_test/err_test"
 	masterClient.UnbindWatchValue(path)
-
 	// 取消一个正在监控的节点
 	path = "/zk_test/123"
 	go func() {
 		data := make(chan string, 1)
 		err = masterClient.BindWatchValue(path, data)
-		if err != nil {
+		if !strings.EqualFold(err.Error(), "zk: zookeeper is closing") {
 			t.Errorf("test fail %v", err)
 		}
 	}()
@@ -192,6 +190,7 @@ func TestUnbindWatchValue(t *testing.T) {
 	t.Log("释放监控")
 	time.Sleep(time.Second * 1)
 	masterClient.Disconnect()
+	time.Sleep(time.Second * 1)
 }
 
 // TestBindWatchChildren 测试监控一个节点的子节点
@@ -278,6 +277,7 @@ func TestBindWatchChildren(t *testing.T) {
 	}
 
 	masterClient.Disconnect()
+	time.Sleep(time.Second * 1)
 }
 
 func TestUnbindWatchChildren(t *testing.T) {
@@ -337,4 +337,5 @@ func TestUnbindWatchChildren(t *testing.T) {
 
 	time.Sleep(time.Second * 1)
 	masterClient.Disconnect()
+	time.Sleep(time.Second * 1)
 }
