@@ -190,7 +190,11 @@ func TestUnbindWatchValue(t *testing.T) {
 	t.Log("释放监控")
 	time.Sleep(time.Second * 1)
 	masterClient.Disconnect()
+<<<<<<< HEAD
+
+=======
 	time.Sleep(time.Second * 1)
+>>>>>>> 49510abf4584799349d29d0d931d1eacecaa8072
 }
 
 // TestBindWatchChildren 测试监控一个节点的子节点
