@@ -1,6 +1,7 @@
 package event
 
 import "sync"
+import "fmt"
 
 //Once 一次执行锁,相同事件多次完成时只释放一次锁
 type Once struct {
@@ -10,13 +11,20 @@ type Once struct {
 }
 
 //NewOnce 构建一次执行(防止相同的事件多次进入)锁
-func NewOnce(wait int) Once {
-	sn := Once{}
+func NewOnce(wait int) (sn Once, err error) {
+	/*add by champly 2016年12月08日14:17:57*/
+	if wait <= 0 {
+		err = fmt.Errorf("wait must greater than zero")
+		return
+	}
+	/*end*/
+
+	sn = Once{}
 	sn.lk = &sync.Mutex{}
 	sn.sync = &sync.WaitGroup{}
 	sn.actions = make(map[string]int)
 	sn.sync.Add(wait)
-	return sn
+	return
 }
 
 //Wait 等待所有执行完成

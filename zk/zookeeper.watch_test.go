@@ -279,6 +279,7 @@ func TestBindWatchChildren(t *testing.T) {
 	time.Sleep(time.Second * 1)
 }
 
+// TestUnbindWatchChildren 测试取消监控一个节点的子节点变化
 func TestUnbindWatchChildren(t *testing.T) {
 	timeout := time.Second * 1
 	loggerName := "zookeeper"
