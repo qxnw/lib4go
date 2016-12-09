@@ -139,3 +139,8 @@ func (db *SysDB) Begin() (r IDBTrans, err error) {
 func (db *SysDB) Close() {
 	db.db.Close()
 }
+
+func (db *SysDB) Print() {
+	fmt.Printf("maxIdle: %+v\n", db.db.Stats())
+	fmt.Println("maxOpen: ", db.maxOpen)
+}
