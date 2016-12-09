@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"crypto/tls"
 	"crypto/x509"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net"
@@ -63,6 +64,26 @@ func NewHTTPClientCert(certFile string, keyFile string, caFile string) (client *
 			ResponseHeaderTimeout: 0,
 		},
 	}
+	return
+}
+
+// NewHttpClientCert2 根据ca证书来初始化httpClient
+func NewHttpClientCert2(caFile string) (client *HTTPClient, err error) {
+	pool := x509.NewCertPool()
+
+	caData, err := ioutil.ReadFile(caFile)
+	if err != nil {
+		fmt.Println("ReadFile err:", err)
+		return
+	}
+	pool.AppendCertsFromPEM(caData)
+
+	tr := &http.Transport{
+		TLSClientConfig:    &tls.Config{RootCAs: pool},
+		DisableCompression: true,
+	}
+	client.client = &http.Client{Transport: tr}
+
 	return
 }
 
