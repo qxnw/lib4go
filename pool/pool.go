@@ -21,8 +21,8 @@ type idleConn struct {
 	t    time.Time
 }
 
-//NewPool 初始化链接
-func NewPool(config *PoolConfigOptions) (IPool, error) {
+//New 初始化链接
+func New(config *PoolConfigOptions) (IPool, error) {
 	if config.InitialCap < 0 || config.MaxCap <= 0 || config.InitialCap > config.MaxCap {
 		return nil, errors.New("invalid capacity settings")
 	}
@@ -140,7 +140,6 @@ func (c *pool) Release() {
 func (c *pool) Len() int {
 	return len(c.getConns())
 }
-
 
 var (
 	//ErrClosed 连接池已经关闭Error
