@@ -21,11 +21,62 @@ type idleConn struct {
 	t    time.Time
 }
 
+//Len 连接池中已有的连接
+func (c *pool) Len() int {
+	return len(c.getConns())
+}
+
+var (
+	//ErrClosed 连接池已经关闭Error
+	ErrClosed = errors.New("pool is closed")
+
+	// AutoReleaseTime 定时自动清除
+	TimeOut time.Duration
+)
+
+//IPool 基本方法
+type IPool interface {
+	Get() (interface{}, error)
+
+	Put(interface{}) error
+
+	Close(interface{}) error
+
+	Release()
+
+	Len() int
+
+	AutoReleaseStart()
+}
+
+//PoolConfigOptions 连接池相关配置
+type PoolConfigOptions struct {
+	//连接池中拥有的最小连接数
+	InitialCap int
+	//连接池中拥有的最大的连接数
+	MaxCap int
+	//生成连接的方法
+	Factory func() (interface{}, error)
+	//关闭链接的方法
+	Close func(interface{}) error
+	//链接最大空闲时间，超过该时间则将失效
+	IdleTimeout time.Duration
+}
+
 //New 初始化链接
 func New(config *PoolConfigOptions) (IPool, error) {
 	if config.InitialCap < 0 || config.MaxCap <= 0 || config.InitialCap > config.MaxCap {
 		return nil, errors.New("invalid capacity settings")
 	}
+
+	/*add by champly 2016年12月12日14:06:14*/
+	if config.Factory == nil || config.Close == nil {
+		return nil, errors.New("invalid function settings")
+	}
+
+	// 添加设置自动清理超时连接
+	TimeOut = config.IdleTimeout
+	/*end*/
 
 	c := &pool{
 		conns:       make(chan *idleConn, config.MaxCap),
@@ -66,7 +117,7 @@ func (c *pool) Get() (interface{}, error) {
 			if wrapConn == nil {
 				return nil, ErrClosed
 			}
-			//判断是否超时，超时则丢弃
+			// 判断是否超时，超时则丢弃
 			if timeout := c.idleTimeout; timeout > 0 {
 				if wrapConn.t.Add(timeout).Before(time.Now()) {
 					//丢弃并关闭该链接
@@ -74,6 +125,16 @@ func (c *pool) Get() (interface{}, error) {
 					continue
 				}
 			}
+
+			// /*change by champly 2016年12月12日14:49:48*/
+			// if timeout := c.idleTimeout; time.Now().Sub(wrapConn.t) > timeout {
+			// 	if wrapConn.t.Add(timeout).Before(time.Now()) {
+			// 		//丢弃并关闭该链接
+			// 		c.Close(wrapConn.conn)
+			// 		continue
+			// 	}
+			// }
+			// /*end*/
 			return wrapConn.conn, nil
 		default:
 			conn, err := c.factory()
@@ -136,39 +197,56 @@ func (c *pool) Release() {
 	}
 }
 
-//Len 连接池中已有的连接
-func (c *pool) Len() int {
-	return len(c.getConns())
+/*add by champly 2016年12月12日16:24:35*/
+// AutoReleaseTimeout 自动清除超时的连接
+func (c *pool) AutoReleaseStart() {
+	go func() {
+		tk := time.NewTicker(TimeOut)
+		for {
+			select {
+			case _, ok := <-tk.C:
+				if ok {
+					c.clear()
+				}
+			}
+		}
+	}()
 }
 
-var (
-	//ErrClosed 连接池已经关闭Error
-	ErrClosed = errors.New("pool is closed")
-)
+func (c *pool) clear() {
+	start := time.Now()
+	if c.Len() > 0 {
+		conns := c.getConns()
+		if conns == nil {
+			return
+		}
 
-//IPool 基本方法
-type IPool interface {
-	Get() (interface{}, error)
+		c.mu.Lock()
+		defer c.mu.Unlock()
 
-	Put(interface{}) error
+		fmt.Println("pool中总连接数：", len(c.conns))
+		for i := 0; i < len(c.conns); i++ {
+			wrapConn, ok := <-conns
+			if ok {
+				if wrapConn == nil {
+					return
+				}
 
-	Close(interface{}) error
+				// 如果超时
+				if timeout := c.idleTimeout; timeout > 0 {
+					if wrapConn.t.Add(timeout).Before(time.Now()) {
+						c.Close(wrapConn.conn)
+						continue
+					}
+				}
 
-	Release()
+				// 如果没有超时, 写回idleConn
+				c.conns <- &idleConn{conn: wrapConn.conn, t: time.Now()}
+			}
+		}
+	}
 
-	Len() int
+	fmt.Println("总共耗时", time.Now().Sub(start))
 }
 
-//PoolConfigOptions 连接池相关配置
-type PoolConfigOptions struct {
-	//连接池中拥有的最小连接数
-	InitialCap int
-	//连接池中拥有的最大的连接数
-	MaxCap int
-	//生成连接的方法
-	Factory func() (interface{}, error)
-	//关闭链接的方法
-	Close func(interface{}) error
-	//链接最大空闲时间，超过该事件则将失效
-	IdleTimeout time.Duration
-}
+/*end*/
