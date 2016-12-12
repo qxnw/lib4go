@@ -126,15 +126,6 @@ func (c *pool) Get() (interface{}, error) {
 				}
 			}
 
-			// /*change by champly 2016年12月12日14:49:48*/
-			// if timeout := c.idleTimeout; time.Now().Sub(wrapConn.t) > timeout {
-			// 	if wrapConn.t.Add(timeout).Before(time.Now()) {
-			// 		//丢弃并关闭该链接
-			// 		c.Close(wrapConn.conn)
-			// 		continue
-			// 	}
-			// }
-			// /*end*/
 			return wrapConn.conn, nil
 		default:
 			conn, err := c.factory()
