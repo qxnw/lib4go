@@ -583,6 +583,99 @@ func TestLoggerToFile(t *testing.T) {
 	os.Remove(filePath)
 }
 
+// TestLoggerToFileCheckOrder 测试写入到文件，然后判断输入的顺序
+func TestLoggerToFileCheckOrder(tx *testing.T) {
+	// 写入日志到文件
+	manager = newLoggerManager()
+	logger := GetSession("tofile", "12345678")
+	// t, err := time.Parse("2006/01/02 15:04:05", "2016/11/28 16:38:27")
+	// if err != nil {
+	// 	tx.Errorf("test fail, %+v", err)
+	// }
+
+	// 构建要测试的数据和预期数据
+	data := map[string]string{
+		// LogEvent{Level: "Debug", Now: t, Name: "tofile", Session: "12345678", Content: "content1", Output: "output1"}: []string{"[d]", "content1"},
+		// LogEvent{Level: "Debug", Now: t, Name: "tofile", Session: "12345678", Content: "content2", Output: "output2"}: []string{"[d]", "content2"},
+		// LogEvent{Level: "Info", Now: t, Name: "tofile", Session: "12345678", Content: "content3", Output: "output3"}:  []string{"[i]", "content3"},
+		// LogEvent{Level: "Fatal", Now: t, Name: "tofile", Session: "12345678", Content: "content4", Output: "output4"}: []string{"[f]", "content4"},
+		// LogEvent{Level: "Error", Now: t, Name: "tofile", Session: "12345678", Content: "content5", Output: "output5"}: []string{"[e]", "content5"},
+		// LogEvent{Level: "Error", Now: t, Name: "tofile", Session: "12345678", Content: "content6", Output: "output6"}: []string{"[e]", "content6"},
+		// LogEvent{Level: "Test", Now: t, Name: "tofile", Session: "12345678", Content: "content7", Output: "output6"}:  []string{"[t]", "content7"},
+		"content1": "content1",
+		"content2": "content2",
+		"content3": "content3",
+		"content4": "content4",
+		"content5": "content5",
+		"content6": "content6",
+		"content7": "content7",
+	}
+
+	// 获取日志文件的绝对路径
+	filePath := file.GetAbs(fmt.Sprintf("../logs/tofile/%d%d%d.log", time.Now().Year(), time.Now().Month(), time.Now().Day()))
+
+	// 删除文件，多次测试前面的测试会覆盖掉结果
+	os.Remove(filePath)
+
+	excepts := []string{}
+	for event, except := range data {
+		// 写内容到buffer
+		// manager.Log(event)
+		logger.Info(event)
+		// 添加预期的结果【测试的时候map顺序不确定】
+		// excepts = append(excepts, fmt.Sprintf(`[2016/11/28 16:38:27]%s[12345678] %s`, "12345678", except))
+		excepts = append(excepts, fmt.Sprintf(`][i][12345678] %s`, except))
+	}
+	tx.Log(excepts)
+	time.Sleep(time.Second * 11)
+
+	// 读取文件中的类容
+
+	// 当前读取文件的行数
+	lineNow := 0
+
+	// 记录匹配的行数
+	actual := []int{}
+
+	// 循环预期结果
+	for _, except := range excepts {
+		fileData, err := ioutil.ReadFile(filePath)
+		if err != nil {
+			tx.Errorf("test fail : %v", err)
+		}
+		for line, lineData := range strings.Split(string(fileData), "\n") {
+			// 记录开始位置
+			if strings.Contains(lineData, "begin") && lineNow == 0 {
+				lineNow = line
+			}
+
+			// 有开始位置，开始匹配
+			if line > lineNow {
+				if strings.Contains(lineData, except) {
+					lineNow = line
+					actual = append(actual, line)
+				}
+			}
+		}
+	}
+
+	if len(actual) != len(excepts) {
+		tx.Errorf("test fail except: %d, actual: %d", len(excepts), len(actual))
+	}
+
+	tx.Log(actual)
+
+	// 判断预期结果是否是连续的
+	for i := 0; i < len(actual); i++ {
+		if i != 0 {
+			if actual[i-1]+1 != actual[i] {
+				tx.Errorf("test fail, %+v", actual)
+				return
+			}
+		}
+	}
+}
+
 // Account 日志记录的对象
 type Account struct {
 	name  string
