@@ -273,7 +273,7 @@ func TestAutoRelease(t *testing.T) {
 
 	c.AutoReleaseStart()
 
-	time.Sleep(time.Second * 7)
+	time.Sleep(time.Second * 3)
 	if c.Len() != 0 {
 		fmt.Println("test", c.Len())
 		t.Errorf("test fail")

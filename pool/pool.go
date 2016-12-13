@@ -216,7 +216,8 @@ func (c *pool) clear() {
 		defer c.mu.Unlock()
 
 		fmt.Println("pool中总连接数：", len(c.conns))
-		for i := 0; i < len(c.conns); i++ {
+		length := len(c.conns)
+		for i := 0; i < length; i++ {
 			wrapConn, ok := <-conns
 			if ok {
 				if wrapConn == nil {
@@ -230,14 +231,13 @@ func (c *pool) clear() {
 						continue
 					}
 				}
-
 				// 如果没有超时, 写回idleConn
 				c.conns <- &idleConn{conn: wrapConn.conn, t: time.Now()}
 			}
 		}
 	}
 
-	fmt.Println("总共耗时", time.Now().Sub(start))
+	fmt.Println("总共耗时：", time.Now().Sub(start), " 现在连接数：", len(c.conns))
 }
 
 /*end*/
