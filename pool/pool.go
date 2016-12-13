@@ -212,8 +212,8 @@ func (c *pool) clear() {
 			return
 		}
 
-		c.mu.Lock()
-		defer c.mu.Unlock()
+		// c.mu.Lock()
+		// defer c.mu.Unlock()
 
 		fmt.Println("pool中总连接数：", len(c.conns))
 		length := len(c.conns)
