@@ -35,6 +35,7 @@ func NewContext(loggerName string, w http.ResponseWriter, r *http.Request, addre
 	context.StartTime = time.Now()
 	context.Session = utility.GetGUID()[:8]
 	context.Log = logger.GetSession(loggerName, context.Session)
+	context.Log.SetTag("script", script)
 	return
 
 }

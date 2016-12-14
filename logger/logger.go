@@ -12,6 +12,7 @@ import (
 type Logger struct {
 	names    []string
 	sessions []string
+	tags     map[string]string
 }
 
 var loggers cmap.ConcurrentMap
@@ -26,6 +27,7 @@ func init() {
 func New(names ...string) (logger *Logger) {
 	logger = &Logger{}
 	logger.names = names
+	logger.tags = make(map[string]string)
 	for range names {
 		logger.sessions = append(logger.sessions, getSessionID())
 	}
@@ -51,6 +53,11 @@ func GetSession(name string, sessionID string) (logger *Logger) {
 	return logger
 }
 
+//SetTag 设置tag
+func (logger *Logger) SetTag(name string, value string) {
+	logger.tags[name] = value
+}
+
 //GetSessionID 获取当前日志的session id
 func (logger *Logger) GetSessionID() string {
 	if len(logger.sessions) > 0 {
@@ -62,7 +69,7 @@ func (logger *Logger) GetSessionID() string {
 //Debug 输出debug日志
 func (logger *Logger) Debug(content ...interface{}) {
 	for i, name := range logger.names {
-		event := NewLogEvent(name, SLevel_Debug, logger.sessions[i], fmt.Sprint(content...))
+		event := NewLogEvent(name, SLevel_Debug, logger.sessions[i], fmt.Sprint(content...), logger.tags)
 		go manager.Log(event)
 	}
 }
@@ -70,7 +77,7 @@ func (logger *Logger) Debug(content ...interface{}) {
 //Debugf 输出debug日志
 func (logger *Logger) Debugf(format string, content ...interface{}) {
 	for i, name := range logger.names {
-		event := NewLogEvent(name, SLevel_Debug, logger.sessions[i], fmt.Sprintf(format, content...))
+		event := NewLogEvent(name, SLevel_Debug, logger.sessions[i], fmt.Sprintf(format, content...), logger.tags)
 		go manager.Log(event)
 	}
 }
@@ -78,16 +85,15 @@ func (logger *Logger) Debugf(format string, content ...interface{}) {
 //Info 输出info日志
 func (logger *Logger) Info(content ...interface{}) {
 	for i, name := range logger.names {
-		event := NewLogEvent(name, SLevel_Info, logger.sessions[i], fmt.Sprint(content...))
+		event := NewLogEvent(name, SLevel_Info, logger.sessions[i], fmt.Sprint(content...), logger.tags)
 		go manager.Log(event)
 	}
-
 }
 
 //Infof 输出info日志
 func (logger *Logger) Infof(format string, content ...interface{}) {
 	for i, name := range logger.names {
-		event := NewLogEvent(name, SLevel_Info, logger.sessions[i], fmt.Sprintf(format, content...))
+		event := NewLogEvent(name, SLevel_Info, logger.sessions[i], fmt.Sprintf(format, content...), logger.tags)
 		go manager.Log(event)
 	}
 }
@@ -95,7 +101,7 @@ func (logger *Logger) Infof(format string, content ...interface{}) {
 //Error 输出Error日志
 func (logger *Logger) Error(content ...interface{}) {
 	for i, name := range logger.names {
-		event := NewLogEvent(name, SLevel_Error, logger.sessions[i], fmt.Sprint(content...))
+		event := NewLogEvent(name, SLevel_Error, logger.sessions[i], fmt.Sprint(content...), logger.tags)
 		go manager.Log(event)
 	}
 
@@ -104,7 +110,7 @@ func (logger *Logger) Error(content ...interface{}) {
 //Errorf 输出Errorf日志
 func (logger *Logger) Errorf(format string, content ...interface{}) {
 	for i, name := range logger.names {
-		event := NewLogEvent(name, SLevel_Error, logger.sessions[i], fmt.Sprintf(format, content...))
+		event := NewLogEvent(name, SLevel_Error, logger.sessions[i], fmt.Sprintf(format, content...), logger.tags)
 		go manager.Log(event)
 	}
 }
@@ -112,7 +118,7 @@ func (logger *Logger) Errorf(format string, content ...interface{}) {
 //Fatal 输出Fatal日志
 func (logger *Logger) Fatal(content ...interface{}) {
 	for i, name := range logger.names {
-		event := NewLogEvent(name, SLevel_Fatal, logger.sessions[i], fmt.Sprint(content...))
+		event := NewLogEvent(name, SLevel_Fatal, logger.sessions[i], fmt.Sprint(content...), logger.tags)
 		go manager.Log(event)
 	}
 	os.Exit(999)
@@ -122,7 +128,7 @@ func (logger *Logger) Fatal(content ...interface{}) {
 //Fatalf 输出Fatalf日志
 func (logger *Logger) Fatalf(format string, content ...interface{}) {
 	for i, name := range logger.names {
-		event := NewLogEvent(name, SLevel_Fatal, logger.sessions[i], fmt.Sprintf(format, content...))
+		event := NewLogEvent(name, SLevel_Fatal, logger.sessions[i], fmt.Sprintf(format, content...), logger.tags)
 		go manager.Log(event)
 	}
 	os.Exit(999)

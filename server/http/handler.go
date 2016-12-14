@@ -28,7 +28,7 @@ func NewHandler(loggerName string, path string, script string, method string, en
 //recover 异常处理函数
 func (h *WebHandler) recover(log logger.ILogger) {
 	if r := recover(); r != nil {
-		log.Fatal(r, string(debug.Stack()))
+		log.Error(r, string(debug.Stack()))
 	}
 }
 
@@ -48,7 +48,6 @@ func (h *WebHandler) call(w http.ResponseWriter, r *http.Request) {
 	if strings.EqualFold(h.Method, "*") || strings.EqualFold(r.Method, h.Method) {
 		h.Handler(context)
 		return
-
 	}
 	context.Write(404, "请求的页面不存在")
 }

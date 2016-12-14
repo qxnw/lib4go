@@ -53,7 +53,6 @@ func (a *loggerManager) Log(event LogEvent) {
 		if err == nil {
 			capp := currentAppender.(*appenderEntity)
 			a.write(capp, config.Layout, event)
-
 		} else {
 			sysLoggerError(err)
 		}
