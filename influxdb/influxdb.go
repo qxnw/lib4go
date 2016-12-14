@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/qxnw/transform"
+	"github.com/qxnw/lib4go/transform"
 )
 
 // ConfigOptions influxdb配置

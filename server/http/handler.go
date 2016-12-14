@@ -36,12 +36,19 @@ func (h *WebHandler) recover(log logger.ILogger) {
 func (h *WebHandler) call(w http.ResponseWriter, r *http.Request) {
 	context := NewContext(h.LoggerName, w, r, h.Path, h.Script)
 	defer h.recover(context.Log)
+	defer context.Log.Infof("%s\t%s\t%s\t%d\t%v", r.Method, h.Path, r.UserAgent(), context.ResponseCode, context.PassTime())
+
+	err := context.Parse()
+	if err != nil {
+		context.Write(500, "页面访问出错")
+		return
+	}
+
 	context.Encoding = h.Encoding
 	if strings.EqualFold(h.Method, "*") || strings.EqualFold(r.Method, h.Method) {
 		h.Handler(context)
 		return
 
 	}
-	w.WriteHeader(404)
-	w.Write([]byte("您访问的页面不存在"))
+	context.Write(404, "请求的页面不存在")
 }

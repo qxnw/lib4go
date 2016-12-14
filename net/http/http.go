@@ -97,6 +97,36 @@ func NewHttpClientCert2(caFile string) (client *HTTPClient, err error) {
 	return
 }
 
+// NewHTTPClientCert1 根据ca证书来初始化httpClient
+func NewHTTPClientCert1(caFile string) (client *HTTPClient, err error) {
+
+	pool := x509.NewCertPool()
+	caData, err := ioutil.ReadFile(caFile)
+	if err != nil {
+		return
+	}
+	pool.AppendCertsFromPEM(caData)
+	client = &HTTPClient{}
+	client.client = &http.Client{
+		Transport: &http.Transport{
+			DisableKeepAlives: true,
+			TLSClientConfig:   &tls.Config{RootCAs: pool},
+			Dial: func(netw, addr string) (net.Conn, error) {
+				c, err := net.DialTimeout(netw, addr, 0)
+				if err != nil {
+					return nil, err
+				}
+				return c, nil
+			},
+			MaxIdleConnsPerHost:   0,
+			ResponseHeaderTimeout: 0,
+			DisableCompression:    true,
+		},
+	}
+
+	return
+}
+
 // NewHTTPClient 构建HTTP客户端，用于发送GET POST等请求
 func NewHTTPClient() (client *HTTPClient) {
 	client = &HTTPClient{}

@@ -1,6 +1,7 @@
 package mq
 
 import (
+	"encoding/json"
 	"fmt"
 	"net"
 	"sync"
@@ -22,6 +23,17 @@ type StompProducer struct {
 	conn   *stompngo.Connection
 	lk     sync.Mutex
 	header []string
+}
+
+//NewStompProducerJSON 创建新的producer
+func NewStompProducerJSON(config string) (producer *StompProducer, err error) {
+	conf := ProducerConfig{}
+	// err = json.Unmarshal([]byte(config), &i.config)
+	err = json.Unmarshal([]byte(config), &conf)
+	if err != nil {
+		return nil, fmt.Errorf("mq 配置文件有误:%v", err)
+	}
+	return NewStompProducer(conf)
 }
 
 //NewStompProducer 创建新的producer

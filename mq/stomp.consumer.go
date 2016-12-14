@@ -1,6 +1,7 @@
 package mq
 
 import (
+	"encoding/json"
 	"fmt"
 	"net"
 	"strings"
@@ -25,6 +26,17 @@ type StompConsumer struct {
 	queues cmap.ConcurrentMap
 	lk     sync.Mutex
 	header []string
+}
+
+//NewStompConsumerJSON 创建新的producer
+func NewStompConsumerJSON(config string) (producer *StompConsumer, err error) {
+	conf := ConsumerConfig{}
+	// err = json.Unmarshal([]byte(config), &i.config)
+	err = json.Unmarshal([]byte(config), &conf)
+	if err != nil {
+		return nil, fmt.Errorf("mq 配置文件有误:%v", err)
+	}
+	return NewStompConsumer(conf)
 }
 
 //NewStompConsumer 创建新的Consumer
