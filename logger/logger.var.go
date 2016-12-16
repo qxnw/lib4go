@@ -52,6 +52,7 @@ type ILogger interface {
 	SetTag(name string, value string)
 	Printf(format string, content ...interface{})
 	Print(content ...interface{})
+	Println(args ...interface{})
 
 	Infof(format string, content ...interface{})
 	Info(content ...interface{})
@@ -64,4 +65,5 @@ type ILogger interface {
 
 	Fatalf(format string, content ...interface{})
 	Fatal(content ...interface{})
+	Fatalln(args ...interface{})
 }

@@ -2,7 +2,7 @@ package db
 
 import "github.com/qxnw/lib4go/db/tpl"
 
-//IDB 数据库操作接口
+//IDB 数据库操作接口,安装可需能需要执行export LD_LIBRARY_PATH=/usr/local/lib
 type IDB interface {
 	Query(string, ...interface{}) ([]map[string]interface{}, []string, error)
 	Execute(string, ...interface{}) (int64, error)

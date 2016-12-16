@@ -134,6 +134,11 @@ func (logger *Logger) Fatalf(format string, content ...interface{}) {
 	os.Exit(999)
 }
 
+//Fatalln 输出Fatal日志
+func (logger *Logger) Fatalln(content ...interface{}) {
+	logger.Fatal(content...)
+}
+
 //Print 输出info日志
 func (logger *Logger) Print(content ...interface{}) {
 	logger.Info(content...)
@@ -145,6 +150,11 @@ func (logger *Logger) Printf(format string, content ...interface{}) {
 	logger.Infof(format, content...)
 }
 
+//Println 输出info日志
+func (logger *Logger) Println(content ...interface{}) {
+	logger.Print(content...)
+
+}
 func getSessionID() string {
 	id := utility.GetGUID()
 	return id[:8]
