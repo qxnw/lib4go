@@ -1,4 +1,4 @@
-// Copyright 2015 The Tango Authors. All rights reserved.
+// Copyright 2015 The WebServer Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -96,12 +96,12 @@ func joinRoute(p, url string) string {
 	return p + url
 }
 
-func (t *Tango) addGroup(p string, g *Group) {
+func (t *WebServer) addGroup(p string, g *Group) {
 	for _, r := range g.routers {
 		t.Route(r.methods, joinRoute(p, r.url), r.c, append(g.handlers, r.handlers...)...)
 	}
 }
 
-func (t *Tango) Group(p string, o interface{}) {
+func (t *WebServer) Group(p string, o interface{}) {
 	t.addGroup(p, getGroup(o))
 }

@@ -1,4 +1,4 @@
-// Copyright 2015 The Tango Authors. All rights reserved.
+// Copyright 2015 The WebServer Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -23,7 +23,7 @@ type Logger interface {
 }
 
 func NewLogger(out io.Writer) Logger {
-	l := log.New(out, "[tango] ", log.Ldefault())
+	l := log.New(out, "[WebServer] ", log.Ldefault())
 	l.SetOutputLevel(log.Ldebug)
 	return l
 }

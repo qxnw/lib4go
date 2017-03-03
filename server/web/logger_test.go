@@ -1,4 +1,4 @@
-// Copyright 2015 The Tango Authors. All rights reserved.
+// Copyright 2015 The WebServer Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -17,7 +17,7 @@ func TestLogger1(t *testing.T) {
 	buff := bytes.NewBufferString("")
 	recorder := httptest.NewRecorder()
 
-	n := NewWithLog(log.New(buff, "[tango] ", 0))
+	n := NewWithLog(log.New(buff, "[WebServer] ", 0))
 	n.Use(Logging())
 	n.UseHandler(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		rw.WriteHeader(http.StatusNotFound)

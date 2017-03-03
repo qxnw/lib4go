@@ -1,4 +1,4 @@
-// Copyright 2015 The Tango Authors. All rights reserved.
+// Copyright 2015 The WebServer Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -79,10 +79,10 @@ func TestCompressStatic(t *testing.T) {
 	o.Use(Compresses([]string{".html"}))
 	o.Use(ClassicHandlers...)
 	testCompress(t, o, "http://localhost:8000/public/test.html",
-		"hello tango", "gzip")
+		"hello WebServer", "gzip")
 }
 
-func testCompress(t *testing.T, o *Tango, url, content, enc string) {
+func testCompress(t *testing.T, o *WebServer, url, content, enc string) {
 	buff := bytes.NewBufferString("")
 	recorder := httptest.NewRecorder()
 	recorder.Body = buff

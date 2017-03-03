@@ -1,4 +1,4 @@
-// Copyright 2015 The Tango Authors. All rights reserved.
+// Copyright 2015 The WebServer Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -27,7 +27,7 @@ func TestDir1(t *testing.T) {
 	tg.ServeHTTP(recorder, req)
 	expect(t, recorder.Code, http.StatusOK)
 	refute(t, len(buff.String()), 0)
-	expect(t, buff.String(), "hello tango")
+	expect(t, buff.String(), "hello WebServer")
 }
 
 func TestDir2(t *testing.T) {
@@ -65,5 +65,5 @@ func TestFile1(t *testing.T) {
 	tg.ServeHTTP(recorder, req)
 	expect(t, recorder.Code, http.StatusOK)
 	refute(t, len(buff.String()), 0)
-	expect(t, buff.String(), "hello tango")
+	expect(t, buff.String(), "hello WebServer")
 }

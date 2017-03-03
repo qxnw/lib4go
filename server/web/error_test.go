@@ -1,4 +1,4 @@
-// Copyright 2015 The Tango Authors. All rights reserved.
+// Copyright 2015 The WebServer Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -158,7 +158,7 @@ func TestError7(t *testing.T) {
 }
 
 var (
-	prefix = "<html><head>tango</head><body><div>"
+	prefix = "<html><head>WebServer</head><body><div>"
 	suffix = fmt.Sprintf("</div><div>version: %s</div></body></html>", Version())
 )
 

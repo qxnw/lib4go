@@ -1,4 +1,4 @@
-// Copyright 2015 The Tango Authors. All rights reserved.
+// Copyright 2015 The WebServer Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -18,7 +18,7 @@ func Version() string {
 	return "0.5.2.1214"
 }
 
-type Tango struct {
+type WebServer struct {
 	server *http.Server
 	Router
 	handlers   []Handler
@@ -40,48 +40,48 @@ var (
 	}
 )
 
-func (t *Tango) Logger() Logger {
+func (t *WebServer) Logger() Logger {
 	return t.logger
 }
 
-func (t *Tango) Get(url string, c interface{}, middlewares ...Handler) {
+func (t *WebServer) Get(url string, c interface{}, middlewares ...Handler) {
 	t.Route([]string{"GET", "HEAD:Get"}, url, c, middlewares...)
 }
 
-func (t *Tango) Post(url string, c interface{}, middlewares ...Handler) {
+func (t *WebServer) Post(url string, c interface{}, middlewares ...Handler) {
 	t.Route([]string{"POST"}, url, c, middlewares...)
 }
 
-func (t *Tango) Head(url string, c interface{}, middlewares ...Handler) {
+func (t *WebServer) Head(url string, c interface{}, middlewares ...Handler) {
 	t.Route([]string{"HEAD"}, url, c, middlewares...)
 }
 
-func (t *Tango) Options(url string, c interface{}, middlewares ...Handler) {
+func (t *WebServer) Options(url string, c interface{}, middlewares ...Handler) {
 	t.Route([]string{"OPTIONS"}, url, c, middlewares...)
 }
 
-func (t *Tango) Trace(url string, c interface{}, middlewares ...Handler) {
+func (t *WebServer) Trace(url string, c interface{}, middlewares ...Handler) {
 	t.Route([]string{"TRACE"}, url, c, middlewares...)
 }
 
-func (t *Tango) Patch(url string, c interface{}, middlewares ...Handler) {
+func (t *WebServer) Patch(url string, c interface{}, middlewares ...Handler) {
 	t.Route([]string{"PATCH"}, url, c, middlewares...)
 }
 
-func (t *Tango) Delete(url string, c interface{}, middlewares ...Handler) {
+func (t *WebServer) Delete(url string, c interface{}, middlewares ...Handler) {
 	t.Route([]string{"DELETE"}, url, c, middlewares...)
 }
 
-func (t *Tango) Put(url string, c interface{}, middlewares ...Handler) {
+func (t *WebServer) Put(url string, c interface{}, middlewares ...Handler) {
 	t.Route([]string{"PUT"}, url, c, middlewares...)
 }
 
-func (t *Tango) Any(url string, c interface{}, middlewares ...Handler) {
+func (t *WebServer) Any(url string, c interface{}, middlewares ...Handler) {
 	t.Route(SupportMethods, url, c, middlewares...)
 	t.Route([]string{"HEAD:Get"}, url, c, middlewares...)
 }
 
-func (t *Tango) Use(handlers ...Handler) {
+func (t *WebServer) Use(handlers ...Handler) {
 	t.handlers = append(t.handlers, handlers...)
 }
 
@@ -130,7 +130,7 @@ func GetAddress(args ...interface{}) string {
 }
 
 // Run the http server. Listening on os.GetEnv("PORT") or 8000 by default.
-func (t *Tango) Run(args ...interface{}) {
+func (t *WebServer) Run(args ...interface{}) {
 	addr := GetAddress(args...)
 	t.logger.Info("Listening on http://" + addr)
 	//	mux := http.NewServeMux()
@@ -141,12 +141,12 @@ func (t *Tango) Run(args ...interface{}) {
 		t.logger.Error(err)
 	}
 }
-func (t *Tango) Close() {
+func (t *WebServer) Close() {
 	xt, _ := ctx.WithTimeout(ctx.Background(), 5*time.Second)
 	t.server.Shutdown(xt)
 }
 
-func (t *Tango) RunTLS(certFile, keyFile string, args ...interface{}) {
+func (t *WebServer) RunTLS(certFile, keyFile string, args ...interface{}) {
 	addr := GetAddress(args...)
 	t.logger.Info("Listening on https://" + addr)
 
@@ -178,11 +178,11 @@ func WrapAfter(handler http.Handler) HandlerFunc {
 	}
 }
 
-func (t *Tango) UseHandler(handler http.Handler) {
+func (t *WebServer) UseHandler(handler http.Handler) {
 
 	t.Use(WrapBefore(handler))
 }
-func (t *Tango) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+func (t *WebServer) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	resp := t.respPool.Get().(*responseWriter)
 	resp.reset(w)
 
@@ -222,8 +222,8 @@ func (t *Tango) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	t.respPool.Put(resp)
 }
 
-func NewWithLog(logger Logger, handlers ...Handler) *Tango {
-	tan := &Tango{
+func NewWithLog(logger Logger, handlers ...Handler) *WebServer {
+	tan := &WebServer{
 		Router:     NewRouter(),
 		logger:     logger,
 		handlers:   make([]Handler, 0),
@@ -246,11 +246,11 @@ func NewWithLog(logger Logger, handlers ...Handler) *Tango {
 	return tan
 }
 
-func New(handlers ...Handler) *Tango {
+func New(handlers ...Handler) *WebServer {
 	return NewWithLog(NewLogger(os.Stdout), handlers...)
 }
 
-func Classic(l ...Logger) *Tango {
+func Classic(l ...Logger) *WebServer {
 	var logger Logger
 	if len(l) == 0 {
 		logger = NewLogger(os.Stdout)

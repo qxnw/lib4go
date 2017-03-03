@@ -17,7 +17,7 @@ const (
 	FuncHttpRoute                          // 2 func (http.ResponseWriter, *http.Request)
 	FuncReqRoute                           // 3 func (*http.Request)
 	FuncResponseRoute                      // 4 func (http.ResponseWriter)
-	FuncCtxRoute                           // 5 func (*tango.Context)
+	FuncCtxRoute                           // 5 func (*WebServer.Context)
 	StructRoute                            // 6 func (st) <Get>()
 	StructPtrRoute                         // 7 func (*struct) <Get>()
 )
@@ -481,7 +481,7 @@ func (router *router) Route(ms interface{}, url string, c interface{}, handlers 
 }
 
 /*
-	Tango supports 5 form funcs
+	WebServer supports 5 form funcs
 
 	func()
 	func(*Context)

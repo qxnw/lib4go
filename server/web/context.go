@@ -1,4 +1,4 @@
-// Copyright 2015 The Tango Authors. All rights reserved.
+// Copyright 2015 The WebServer Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -23,7 +23,7 @@ type Handler interface {
 }
 
 type Context struct {
-	tan *Tango
+	tan *WebServer
 	Logger
 
 	idx int

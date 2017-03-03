@@ -1,4 +1,4 @@
-// Copyright 2015 The Tango Authors. All rights reserved.
+// Copyright 2015 The WebServer Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -224,7 +224,7 @@ type JsonReturn3 struct {
 func (JsonReturn3) Get() (int, interface{}) {
 	if true {
 		return 201, map[string]string{
-			"say": "Hello tango!",
+			"say": "Hello WebServer!",
 		}
 	}
 	return 500, errors.New("something error")
@@ -246,7 +246,7 @@ func TestReturnJson4(t *testing.T) {
 	o.ServeHTTP(recorder, req)
 	expect(t, recorder.Code, 201)
 	refute(t, len(buff.String()), 0)
-	expect(t, strings.TrimSpace(buff.String()), `{"say":"Hello tango!"}`)
+	expect(t, strings.TrimSpace(buff.String()), `{"say":"Hello WebServer!"}`)
 }
 
 type XmlReturn struct {
