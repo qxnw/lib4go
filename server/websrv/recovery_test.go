@@ -4,14 +4,7 @@
 
 package websrv
 
-import (
-	"bytes"
-	"net/http"
-	"net/http/httptest"
-	"os"
-	"testing"
-)
-
+/*
 func TestRecovery(t *testing.T) {
 	buff := bytes.NewBufferString("")
 	recorder := httptest.NewRecorder()
@@ -33,3 +26,4 @@ func TestRecovery(t *testing.T) {
 	refute(t, recorder.Body.Len(), 0)
 	refute(t, len(buff.String()), 0)
 }
+*/

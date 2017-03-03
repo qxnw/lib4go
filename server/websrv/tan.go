@@ -131,10 +131,17 @@ func GetAddress(args ...interface{}) string {
 
 // Run the http server. Listening on os.GetEnv("PORT") or 8000 by default.
 func (t *WebServer) Run(args ...interface{}) {
-	addr := GetAddress(args...)
+	/*addr := GetAddress(args...)
 	t.logger.Info("Listening on http://" + addr)
 	t.server = &http.Server{Addr: addr, Handler: t}
 	err := t.server.ListenAndServe()
+	if err != nil {
+		t.logger.Error(err)
+	}*/
+	addr := GetAddress(args...)
+	t.logger.Info("Listening on http://" + addr)
+
+	err := http.ListenAndServe(addr, t)
 	if err != nil {
 		t.logger.Error(err)
 	}
