@@ -33,7 +33,6 @@ func (s *WebServer) Serve() (err error) {
 	mux := http.NewServeMux()
 	for _, handler := range s.routes {
 		mux.HandleFunc(handler.Path, handler.call)
-
 	}
 	l, err := net.Listen("tcp", s.address)
 	if err != nil {

@@ -27,12 +27,14 @@ type Context struct {
 	RequestRaw   string
 	ResponseCode int
 	Log          logger.ILogger
+	Method       string
 }
 
 //NewContext 构建web请求上下文
 func NewContext(loggerName string, w http.ResponseWriter, r *http.Request, address string, script string) (context *Context) {
 	context = &Context{Response: w, Request: r, Address: address, Script: script}
 	context.StartTime = time.Now()
+	context.Method = r.Method
 	context.Session = utility.GetGUID()[:8]
 	context.Log = logger.GetSession(loggerName, context.Session)
 	context.Log.SetTag("script", script)
