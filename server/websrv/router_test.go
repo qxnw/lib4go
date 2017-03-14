@@ -588,7 +588,7 @@ func (Action) Get() string {
 
 func TestRouterSingle(t *testing.T) {
 	for k, m := range matchResult {
-		r := New()
+		r := New("web")
 		r.Route("GET", k, new(Action))
 
 		for _, res := range m {
@@ -750,7 +750,7 @@ var (
 
 func TestRouterMultiple(t *testing.T) {
 	for _, kase := range matchResult2 {
-		r := New()
+		r := New("web")
 		for _, k := range kase.routers {
 			r.Route("GET", k, new(Action))
 		}
@@ -787,7 +787,7 @@ func TestRouter10(t *testing.T) {
 	recorder := httptest.NewRecorder()
 	recorder.Body = buff
 
-	r := New()
+	r := New("web")
 	r.Get("/", func(ctx *Context) {
 		ctx.Write([]byte("test"))
 	})

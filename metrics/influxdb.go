@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	uurl "net/url"
+	"strings"
 	"time"
 
 	"github.com/qxnw/lib4go/influxdb"
@@ -24,6 +25,24 @@ type reporter struct {
 // InfluxDB starts a InfluxDB reporter which will post the metrics from the given registry at each d interval.
 func InfluxDB(r metrics.Registry, d time.Duration, url, database, username, password string) {
 	InfluxDBWithTags(r, d, url, database, username, password, nil)
+}
+
+//MakeName 构建参数名称
+func MakeName(name string, params ...string) string {
+	return name + "-" + strings.Join(params, "-")
+}
+
+//timer.merchant.api.request-server-192.168.0.240-client-127.0.0.1-url-/colin
+func splitGroup(name string) (string, map[string]string) {
+	names := strings.Split(name, "-")
+	tags := make(map[string]string)
+	count := len(names)
+	for i := 1; i < count; i++ {
+		if i%2 == 1 && i+1 < count {
+			tags[names[i]] = names[i+1]
+		}
+	}
+	return names[0], tags
 }
 
 // InfluxDBWithTags starts a InfluxDB reporter which will post the metrics from the given registry at each d interval with the specified tags
@@ -86,47 +105,46 @@ func (r *reporter) run() {
 
 func (r *reporter) send() error {
 	var pts []influxdb.Point
-
-	r.reg.Each(func(name string, i interface{}) {
+	r.reg.Each(func(name string, obj interface{}) {
 		now := time.Now()
-
-		switch metric := i.(type) {
-		case metrics.Counter:
+		rname, tags := splitGroup(name)
+		switch metric := obj.(type) {
+		case Counter:
 			ms := metric.Snapshot()
 			pts = append(pts, influxdb.Point{
-				Measurement: fmt.Sprintf("%s.count", name),
-				Tags:        r.tags,
+				Measurement: fmt.Sprintf("%s.count", rname),
+				Tags:        tags,
 				Fields: map[string]interface{}{
 					"value": ms.Count(),
 				},
 				Time: now,
 			})
-		case metrics.Gauge:
+		case Gauge:
 			ms := metric.Snapshot()
 			pts = append(pts, influxdb.Point{
-				Measurement: fmt.Sprintf("%s.gauge", name),
-				Tags:        r.tags,
+				Measurement: fmt.Sprintf("%s.gauge", rname),
+				Tags:        tags,
 				Fields: map[string]interface{}{
 					"value": ms.Value(),
 				},
 				Time: now,
 			})
-		case metrics.GaugeFloat64:
+		case GaugeFloat64:
 			ms := metric.Snapshot()
 			pts = append(pts, influxdb.Point{
-				Measurement: fmt.Sprintf("%s.gauge", name),
-				Tags:        r.tags,
+				Measurement: fmt.Sprintf("%s.gauge", rname),
+				Tags:        tags,
 				Fields: map[string]interface{}{
 					"value": ms.Value(),
 				},
 				Time: now,
 			})
-		case metrics.Histogram:
+		case Histogram:
 			ms := metric.Snapshot()
 			ps := ms.Percentiles([]float64{0.5, 0.75, 0.95, 0.99, 0.999, 0.9999})
 			pts = append(pts, influxdb.Point{
-				Measurement: fmt.Sprintf("%s.histogram", name),
-				Tags:        r.tags,
+				Measurement: fmt.Sprintf("%s.histogram", rname),
+				Tags:        tags,
 				Fields: map[string]interface{}{
 					"count":    ms.Count(),
 					"max":      ms.Max(),
@@ -143,11 +161,11 @@ func (r *reporter) send() error {
 				},
 				Time: now,
 			})
-		case metrics.Meter:
+		case Meter:
 			ms := metric.Snapshot()
 			pts = append(pts, influxdb.Point{
-				Measurement: fmt.Sprintf("%s.meter", name),
-				Tags:        r.tags,
+				Measurement: fmt.Sprintf("%s.meter", rname),
+				Tags:        tags,
 				Fields: map[string]interface{}{
 					"count": ms.Count(),
 					"m1":    ms.Rate1(),
@@ -157,12 +175,12 @@ func (r *reporter) send() error {
 				},
 				Time: now,
 			})
-		case metrics.Timer:
+		case Timer:
 			ms := metric.Snapshot()
 			ps := ms.Percentiles([]float64{0.5, 0.75, 0.95, 0.99, 0.999, 0.9999})
 			pts = append(pts, influxdb.Point{
-				Measurement: fmt.Sprintf("%s.timer", name),
-				Tags:        r.tags,
+				Measurement: fmt.Sprintf("%s.timer", rname),
+				Tags:        tags,
 				Fields: map[string]interface{}{
 					"count":    ms.Count(),
 					"max":      ms.Max(),
@@ -190,7 +208,6 @@ func (r *reporter) send() error {
 		Points:   pts,
 		Database: r.database,
 	}
-
 	_, err := r.client.Write(bps)
 	return err
 }

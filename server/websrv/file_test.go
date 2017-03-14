@@ -16,7 +16,7 @@ func TestDir1(t *testing.T) {
 	recorder := httptest.NewRecorder()
 	recorder.Body = buff
 
-	tg := New()
+	tg := New("web")
 	tg.Get("/:name", Dir("./public"))
 
 	req, err := http.NewRequest("GET", "http://localhost:8000/test.html", nil)
@@ -35,7 +35,7 @@ func TestDir2(t *testing.T) {
 	recorder := httptest.NewRecorder()
 	recorder.Body = buff
 
-	tg := New()
+	tg := New("web")
 	tg.Get("/", Dir("./public"))
 
 	req, err := http.NewRequest("GET", "http://localhost:8000/", nil)
@@ -54,7 +54,7 @@ func TestFile1(t *testing.T) {
 	recorder := httptest.NewRecorder()
 	recorder.Body = buff
 
-	tg := New()
+	tg := New("web")
 	tg.Get("/test.html", File("./public/test.html"))
 
 	req, err := http.NewRequest("GET", "http://localhost:8000/test.html", nil)

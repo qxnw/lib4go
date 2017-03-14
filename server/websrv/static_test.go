@@ -16,7 +16,7 @@ func TestStatic(t *testing.T) {
 	recorder := httptest.NewRecorder()
 	recorder.Body = buff
 
-	tg := New()
+	tg := New("web")
 	tg.Use(Static())
 
 	req, err := http.NewRequest("GET", "http://localhost:8000/test.html", nil)
@@ -47,7 +47,7 @@ func TestStatic2(t *testing.T) {
 	recorder := httptest.NewRecorder()
 	recorder.Body = buff
 
-	tg := New()
+	tg := New("web")
 	tg.Use(Static())
 
 	req, err := http.NewRequest("GET", "http://localhost:8000/test.png", nil)
@@ -64,7 +64,7 @@ func TestStatic3(t *testing.T) {
 	recorder := httptest.NewRecorder()
 	recorder.Body = buff
 
-	tg := New()
+	tg := New("web")
 	tg.Use(Static(StaticOptions{
 		Prefix:   "/public",
 		RootPath: "./public",
@@ -85,7 +85,7 @@ func TestStatic4(t *testing.T) {
 	recorder := httptest.NewRecorder()
 	recorder.Body = buff
 
-	tg := New()
+	tg := New("web")
 	tg.Use(Static(StaticOptions{
 		Prefix:   "/public",
 		RootPath: "./public",
@@ -106,7 +106,7 @@ func TestStatic5(t *testing.T) {
 	recorder := httptest.NewRecorder()
 	recorder.Body = buff
 
-	tg := New()
+	tg := New("web")
 	tg.Use(Static(StaticOptions{
 		Prefix:     "/public",
 		RootPath:   "./public",

@@ -12,6 +12,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/qxnw/lib4go/net"
 )
 
 func Version() string {
@@ -45,7 +47,9 @@ func WithHandlers(handlers ...Handler) Option {
 }
 
 type WebServer struct {
-	server *http.Server
+	serverName string
+	ip         string
+	server     *http.Server
 	Router
 	handlers   []Handler
 	logger     Logger
@@ -255,14 +259,15 @@ func (t *WebServer) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	t.respPool.Put(resp)
 }
 
-func NewWithLog(logger Logger, handlers ...Handler) *WebServer {
+func NewWithLog(name string, logger Logger, handlers ...Handler) *WebServer {
 	tan := &WebServer{
+		serverName: name,
 		Router:     NewRouter(),
 		logger:     logger,
 		handlers:   make([]Handler, 0),
 		ErrHandler: Errors(),
 	}
-
+	tan.ip = net.GetLocalIPAddress()
 	tan.ctxPool.New = func() interface{} {
 		return &Context{
 			tan:    tan,
@@ -278,9 +283,15 @@ func NewWithLog(logger Logger, handlers ...Handler) *WebServer {
 
 	return tan
 }
+func Classic(logger ...Logger) *WebServer {
+	if len(logger) > 0 {
+		return New("web", WithLogger(logger[0]))
+	}
+	return New("web")
+}
 
-//New
-func New(opts ...Option) *WebServer {
+//New create new server
+func New(name string, opts ...Option) *WebServer {
 	serverOpts := &webServerOption{}
 	for _, opt := range opts {
 		opt(serverOpts)
@@ -289,11 +300,18 @@ func New(opts ...Option) *WebServer {
 		serverOpts.logger = NewLogger(os.Stdout)
 	}
 	handlers := make([]Handler, 0, 0)
-	handlers = append(handlers, serverOpts.mertric)
-	handlers = append(handlers, serverOpts.handlers...)
+	if serverOpts.mertric != nil {
+		handlers = append(handlers, serverOpts.mertric)
+	}
+	if len(serverOpts.handlers) > 0 {
+		handlers = append(handlers, serverOpts.handlers...)
+	}
+
 	handlers = append(handlers, ClassicHandlers...)
-	return NewWithLog(
+	server := NewWithLog(
+		name,
 		serverOpts.logger,
 		handlers...,
 	)
+	return server
 }
