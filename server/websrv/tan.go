@@ -18,6 +18,32 @@ func Version() string {
 	return "0.5.2.1214"
 }
 
+type webServerOption struct {
+	logger   Logger
+	mertric  Handler
+	handlers []Handler
+}
+
+//Option 配置选项
+type Option func(*webServerOption)
+
+//WithLogger
+func WithLogger(logger Logger) Option {
+	return func(o *webServerOption) {
+		o.logger = logger
+	}
+}
+func WithMetric(host string, dataBase string, userName string, password string, timeSpan time.Duration) Option {
+	return func(o *webServerOption) {
+		o.mertric = NewMetric(host, dataBase, userName, password, timeSpan)
+	}
+}
+func WithHandlers(handlers ...Handler) Option {
+	return func(o *webServerOption) {
+		o.handlers = handlers
+	}
+}
+
 type WebServer struct {
 	server *http.Server
 	Router
@@ -253,20 +279,21 @@ func NewWithLog(logger Logger, handlers ...Handler) *WebServer {
 	return tan
 }
 
-func New(handlers ...Handler) *WebServer {
-	return NewWithLog(NewLogger(os.Stdout), handlers...)
-}
-
-func Classic(l ...Logger) *WebServer {
-	var logger Logger
-	if len(l) == 0 {
-		logger = NewLogger(os.Stdout)
-	} else {
-		logger = l[0]
+//New
+func New(opts ...Option) *WebServer {
+	serverOpts := &webServerOption{}
+	for _, opt := range opts {
+		opt(serverOpts)
 	}
-
+	if serverOpts.logger == nil {
+		serverOpts.logger = NewLogger(os.Stdout)
+	}
+	handlers := make([]Handler, 0, 0)
+	handlers = append(handlers, serverOpts.mertric)
+	handlers = append(handlers, serverOpts.handlers...)
+	handlers = append(handlers, ClassicHandlers...)
 	return NewWithLog(
-		logger,
-		ClassicHandlers...,
+		serverOpts.logger,
+		handlers...,
 	)
 }
