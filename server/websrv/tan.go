@@ -16,6 +16,7 @@ import (
 	"github.com/qxnw/lib4go/net"
 )
 
+//Version 系统版本号
 func Version() string {
 	return "0.5.2.1214"
 }
@@ -29,23 +30,28 @@ type webServerOption struct {
 //Option 配置选项
 type Option func(*webServerOption)
 
-//WithLogger
+//WithLogger 设置日志记录组件
 func WithLogger(logger Logger) Option {
 	return func(o *webServerOption) {
 		o.logger = logger
 	}
 }
-func WithMetric(host string, dataBase string, userName string, password string, timeSpan time.Duration) Option {
+
+//WithInfluxMetric 设置基于influxdb的系统监控组件
+func WithInfluxMetric(host string, dataBase string, userName string, password string, timeSpan time.Duration) Option {
 	return func(o *webServerOption) {
-		o.mertric = NewMetric(host, dataBase, userName, password, timeSpan)
+		o.mertric = NewInfluxMetric(host, dataBase, userName, password, timeSpan)
 	}
 }
+
+//WithHandlers 添加插件
 func WithHandlers(handlers ...Handler) Option {
 	return func(o *webServerOption) {
 		o.handlers = handlers
 	}
 }
 
+//WebServer web服务器
 type WebServer struct {
 	serverName string
 	ip         string
@@ -59,6 +65,7 @@ type WebServer struct {
 }
 
 var (
+	//ClassicHandlers 标准插件
 	ClassicHandlers = []Handler{
 		Logging(),
 		Recovery(false),
@@ -70,47 +77,58 @@ var (
 	}
 )
 
+//Logger 获取日志组件
 func (t *WebServer) Logger() Logger {
 	return t.logger
 }
 
+//Get 设置get路由
 func (t *WebServer) Get(url string, c interface{}, middlewares ...Handler) {
 	t.Route([]string{"GET", "HEAD:Get"}, url, c, middlewares...)
 }
 
+//Post 设置Post路由
 func (t *WebServer) Post(url string, c interface{}, middlewares ...Handler) {
 	t.Route([]string{"POST"}, url, c, middlewares...)
 }
 
+//Head 设置Head路由
 func (t *WebServer) Head(url string, c interface{}, middlewares ...Handler) {
 	t.Route([]string{"HEAD"}, url, c, middlewares...)
 }
 
+//Options 设置Options路由
 func (t *WebServer) Options(url string, c interface{}, middlewares ...Handler) {
 	t.Route([]string{"OPTIONS"}, url, c, middlewares...)
 }
 
+//Trace 设置Trace路由
 func (t *WebServer) Trace(url string, c interface{}, middlewares ...Handler) {
 	t.Route([]string{"TRACE"}, url, c, middlewares...)
 }
 
+//Patch 设置Patch路由
 func (t *WebServer) Patch(url string, c interface{}, middlewares ...Handler) {
 	t.Route([]string{"PATCH"}, url, c, middlewares...)
 }
 
+//Delete 设置Delete路由
 func (t *WebServer) Delete(url string, c interface{}, middlewares ...Handler) {
 	t.Route([]string{"DELETE"}, url, c, middlewares...)
 }
 
+//Put 设置Put路由
 func (t *WebServer) Put(url string, c interface{}, middlewares ...Handler) {
 	t.Route([]string{"PUT"}, url, c, middlewares...)
 }
 
+//Any 设置Any路由
 func (t *WebServer) Any(url string, c interface{}, middlewares ...Handler) {
 	t.Route(SupportMethods, url, c, middlewares...)
 	t.Route([]string{"HEAD:Get"}, url, c, middlewares...)
 }
 
+//Use 使用新的插件
 func (t *WebServer) Use(handlers ...Handler) {
 	t.handlers = append(t.handlers, handlers...)
 }
@@ -177,12 +195,7 @@ func (t *WebServer) Run(args ...interface{}) {
 	}
 }
 
-// Close close the http server
-func (t *WebServer) Close(timeout time.Duration) {
-	xt, _ := ctx.WithTimeout(ctx.Background(), timeout)
-	t.server.Shutdown(xt)
-}
-
+//RunTLS RunTLS server
 func (t *WebServer) RunTLS(certFile, keyFile string, args ...interface{}) {
 	addr := GetAddress(args...)
 	t.logger.Info("Listening on https://" + addr)
@@ -193,12 +206,17 @@ func (t *WebServer) RunTLS(certFile, keyFile string, args ...interface{}) {
 	}
 }
 
+// Shutdown close the http server
+func (t *WebServer) Shutdown(timeout time.Duration) {
+	xt, _ := ctx.WithTimeout(ctx.Background(), timeout)
+	t.server.Shutdown(xt)
+}
+
 type HandlerFunc func(ctx *Context)
 
 func (h HandlerFunc) Handle(ctx *Context) {
 	h(ctx)
 }
-
 func WrapBefore(handler http.Handler) HandlerFunc {
 	return func(ctx *Context) {
 		handler.ServeHTTP(ctx.ResponseWriter, ctx.Req())

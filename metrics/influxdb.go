@@ -1,7 +1,6 @@
 package metrics
 
 import (
-	"fmt"
 	"log"
 	uurl "net/url"
 	"strings"
@@ -22,14 +21,26 @@ type reporter struct {
 	client   *influxdb.Client
 }
 
+const (
+	COUNTER       = "counter"
+	GAUGE         = "gauge"
+	GAUGEFLOAST64 = "gaugeFloat64"
+	HISTOGRAM     = "histogram"
+	METER         = "meter"
+	TIMER         = "timer"
+)
+
 // InfluxDB starts a InfluxDB reporter which will post the metrics from the given registry at each d interval.
 func InfluxDB(r metrics.Registry, d time.Duration, url, database, username, password string) {
 	InfluxDBWithTags(r, d, url, database, username, password, nil)
 }
 
 //MakeName 构建参数名称
-func MakeName(name string, params ...string) string {
-	return name + "-" + strings.Join(params, "-")
+func MakeName(name string, tp string, params ...string) string {
+	if len(params)%2 != 0 {
+		panic("MakeName params必须成对输入")
+	}
+	return name + "." + tp + "-" + strings.Join(params, "-")
 }
 
 //timer.merchant.api.request-server-192.168.0.240-client-127.0.0.1-url-/colin
@@ -112,7 +123,7 @@ func (r *reporter) send() error {
 		case Counter:
 			ms := metric.Snapshot()
 			pts = append(pts, influxdb.Point{
-				Measurement: fmt.Sprintf("%s.count", rname),
+				Measurement: rname,
 				Tags:        tags,
 				Fields: map[string]interface{}{
 					"value": ms.Count(),
@@ -122,7 +133,7 @@ func (r *reporter) send() error {
 		case Gauge:
 			ms := metric.Snapshot()
 			pts = append(pts, influxdb.Point{
-				Measurement: fmt.Sprintf("%s.gauge", rname),
+				Measurement: rname,
 				Tags:        tags,
 				Fields: map[string]interface{}{
 					"value": ms.Value(),
@@ -132,7 +143,7 @@ func (r *reporter) send() error {
 		case GaugeFloat64:
 			ms := metric.Snapshot()
 			pts = append(pts, influxdb.Point{
-				Measurement: fmt.Sprintf("%s.gauge", rname),
+				Measurement: rname,
 				Tags:        tags,
 				Fields: map[string]interface{}{
 					"value": ms.Value(),
@@ -143,7 +154,7 @@ func (r *reporter) send() error {
 			ms := metric.Snapshot()
 			ps := ms.Percentiles([]float64{0.5, 0.75, 0.95, 0.99, 0.999, 0.9999})
 			pts = append(pts, influxdb.Point{
-				Measurement: fmt.Sprintf("%s.histogram", rname),
+				Measurement: rname,
 				Tags:        tags,
 				Fields: map[string]interface{}{
 					"count":    ms.Count(),
@@ -164,7 +175,7 @@ func (r *reporter) send() error {
 		case Meter:
 			ms := metric.Snapshot()
 			pts = append(pts, influxdb.Point{
-				Measurement: fmt.Sprintf("%s.meter", rname),
+				Measurement: rname,
 				Tags:        tags,
 				Fields: map[string]interface{}{
 					"count": ms.Count(),
@@ -179,7 +190,7 @@ func (r *reporter) send() error {
 			ms := metric.Snapshot()
 			ps := ms.Percentiles([]float64{0.5, 0.75, 0.95, 0.99, 0.999, 0.9999})
 			pts = append(pts, influxdb.Point{
-				Measurement: fmt.Sprintf("%s.timer", rname),
+				Measurement: rname,
 				Tags:        tags,
 				Fields: map[string]interface{}{
 					"count":    ms.Count(),

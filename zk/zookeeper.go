@@ -1,16 +1,31 @@
 package zk
 
 import (
+	"io"
 	"sync/atomic"
 	"time"
 
+	"os"
+
+	"github.com/lunny/log"
 	"github.com/qxnw/lib4go/concurrent/cmap"
-	"github.com/qxnw/lib4go/logger"
 	"github.com/samuel/go-zookeeper/zk"
 )
 
 // TIMEOUT 连接zk服务器操作的超时时间
 var TIMEOUT = time.Second * 2
+
+type Logger interface {
+	Debugf(format string, v ...interface{})
+	Debug(v ...interface{})
+	Infof(format string, v ...interface{})
+	Info(v ...interface{})
+	Warnf(format string, v ...interface{})
+	Warn(v ...interface{})
+	Errorf(format string, v ...interface{})
+	Error(v ...interface{})
+	Printf(string, ...interface{})
+}
 
 //ZookeeperClient zookeeper客户端
 type ZookeeperClient struct {
@@ -20,7 +35,7 @@ type ZookeeperClient struct {
 	eventChan          <-chan zk.Event
 	watchValueEvents   cmap.ConcurrentMap
 	watchChilrenEvents cmap.ConcurrentMap
-	Log                logger.ILogger
+	Log                Logger
 	useCount           int32
 	isConnect          bool
 
@@ -29,13 +44,28 @@ type ZookeeperClient struct {
 }
 
 //New 连接到Zookeeper服务器
-func New(servers []string, timeout time.Duration, loggerName string) (*ZookeeperClient, error) {
+func New(servers []string, timeout time.Duration) (*ZookeeperClient, error) {
 	client := &ZookeeperClient{servers: servers, timeout: timeout, useCount: 0}
 	client.watchValueEvents = cmap.New()
 	client.watchChilrenEvents = cmap.New()
-
-	client.Log = logger.New(loggerName)
+	client.Log = NewLogger(os.Stdout)
 	return client, nil
+}
+
+//NewWithLogger 连接到Zookeeper服务器
+func NewWithLogger(servers []string, timeout time.Duration, logger Logger) (*ZookeeperClient, error) {
+	client := &ZookeeperClient{servers: servers, timeout: timeout, useCount: 0}
+	client.watchValueEvents = cmap.New()
+	client.watchChilrenEvents = cmap.New()
+	client.Log = logger
+	return client, nil
+}
+
+//NewLogger 创建日志组件
+func NewLogger(out io.Writer) Logger {
+	l := log.New(out, "[WebServer] ", log.Ldefault())
+	l.SetOutputLevel(log.Ldebug)
+	return l
 }
 
 //Connect 连接到远程zookeeper服务器

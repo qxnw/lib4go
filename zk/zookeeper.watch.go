@@ -173,6 +173,36 @@ func (client *ZookeeperClient) UnbindWatchValue(path string) {
 	client.watchValueEvents.Set(path, -1)
 }
 
+func (client *ZookeeperClient) WatchChildren(path string) (ch []string, err error) {
+	_, _, event, err := client.conn.ChildrenW(path)
+	if err != nil {
+		return nil, err
+	}
+	select {
+	case e, ok := <-event:
+		client.Log.Infof("watch:children %s %s[%+v]%t", e.Type.String(), path, e, ok)
+		if !ok {
+			return nil, e.Err
+		}
+		switch e.Type {
+		case zk.EventNodeChildrenChanged:
+			paths, err := client.GetChildren(path)
+			if err != nil {
+				client.Log.Error(err)
+			} else {
+				return paths, nil
+			}
+		// 网络重新连接
+		case zk.EventNotWatching:
+			err = client.checkConnectStatus(path, true)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+	return nil, errors.New("not watch")
+}
+
 //BindWatchChildren 监控子节点是否发生变化，变化时返回变化后的值
 // 测试情况：
 //		网络正常时修改节点的值：
@@ -193,7 +223,7 @@ func (client *ZookeeperClient) BindWatchChildren(path string, data chan []string
 	}
 	select {
 	case e, ok := <-event:
-		client.Log.Infof("watch:children %s[%+v]%t", path, e, ok)
+		client.Log.Infof("watch:children %s %s[%+v]%t", e.Type.String(), path, e, ok)
 		if !ok {
 			return e.Err
 		}
