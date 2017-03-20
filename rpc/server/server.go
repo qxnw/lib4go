@@ -8,7 +8,6 @@ import (
 	"google.golang.org/grpc"
 )
 
-
 //Server RPC Server
 type Server struct {
 	server   *grpc.Server
@@ -28,7 +27,7 @@ func (r *Server) Start(address string) (err error) {
 		return
 	}
 	r.server = grpc.NewServer()
-	pb.RegisterARSServer(r.server, &serverCaller{srv: r})
+	pb.RegisterARSServer(r.server, &process{srv: r})
 	r.server.Serve(lis)
 	return
 }
