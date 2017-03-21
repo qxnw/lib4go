@@ -7,15 +7,14 @@ import (
 	"testing"
 
 	"github.com/qxnw/lib4go/rpc/server/pb"
-	"github.com/qxnw/lib4go/utility"
 )
 
 func TestServer1(t *testing.T) {
-	srv := NewServer("127.0.0.1:8989")
+	srv := NewServer("rpc", "127.0.0.1:8989")
 	srv.Request("/:name/:request", func(c *Context) string {
 		return "OK"
 	})
-	request := &pb.RequestContext{Session: utility.GetGUID(), Service: "/order/request"}
+	request := &pb.RequestContext{Service: "/order/request"}
 	result, err := srv.process.Request(context.Background(), request)
 	if err != nil {
 		t.Error(err)
@@ -24,11 +23,11 @@ func TestServer1(t *testing.T) {
 	expect(t, string(result.Result), "OK")
 }
 func TestServer2(t *testing.T) {
-	srv := NewServer("127.0.0.1:8989")
+	srv := NewServer("rpc", "127.0.0.1:8989")
 	srv.Request("/:name/:request", func(c *Context) string {
 		return "OK"
 	})
-	request := &pb.RequestContext{Session: utility.GetGUID(), Service: "/order/request/colin"}
+	request := &pb.RequestContext{Service: "/order/request/colin"}
 	result, err := srv.process.Request(context.Background(), request)
 	if err != nil {
 		t.Error(err)
@@ -38,11 +37,11 @@ func TestServer2(t *testing.T) {
 }
 
 func TestServer3(t *testing.T) {
-	srv := NewServer("127.0.0.1:8989")
+	srv := NewServer("rpc", "127.0.0.1:8989")
 	srv.Insert("/:name/:request", func(c *Context) string {
 		return "OK"
 	})
-	request := &pb.RequestContext{Session: utility.GetGUID(), Service: "/order/request"}
+	request := &pb.RequestContext{Service: "/order/request"}
 	result, err := srv.process.Insert(context.Background(), request)
 	if err != nil {
 		t.Error(err)
@@ -51,11 +50,11 @@ func TestServer3(t *testing.T) {
 }
 
 func TestServer4(t *testing.T) {
-	srv := NewServer("127.0.0.1:8989")
+	srv := NewServer("rpc", "127.0.0.1:8989")
 	srv.Insert("/:name/:request", func(c *Context) {
 		c.NotFound()
 	})
-	request := &pb.RequestContext{Session: utility.GetGUID(), Service: "/order/request"}
+	request := &pb.RequestContext{Service: "/order/request"}
 	result, err := srv.process.Insert(context.Background(), request)
 	if err != nil {
 		t.Error(err)

@@ -39,7 +39,7 @@ func (l *Log) SetLogger(log Logger) {
 func Logging() HandlerFunc {
 	return func(ctx *Context) {
 		start := time.Now()
-		ctx.server.logger.Info("Started", ctx.Req().Service, "for", ctx.Req().Session)
+		ctx.server.logger.Info("Started", ctx.Req().Service, "for", ctx.Req().GetArgs()["session"])
 
 		if action := ctx.Action(); action != nil {
 			if l, ok := action.(LogInterface); ok {

@@ -198,6 +198,9 @@ func toHTTPError(err error) (msg string, httpStatus int) {
 	// Default:
 	return "500 Internal Server Error", http.StatusInternalServerError
 }
+func (ctx *Context) Forbidden() {
+	ctx.Abort(http.StatusForbidden, http.StatusText(http.StatusForbidden))
+}
 
 func (ctx *Context) Unauthorized() {
 	ctx.Abort(http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))

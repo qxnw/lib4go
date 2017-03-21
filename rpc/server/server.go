@@ -52,8 +52,15 @@ func WithInfluxMetric(host string, dataBase string, userName string, password st
 	}
 }
 
-//WithHandlers 添加插件
-func WithHandlers(handlers ...Handler) Option {
+//WithLimiter 设置流量限制组件
+func WithLimiter(limit map[string]float64) Option {
+	return func(o *serverOption) {
+		o.handlers = append(o.handlers, limiter{data: limit})
+	}
+}
+
+//WithPlugins 添加插件
+func WithPlugins(handlers ...Handler) Option {
 	return func(o *serverOption) {
 		o.handlers = append(o.handlers, handlers...)
 	}
@@ -71,16 +78,16 @@ var (
 )
 
 //NewServer 初始化
-func NewServer(address string, opts ...Option) *Server {
-	s := &Server{address: GetAddress(address), Router: NewRouter()}
+func NewServer(name string, address string, opts ...Option) *Server {
+	s := &Server{serverName: name, address: getAddress(address), Router: NewRouter()}
 	s.serverOption = &serverOption{}
 	s.logger = NewLogger(os.Stdout)
 	s.process = &process{srv: s}
 	s.ErrHandler = Errors()
+	s.Use(ClassicHandlers...)
 	for _, opt := range opts {
 		opt(s.serverOption)
 	}
-	s.Use(ClassicHandlers...)
 	return s
 }
 
@@ -138,7 +145,7 @@ func (s *Server) Delete(service string, c interface{}, middlewares ...Handler) {
 func (s *Server) Update(service string, c interface{}, middlewares ...Handler) {
 	s.Route([]string{"UPDATE"}, service, c, middlewares...)
 }
-func GetAddress(args ...interface{}) string {
+func getAddress(args ...interface{}) string {
 	var host string
 	var port int
 
@@ -172,7 +179,5 @@ func GetAddress(args ...interface{}) string {
 		port = 8000
 	}
 
-	addr := host + ":" + strconv.FormatInt(int64(port), 10)
-
-	return addr
+	return host + ":" + strconv.FormatInt(int64(port), 10)
 }

@@ -19,7 +19,7 @@ func (r *process) Request(context context.Context, request *pb.RequestContext) (
 	p = &pb.ResponseContext{}
 	p.Status = int32(ctx.Writer.Code)
 	p.Result = ctx.Writer.String()
-
+	ctx.Writer.Reset()
 	return
 }
 
@@ -32,6 +32,7 @@ func (r *process) Query(context context.Context, request *pb.RequestContext) (p 
 	p = &pb.ResponseContext{}
 	p.Status = int32(ctx.Writer.Code)
 	p.Result = ctx.Writer.String()
+	ctx.Writer.Reset()
 	return
 }
 
@@ -43,6 +44,7 @@ func (r *process) Update(context context.Context, request *pb.RequestContext) (p
 	ctx.invoke()
 	p = &pb.ResponseNoResultContext{}
 	p.Status = int32(ctx.Writer.Code)
+	ctx.Writer.Reset()
 	return
 }
 
@@ -54,6 +56,7 @@ func (r *process) Delete(context context.Context, request *pb.RequestContext) (p
 	ctx.invoke()
 	p = &pb.ResponseNoResultContext{}
 	p.Status = int32(ctx.Writer.Code)
+	ctx.Writer.Reset()
 	return
 }
 
@@ -65,6 +68,7 @@ func (r *process) Insert(context context.Context, request *pb.RequestContext) (p
 	ctx.invoke()
 	p = &pb.ResponseNoResultContext{}
 	p.Status = int32(ctx.Writer.Code)
+	ctx.Writer.Reset()
 	return
 }
 
