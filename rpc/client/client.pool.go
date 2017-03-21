@@ -1,5 +1,6 @@
 package client
 
+/*
 import "github.com/qxnw/lib4go/concurrent/cmap"
 
 type poolOption struct {
@@ -32,3 +33,4 @@ func NewClientPool(address string, opts ...PoolOption) (p *ClientPool) {
 	}
 	return
 }
+*/

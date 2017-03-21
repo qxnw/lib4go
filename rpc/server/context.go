@@ -6,14 +6,9 @@ package server
 
 import (
 	"bytes"
-	"encoding/json"
-	"encoding/xml"
-	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
-	"path/filepath"
 	"reflect"
 
 	"golang.org/x/net/context"
@@ -21,15 +16,27 @@ import (
 	"github.com/qxnw/lib4go/rpc/server/pb"
 )
 
+type HandlerFunc func(ctx *Context)
+
+func (h HandlerFunc) Handle(ctx *Context) {
+	h(ctx)
+}
+
 type Handler interface {
 	Handle(*Context)
 }
+type Writer struct {
+	Code int
+	bytes.Buffer
+	isWritten bool
+}
 
 type Context struct {
-	tan *Server
+	server *Server
 	Logger
 
 	idx      int
+	Writer   *Writer
 	context  context.Context
 	request  *pb.RequestContext
 	route    *Route
@@ -38,16 +45,15 @@ type Context struct {
 	matched  bool
 	method   string
 	stage    byte
-
-	action interface{}
-	Result interface{}
+	action   interface{}
+	Result   interface{}
 }
-type ServiceContext Context
 
 func (ctx *Context) reset(method string, context context.Context, request *pb.RequestContext) {
 	ctx.method = method
 	ctx.context = context
 	ctx.request = request
+	ctx.Writer = &Writer{Code: 0}
 	ctx.idx = 0
 	ctx.stage = 0
 	ctx.route = nil
@@ -59,7 +65,7 @@ func (ctx *Context) reset(method string, context context.Context, request *pb.Re
 }
 
 func (ctx *Context) HandleError() {
-	ctx.tan.ErrHandler.Handle(ctx)
+	ctx.server.ErrHandler.Handle(ctx)
 }
 
 func (ctx *Context) Req() *pb.RequestContext {
@@ -69,7 +75,7 @@ func (ctx *Context) Method() string {
 	return ctx.method
 }
 func (ctx *Context) Service() string {
-	return ctx.Req().Sevice
+	return ctx.Req().Service
 }
 func (ctx *Context) Params() *Params {
 	ctx.newAction()
@@ -86,35 +92,32 @@ func (ctx *Context) Action() interface{} {
 	return ctx.action
 }
 
+type IServiceContext interface {
+	Params() *Params
+	Service() string
+	Method() string
+}
+
 func (ctx *Context) ActionValue() reflect.Value {
 	ctx.newAction()
 	return ctx.callArgs[0]
 }
-
-func (ctx *Context) ActionTag(fieldName string) string {
-	ctx.newAction()
-	if ctx.route.routeType == StructPtrRoute || ctx.route.routeType == StructRoute {
-		tp := ctx.callArgs[0].Type()
-		if tp.Kind() == reflect.Ptr {
-			tp = tp.Elem()
-		}
-		field, ok := tp.FieldByName(fieldName)
-		if !ok {
-			return ""
-		}
-		return string(field.Tag)
-	}
-	return ""
+func (ctx *Context) Written() bool {
+	return ctx.Writer.Len() > 0
 }
-
 func (ctx *Context) WriteString(content string) (int, error) {
-	return io.WriteString(ctx.ResponseWriter, content)
+	return io.WriteString(ctx.Writer, content)
 }
-
+func (ctx *Context) Write(p []byte) (n int, err error) {
+	return ctx.Writer.Write(p)
+}
+func (ctx *Context) WriteHeader(code int) {
+	ctx.Writer.Code = code
+}
 func (ctx *Context) newAction() {
 	if !ctx.matched {
-		reqPath := removeStick(ctx.Req().Sevice)
-		ctx.route, ctx.params = ctx.tan.Match(reqPath, ctx.Req().Sevice)
+		reqPath := removeStick(ctx.Req().Service)
+		ctx.route, ctx.params = ctx.server.Match(reqPath, ctx.method)
 		if ctx.route != nil {
 			vc := ctx.route.newAction()
 			ctx.action = vc.Interface()
@@ -171,8 +174,8 @@ func (ctx *Context) execute() {
 
 func (ctx *Context) invoke() {
 	if ctx.stage == 0 {
-		if ctx.idx < len(ctx.tan.handlers) {
-			ctx.tan.handlers[ctx.idx].Handle(ctx)
+		if ctx.idx < len(ctx.server.handlers) {
+			ctx.server.handlers[ctx.idx].Handle(ctx)
 		} else {
 			ctx.execute()
 		}
@@ -194,123 +197,6 @@ func toHTTPError(err error) (msg string, httpStatus int) {
 	}
 	// Default:
 	return "500 Internal Server Error", http.StatusInternalServerError
-}
-
-func (ctx *Context) ServeFile(path string) error {
-	f, err := os.Open(path)
-	if err != nil {
-		msg, code := toHTTPError(err)
-		http.Error(ctx, msg, code)
-		return nil
-	}
-	defer f.Close()
-
-	d, err := f.Stat()
-	if err != nil {
-		msg, code := toHTTPError(err)
-		http.Error(ctx, msg, code)
-		return nil
-	}
-
-	if d.IsDir() {
-		http.Error(ctx, http.StatusText(http.StatusForbidden), http.StatusForbidden)
-		return nil
-	}
-
-	http.ServeContent(ctx, ctx.Req(), d.Name(), d.ModTime(), f)
-	return nil
-}
-
-func (ctx *Context) ServeXml(obj interface{}) error {
-	encoder := xml.NewEncoder(ctx)
-	ctx.Header().Set("Content-Type", "application/xml; charset=UTF-8")
-	err := encoder.Encode(obj)
-	if err != nil {
-		ctx.Header().Del("Content-Type")
-	}
-	return err
-}
-
-func (ctx *Context) ServeJson(obj interface{}) error {
-	encoder := json.NewEncoder(ctx)
-	ctx.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	err := encoder.Encode(obj)
-	if err != nil {
-		ctx.Header().Del("Content-Type")
-	}
-	return err
-}
-
-func (ctx *Context) Body() ([]byte, error) {
-	body, err := ioutil.ReadAll(ctx.req.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	ctx.req.Body.Close()
-	ctx.req.Body = ioutil.NopCloser(bytes.NewBuffer(body))
-
-	return body, nil
-}
-
-func (ctx *Context) DecodeJson(obj interface{}) error {
-	body, err := ctx.Body()
-	if err != nil {
-		return err
-	}
-
-	return json.Unmarshal(body, obj)
-}
-
-func (ctx *Context) DecodeXml(obj interface{}) error {
-	body, err := ctx.Body()
-	if err != nil {
-		return err
-	}
-
-	return xml.Unmarshal(body, obj)
-}
-
-func (ctx *Context) Download(fpath string) error {
-	f, err := os.Open(fpath)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	fName := filepath.Base(fpath)
-	ctx.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%v\"", fName))
-	_, err = io.Copy(ctx, f)
-	return err
-}
-
-func (ctx *Context) SaveToFile(formName, savePath string) error {
-	file, _, err := ctx.Req().FormFile(formName)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	f, err := os.OpenFile(savePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	_, err = io.Copy(f, file)
-	return err
-}
-
-func (ctx *Context) Redirect(url string, status ...int) {
-	s := http.StatusFound
-	if len(status) > 0 {
-		s = status[0]
-	}
-	http.Redirect(ctx.ResponseWriter, ctx.Req(), url, s)
-}
-
-// Notmodified writes a 304 HTTP response
-func (ctx *Context) NotModified() {
-	ctx.WriteHeader(http.StatusNotModified)
 }
 
 func (ctx *Context) Unauthorized() {

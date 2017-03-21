@@ -1,5 +1,3 @@
-package server
-
 // Copyright 2015 The WebServer Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
@@ -20,7 +18,7 @@ type (
 	Params []param
 )
 
-var _ Set = &Params{}
+var Set = &Params{}
 
 func (p *Params) Get(key string) string {
 	if len(key) == 0 {

@@ -13,12 +13,11 @@ import (
 type resolver struct {
 	timeout     time.Duration
 	serviceRoot string
-	prefix      string
 }
 
 //NewResolver 返回服务解析器
-func NewResolver(serviceRoot string, prefix string, timeout time.Duration) *resolver {
-	return &resolver{timeout: timeout, serviceRoot: serviceRoot, prefix: prefix}
+func NewResolver(serviceRoot string, timeout time.Duration) *resolver {
+	return &resolver{timeout: timeout, serviceRoot: serviceRoot}
 }
 
 // Resolve to resolve the service from zookeeper, target is the dial address of zookeeper

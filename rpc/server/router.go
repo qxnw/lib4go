@@ -10,27 +10,25 @@ import (
 	"strings"
 )
 
-type IServiceContext interface {
-	Params() *Params
-	Service() string
-	Method() string
-}
 type RouteType byte
 
 const (
-	FuncCtxRoute RouteType = iota + 1 // 1 func (IServiceContext)
-//	FuncRoute         RouteType = iota + 1 // 1 func ()
-//	FuncHttpRoute                          // 2 func (http.ResponseWriter, *http.Request)
-//FuncReqRoute                           // 3 func (*http.Request)
-//	FuncResponseRoute                      // 4 func (http.ResponseWriter)
-//	FuncCtxRoute                           // 5 func (*WebServer.Context)
-//	StructRoute                            // 6 func (st) <Get>()
-//StructPtrRoute                         // 7 func (*struct) <Get>()
+	//FuncRoute RouteType = iota + 1 // 1 func ()
+	//FuncHttpRoute                          // 2 func (http.ResponseWriter, *http.Request)
+	//FuncReqRoute                           // 3 func (*http.Request)
+	//FuncResponseRoute                      // 4 func (http.ResponseWriter)
+	FuncCtxRoute   = iota + 1 // 5 func (*WebServer.Context)
+	StructRoute               // 6 func (st) <Get>()
+	StructPtrRoute            // 7 func (*struct) <Get>()
 )
 
 var (
 	SupportMethods = []string{
 		"REQUEST",
+		"QUERY",
+		"UPDATE",
+		"INSERT",
+		"DELETE",
 	}
 
 	PoolSize = 10
@@ -232,7 +230,7 @@ func parseNodes(path string) []*node {
 			}
 		} else if path[i] == '(' {
 			bracket = 1
-		} else if path[i] == '.' {
+		} else if path[i] == '/' {
 			if bracket == 0 && i > j {
 				nodes = append(nodes, &node{tp: snode, content: path[j:i]})
 				j = i
@@ -320,13 +318,13 @@ func (r *router) matchNode(n *node, url string, params Params) (*node, Params) {
 				return r.matchNode(c, url[idx:], params)
 			}
 		}
-		idx := strings.IndexByte(url, '.')
+		idx := strings.IndexByte(url, '/')
 		if idx < 0 {
 			params = append(params, param{n.content, url})
 			return n, params
 		}
 	} else if n.tp == rnode {
-		idx := strings.IndexByte(url, '.')
+		idx := strings.IndexByte(url, '/')
 		if idx > -1 {
 			if n.regexp.MatchString(url[:idx]) {
 				for _, c := range n.edges {
@@ -361,7 +359,7 @@ func (r *router) Match(url, method string) (*Route, Params) {
 	if !ok {
 		return nil, nil
 	}
-	var params = make(Params, 0, strings.Count(url, "."))
+	var params = make(Params, 0, strings.Count(url, "/"))
 	for _, n := range cn.edges {
 		e, newParams := r.matchNode(n, url, params)
 		if e != nil {
@@ -416,9 +414,9 @@ func (r *router) addnodes(method string, nodes []*node) {
 }
 
 func removeStick(uri string) string {
-	uri = strings.TrimRight(uri, ".")
+	uri = strings.TrimRight(uri, "/")
 	if uri == "" {
-		uri = "."
+		uri = "/"
 	}
 	return uri
 }
@@ -495,27 +493,11 @@ func (router *router) addFunc(methods []string, url string, c interface{}, handl
 	t := vc.Type()
 	var rt RouteType
 	if t.NumIn() == 1 {
-		if t.In(0) == reflect.TypeOf(new(ServiceContext)) {
+		if t.In(0) == reflect.TypeOf(new(Context)) {
 			rt = FuncCtxRoute
+		} else {
+			panic(fmt.Sprintln("no support function type", methods, url, c))
 		}
-		/*if t.NumIn() == 0 {
-			rt = FuncRoute
-		} else if t.NumIn() == 1 {
-			if t.In(0) == reflect.TypeOf(new(Context)) {
-				rt = FuncCtxRoute
-			} else if t.In(0) == reflect.TypeOf(new(http.Request)) {
-				rt = FuncReqRoute
-			} else if t.In(0).Kind() == reflect.Interface && t.In(0).Name() == "ResponseWriter" &&
-				t.In(0).PkgPath() == "net/http" {
-				rt = FuncResponseRoute
-			} else {
-				panic(fmt.Sprintln("no support function type", methods, url, c))
-			}
-		} else if t.NumIn() == 2 &&
-			(t.In(0).Kind() == reflect.Interface && t.In(0).Name() == "ResponseWriter" &&
-				t.In(0).PkgPath() == "net/http") &&
-			t.In(1) == reflect.TypeOf(new(http.Request)) {
-			rt = FuncHttpRoute*/
 	} else {
 		panic(fmt.Sprintln("no support function type", methods, url, c))
 	}

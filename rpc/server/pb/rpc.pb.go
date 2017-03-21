@@ -3,7 +3,7 @@
 // DO NOT EDIT!
 
 /*
-Package grpc4ars is a generated protocol buffer package.
+Package pb is a generated protocol buffer package.
 
 It is generated from these files:
 	rpc.proto
@@ -11,6 +11,7 @@ It is generated from these files:
 It has these top-level messages:
 	RequestContext
 	ResponseContext
+	ResponseNoResultContext
 	HBRequest
 	HBResponse
 */
@@ -38,7 +39,7 @@ const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 
 type RequestContext struct {
 	Session string `protobuf:"bytes,1,opt,name=session" json:"session,omitempty"`
-	Sevice  string `protobuf:"bytes,2,opt,name=sevice" json:"sevice,omitempty"`
+	Service string `protobuf:"bytes,2,opt,name=service" json:"service,omitempty"`
 	Input   string `protobuf:"bytes,3,opt,name=input" json:"input,omitempty"`
 }
 
@@ -54,9 +55,9 @@ func (m *RequestContext) GetSession() string {
 	return ""
 }
 
-func (m *RequestContext) GetSevice() string {
+func (m *RequestContext) GetService() string {
 	if m != nil {
-		return m.Sevice
+		return m.Service
 	}
 	return ""
 }
@@ -92,6 +93,22 @@ func (m *ResponseContext) GetResult() string {
 	return ""
 }
 
+type ResponseNoResultContext struct {
+	Status int32 `protobuf:"varint,1,opt,name=status" json:"status,omitempty"`
+}
+
+func (m *ResponseNoResultContext) Reset()                    { *m = ResponseNoResultContext{} }
+func (m *ResponseNoResultContext) String() string            { return proto.CompactTextString(m) }
+func (*ResponseNoResultContext) ProtoMessage()               {}
+func (*ResponseNoResultContext) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{2} }
+
+func (m *ResponseNoResultContext) GetStatus() int32 {
+	if m != nil {
+		return m.Status
+	}
+	return 0
+}
+
 type HBRequest struct {
 	Ping int32 `protobuf:"varint,1,opt,name=Ping" json:"Ping,omitempty"`
 }
@@ -99,7 +116,7 @@ type HBRequest struct {
 func (m *HBRequest) Reset()                    { *m = HBRequest{} }
 func (m *HBRequest) String() string            { return proto.CompactTextString(m) }
 func (*HBRequest) ProtoMessage()               {}
-func (*HBRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{2} }
+func (*HBRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{3} }
 
 func (m *HBRequest) GetPing() int32 {
 	if m != nil {
@@ -115,7 +132,7 @@ type HBResponse struct {
 func (m *HBResponse) Reset()                    { *m = HBResponse{} }
 func (m *HBResponse) String() string            { return proto.CompactTextString(m) }
 func (*HBResponse) ProtoMessage()               {}
-func (*HBResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{3} }
+func (*HBResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{4} }
 
 func (m *HBResponse) GetPong() int32 {
 	if m != nil {
@@ -125,10 +142,11 @@ func (m *HBResponse) GetPong() int32 {
 }
 
 func init() {
-	proto.RegisterType((*RequestContext)(nil), "grpc4ars.RequestContext")
-	proto.RegisterType((*ResponseContext)(nil), "grpc4ars.ResponseContext")
-	proto.RegisterType((*HBRequest)(nil), "grpc4ars.HBRequest")
-	proto.RegisterType((*HBResponse)(nil), "grpc4ars.HBResponse")
+	proto.RegisterType((*RequestContext)(nil), "pb.RequestContext")
+	proto.RegisterType((*ResponseContext)(nil), "pb.ResponseContext")
+	proto.RegisterType((*ResponseNoResultContext)(nil), "pb.ResponseNoResultContext")
+	proto.RegisterType((*HBRequest)(nil), "pb.HBRequest")
+	proto.RegisterType((*HBResponse)(nil), "pb.HBResponse")
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -139,97 +157,229 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// Client API for ARS service
+// Client API for RPC service
 
-type ARSClient interface {
+type RPCClient interface {
 	Request(ctx context.Context, in *RequestContext, opts ...grpc.CallOption) (*ResponseContext, error)
+	Query(ctx context.Context, in *RequestContext, opts ...grpc.CallOption) (*ResponseContext, error)
+	Update(ctx context.Context, in *RequestContext, opts ...grpc.CallOption) (*ResponseNoResultContext, error)
+	Delete(ctx context.Context, in *RequestContext, opts ...grpc.CallOption) (*ResponseNoResultContext, error)
+	Insert(ctx context.Context, in *RequestContext, opts ...grpc.CallOption) (*ResponseNoResultContext, error)
 	Heartbeat(ctx context.Context, in *HBRequest, opts ...grpc.CallOption) (*HBResponse, error)
 }
 
-type aRSClient struct {
+type rPCClient struct {
 	cc *grpc.ClientConn
 }
 
-func NewARSClient(cc *grpc.ClientConn) ARSClient {
-	return &aRSClient{cc}
+func NewRPCClient(cc *grpc.ClientConn) RPCClient {
+	return &rPCClient{cc}
 }
 
-func (c *aRSClient) Request(ctx context.Context, in *RequestContext, opts ...grpc.CallOption) (*ResponseContext, error) {
+func (c *rPCClient) Request(ctx context.Context, in *RequestContext, opts ...grpc.CallOption) (*ResponseContext, error) {
 	out := new(ResponseContext)
-	err := grpc.Invoke(ctx, "/grpc4ars.ARS/Request", in, out, c.cc, opts...)
+	err := grpc.Invoke(ctx, "/pb.RPC/Request", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *aRSClient) Heartbeat(ctx context.Context, in *HBRequest, opts ...grpc.CallOption) (*HBResponse, error) {
+func (c *rPCClient) Query(ctx context.Context, in *RequestContext, opts ...grpc.CallOption) (*ResponseContext, error) {
+	out := new(ResponseContext)
+	err := grpc.Invoke(ctx, "/pb.RPC/Query", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *rPCClient) Update(ctx context.Context, in *RequestContext, opts ...grpc.CallOption) (*ResponseNoResultContext, error) {
+	out := new(ResponseNoResultContext)
+	err := grpc.Invoke(ctx, "/pb.RPC/Update", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *rPCClient) Delete(ctx context.Context, in *RequestContext, opts ...grpc.CallOption) (*ResponseNoResultContext, error) {
+	out := new(ResponseNoResultContext)
+	err := grpc.Invoke(ctx, "/pb.RPC/Delete", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *rPCClient) Insert(ctx context.Context, in *RequestContext, opts ...grpc.CallOption) (*ResponseNoResultContext, error) {
+	out := new(ResponseNoResultContext)
+	err := grpc.Invoke(ctx, "/pb.RPC/Insert", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *rPCClient) Heartbeat(ctx context.Context, in *HBRequest, opts ...grpc.CallOption) (*HBResponse, error) {
 	out := new(HBResponse)
-	err := grpc.Invoke(ctx, "/grpc4ars.ARS/Heartbeat", in, out, c.cc, opts...)
+	err := grpc.Invoke(ctx, "/pb.RPC/Heartbeat", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// Server API for ARS service
+// Server API for RPC service
 
-type ARSServer interface {
+type RPCServer interface {
 	Request(context.Context, *RequestContext) (*ResponseContext, error)
+	Query(context.Context, *RequestContext) (*ResponseContext, error)
+	Update(context.Context, *RequestContext) (*ResponseNoResultContext, error)
+	Delete(context.Context, *RequestContext) (*ResponseNoResultContext, error)
+	Insert(context.Context, *RequestContext) (*ResponseNoResultContext, error)
 	Heartbeat(context.Context, *HBRequest) (*HBResponse, error)
 }
 
-func RegisterARSServer(s *grpc.Server, srv ARSServer) {
-	s.RegisterService(&_ARS_serviceDesc, srv)
+func RegisterRPCServer(s *grpc.Server, srv RPCServer) {
+	s.RegisterService(&_RPC_serviceDesc, srv)
 }
 
-func _ARS_Request_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _RPC_Request_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(RequestContext)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ARSServer).Request(ctx, in)
+		return srv.(RPCServer).Request(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/grpc4ars.ARS/Request",
+		FullMethod: "/pb.RPC/Request",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ARSServer).Request(ctx, req.(*RequestContext))
+		return srv.(RPCServer).Request(ctx, req.(*RequestContext))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ARS_Heartbeat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _RPC_Query_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RequestContext)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RPCServer).Query(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.RPC/Query",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RPCServer).Query(ctx, req.(*RequestContext))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RPC_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RequestContext)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RPCServer).Update(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.RPC/Update",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RPCServer).Update(ctx, req.(*RequestContext))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RPC_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RequestContext)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RPCServer).Delete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.RPC/Delete",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RPCServer).Delete(ctx, req.(*RequestContext))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RPC_Insert_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RequestContext)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RPCServer).Insert(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.RPC/Insert",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RPCServer).Insert(ctx, req.(*RequestContext))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RPC_Heartbeat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(HBRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ARSServer).Heartbeat(ctx, in)
+		return srv.(RPCServer).Heartbeat(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/grpc4ars.ARS/Heartbeat",
+		FullMethod: "/pb.RPC/Heartbeat",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ARSServer).Heartbeat(ctx, req.(*HBRequest))
+		return srv.(RPCServer).Heartbeat(ctx, req.(*HBRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-var _ARS_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "grpc4ars.ARS",
-	HandlerType: (*ARSServer)(nil),
+var _RPC_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "pb.RPC",
+	HandlerType: (*RPCServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Request",
-			Handler:    _ARS_Request_Handler,
+			Handler:    _RPC_Request_Handler,
+		},
+		{
+			MethodName: "Query",
+			Handler:    _RPC_Query_Handler,
+		},
+		{
+			MethodName: "Update",
+			Handler:    _RPC_Update_Handler,
+		},
+		{
+			MethodName: "Delete",
+			Handler:    _RPC_Delete_Handler,
+		},
+		{
+			MethodName: "Insert",
+			Handler:    _RPC_Insert_Handler,
 		},
 		{
 			MethodName: "Heartbeat",
-			Handler:    _ARS_Heartbeat_Handler,
+			Handler:    _RPC_Heartbeat_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -239,21 +389,23 @@ var _ARS_serviceDesc = grpc.ServiceDesc{
 func init() { proto.RegisterFile("rpc.proto", fileDescriptor0) }
 
 var fileDescriptor0 = []byte{
-	// 241 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x09, 0x6e, 0x88, 0x02, 0xff, 0x54, 0x90, 0x31, 0x4f, 0xc3, 0x30,
-	0x10, 0x85, 0x1b, 0x4a, 0x5b, 0x72, 0x03, 0x48, 0x47, 0x85, 0x4c, 0x17, 0x2a, 0x4f, 0x4c, 0x19,
-	0x80, 0x81, 0x91, 0xc2, 0xd2, 0x11, 0x99, 0x85, 0x35, 0x8d, 0x4e, 0x51, 0x24, 0x64, 0x1b, 0xdf,
-	0x05, 0xb1, 0xf2, 0xcf, 0x51, 0x1c, 0x1b, 0x9a, 0xcd, 0xef, 0xdd, 0xf3, 0xe7, 0x77, 0x86, 0x32,
-	0xf8, 0xa6, 0xf2, 0xc1, 0x89, 0xc3, 0xb3, 0x36, 0xf8, 0xe6, 0xa1, 0x0e, 0xac, 0xdf, 0xe1, 0xdc,
-	0xd0, 0x67, 0x4f, 0x2c, 0x2f, 0xce, 0x0a, 0x7d, 0x0b, 0x2a, 0x58, 0x31, 0x31, 0x77, 0xce, 0xaa,
-	0x62, 0x5b, 0xdc, 0x96, 0x26, 0x4b, 0xbc, 0x82, 0x25, 0xd3, 0x57, 0xd7, 0x90, 0x3a, 0x89, 0x83,
-	0xa4, 0x70, 0x0d, 0x8b, 0xce, 0xfa, 0x5e, 0xd4, 0x3c, 0xda, 0xa3, 0xd0, 0x3b, 0xb8, 0x30, 0xc4,
-	0xde, 0x59, 0xa6, 0x8c, 0x1e, 0x00, 0x52, 0x4b, 0xcf, 0x91, 0xbc, 0x30, 0x49, 0x0d, 0x7e, 0x20,
-	0xee, 0x3f, 0x24, 0x83, 0x47, 0xa5, 0x6f, 0xa0, 0xdc, 0x3f, 0xa7, 0x7a, 0x88, 0x70, 0xfa, 0xda,
-	0xd9, 0x36, 0x5d, 0x8d, 0x67, 0xbd, 0x05, 0x18, 0x02, 0xe3, 0x2b, 0x31, 0xe1, 0x8e, 0x12, 0xce,
-	0xb6, 0x77, 0x3f, 0x05, 0xcc, 0x77, 0xe6, 0x0d, 0x9f, 0x60, 0x95, 0x41, 0xaa, 0xca, 0xdb, 0x57,
-	0xd3, 0xd5, 0x37, 0xd7, 0xc7, 0x93, 0x49, 0x75, 0x3d, 0xc3, 0x47, 0x28, 0xf7, 0x54, 0x07, 0x39,
-	0x50, 0x2d, 0x78, 0xf9, 0x9f, 0xfc, 0x6b, 0xb8, 0x59, 0x4f, 0xcd, 0x11, 0xa0, 0x67, 0x87, 0x65,
-	0xfc, 0xf4, 0xfb, 0xdf, 0x00, 0x00, 0x00, 0xff, 0xff, 0xee, 0x59, 0xde, 0x68, 0x81, 0x01, 0x00,
-	0x00,
+	// 288 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x92, 0x4f, 0x4b, 0xc3, 0x40,
+	0x10, 0xc5, 0xfb, 0xc7, 0xa4, 0x64, 0xc0, 0x0a, 0xab, 0x68, 0xa8, 0x07, 0xcb, 0x9e, 0x3c, 0x48,
+	0xc0, 0xea, 0xcd, 0x93, 0xd6, 0x43, 0xbd, 0x48, 0x5d, 0xf0, 0xe2, 0x2d, 0xa9, 0x43, 0x09, 0x94,
+	0xdd, 0x75, 0x67, 0x22, 0xfa, 0x3d, 0xfd, 0x40, 0x92, 0xdd, 0xa4, 0xb4, 0x22, 0x88, 0xbd, 0xed,
+	0x7b, 0xf3, 0xde, 0x0f, 0x66, 0x58, 0x48, 0x9c, 0x5d, 0x64, 0xd6, 0x19, 0x36, 0xa2, 0x67, 0x0b,
+	0xf9, 0x02, 0x43, 0x85, 0x6f, 0x15, 0x12, 0x4f, 0x8d, 0x66, 0xfc, 0x60, 0x91, 0xc2, 0x80, 0x90,
+	0xa8, 0x34, 0x3a, 0xed, 0x8e, 0xbb, 0xe7, 0x89, 0x6a, 0x65, 0x98, 0xb8, 0xf7, 0x72, 0x81, 0x69,
+	0xaf, 0x9d, 0x78, 0x29, 0x8e, 0x20, 0x2a, 0xb5, 0xad, 0x38, 0xed, 0x7b, 0x3f, 0x08, 0x79, 0x0b,
+	0x07, 0x0a, 0xc9, 0x1a, 0x4d, 0xd8, 0xc2, 0x8f, 0x21, 0x26, 0xce, 0xb9, 0x22, 0xcf, 0x8e, 0x54,
+	0xa3, 0x6a, 0xdf, 0x21, 0x55, 0x2b, 0x6e, 0xc8, 0x8d, 0x92, 0x97, 0x70, 0xd2, 0x22, 0x1e, 0x8d,
+	0xf2, 0xde, 0x1f, 0x28, 0x79, 0x06, 0xc9, 0xec, 0xae, 0xd9, 0x49, 0x08, 0xd8, 0x9b, 0x97, 0x7a,
+	0xd9, 0x44, 0xfc, 0x5b, 0x8e, 0x01, 0xea, 0x40, 0xa0, 0xfa, 0x84, 0xd9, 0x48, 0x18, 0xbd, 0x9c,
+	0x7c, 0xf5, 0xa0, 0xaf, 0xe6, 0x53, 0x71, 0x0d, 0x83, 0x35, 0x28, 0xb3, 0x45, 0xb6, 0x7d, 0xa9,
+	0xd1, 0x61, 0xf0, 0xb6, 0x36, 0x94, 0x1d, 0x31, 0x81, 0xe8, 0xa9, 0x42, 0xf7, 0xf9, 0x9f, 0xce,
+	0x0d, 0xc4, 0xcf, 0xf6, 0x35, 0x67, 0xfc, 0xb5, 0x74, 0xba, 0x59, 0xfa, 0x71, 0x87, 0x50, 0xbe,
+	0xc7, 0x15, 0xee, 0x5c, 0x7e, 0xd0, 0x84, 0x8e, 0x77, 0x29, 0x5f, 0x40, 0x32, 0xc3, 0xdc, 0x71,
+	0x81, 0x39, 0x8b, 0xfd, 0x3a, 0xbb, 0x3e, 0xfd, 0x68, 0xd8, 0xca, 0x50, 0x96, 0x9d, 0x22, 0xf6,
+	0xdf, 0xee, 0xea, 0x3b, 0x00, 0x00, 0xff, 0xff, 0xbe, 0x22, 0xec, 0x91, 0x83, 0x02, 0x00, 0x00,
 }

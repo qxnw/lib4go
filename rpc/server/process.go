@@ -12,12 +12,59 @@ type process struct {
 
 //Request 客户端处理客户端请求
 func (r *process) Request(context context.Context, request *pb.RequestContext) (p *pb.ResponseContext, err error) {
+	ctx := &Context{}
+	ctx.server = r.srv
+	ctx.reset("REQUEST", context, request)
+	ctx.invoke()
+	p = &pb.ResponseContext{}
+	p.Status = int32(ctx.Writer.Code)
+	p.Result = ctx.Writer.String()
 
-	s, d, err := r.srv.callback(request.Session, request.Sevice, request.Input)
-	if err != nil {
-		return
-	}
-	p = &pb.ResponseContext{Status: int32(s), Result: d}
+	return
+}
+
+//Request 客户端处理客户端请求
+func (r *process) Query(context context.Context, request *pb.RequestContext) (p *pb.ResponseContext, err error) {
+	ctx := &Context{}
+	ctx.server = r.srv
+	ctx.reset("QUERY", context, request)
+	ctx.invoke()
+	p = &pb.ResponseContext{}
+	p.Status = int32(ctx.Writer.Code)
+	p.Result = ctx.Writer.String()
+	return
+}
+
+//Request 客户端处理客户端请求
+func (r *process) Update(context context.Context, request *pb.RequestContext) (p *pb.ResponseNoResultContext, err error) {
+	ctx := &Context{}
+	ctx.server = r.srv
+	ctx.reset("UPDATE", context, request)
+	ctx.invoke()
+	p = &pb.ResponseNoResultContext{}
+	p.Status = int32(ctx.Writer.Code)
+	return
+}
+
+//Request 客户端处理客户端请求
+func (r *process) Delete(context context.Context, request *pb.RequestContext) (p *pb.ResponseNoResultContext, err error) {
+	ctx := &Context{}
+	ctx.server = r.srv
+	ctx.reset("DELETE", context, request)
+	ctx.invoke()
+	p = &pb.ResponseNoResultContext{}
+	p.Status = int32(ctx.Writer.Code)
+	return
+}
+
+//Request 客户端处理客户端请求
+func (r *process) Insert(context context.Context, request *pb.RequestContext) (p *pb.ResponseNoResultContext, err error) {
+	ctx := &Context{}
+	ctx.server = r.srv
+	ctx.reset("INSERT", context, request)
+	ctx.invoke()
+	p = &pb.ResponseNoResultContext{}
+	p.Status = int32(ctx.Writer.Code)
 	return
 }
 

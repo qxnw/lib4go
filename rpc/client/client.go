@@ -114,12 +114,12 @@ func (c *Client) connect() (b bool) {
 }
 
 //Request 发送请求
-func (c *Client) Request(session string, service string, data string, md ...string) (status int, result string, err error) {
+func (c *Client) Request(session string, service string, data string, kv ...string) (status int, result string, err error) {
 	c.lastRequest = time.Now()
 	if !strings.HasPrefix(service, c.opts.serviceGroup) {
-		return 500, "", fmt.Errorf("服务:%s,必须以:%s开头", service, c.opts.prefix)
+		return 500, "", fmt.Errorf("服务:%s调用失败", service)
 	}
-	response, err := c.client.Request(metadata.NewContext(context.Background(), metadata.Pairs(md...)), &pb.RequestContext{Session: session, Sevice: service, Input: data},
+	response, err := c.client.Request(metadata.NewContext(context.Background(), metadata.Pairs(kv...)), &pb.RequestContext{Session: session, Sevice: service, Input: data},
 		grpc.FailFast(true))
 	if err != nil {
 		c.IsConnect = false
@@ -154,5 +154,13 @@ func (c *Client) Close() {
 func NewLogger(out io.Writer) Logger {
 	l := log.New(out, "[grpc.client] ", log.Ldefault())
 	l.SetOutputLevel(log.Ldebug)
-	return l
+	return &nLogger{Logger: l}
+}
+
+type nLogger struct {
+	*log.Logger
+}
+
+func (n *nLogger) Fatalln(args ...interface{}) {
+	n.Fatal(args...)
 }

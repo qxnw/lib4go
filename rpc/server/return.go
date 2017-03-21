@@ -1,8 +1,8 @@
-package server
-
 // Copyright 2015 The WebServer Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
+
+package server
 
 import (
 	"encoding/json"
@@ -88,10 +88,6 @@ func Return() HandlerFunc {
 
 		if rt == JsonResponse {
 			encoder := json.NewEncoder(ctx)
-			if len(ctx.Header().Get("Content-Type")) <= 0 {
-				ctx.Header().Set("Content-Type", "application/json; charset=UTF-8")
-			}
-
 			switch res := result.(type) {
 			case AbortError:
 				if statusCode == 0 {
@@ -142,9 +138,6 @@ func Return() HandlerFunc {
 			return
 		} else if rt == XmlResponse {
 			encoder := xml.NewEncoder(ctx)
-			if len(ctx.Header().Get("Content-Type")) <= 0 {
-				ctx.Header().Set("Content-Type", "application/xml; charset=UTF-8")
-			}
 			switch res := result.(type) {
 			case AbortError:
 				if statusCode == 0 {

@@ -1,15 +1,18 @@
 syntax = "proto3";
 
-package grpc4ars;
+package pb;
 
 message RequestContext{
     string session=1;
-    string sevice=2;
+    string service=2;
     string input=3;
 }
 message ResponseContext{
     int32 status=1;
     string result=2;
+}
+message ResponseNoResultContext{
+    int32 status=1;
 }
 message HBRequest{
     int32 Ping=1;
@@ -19,7 +22,17 @@ message HBResponse{
 }
 
 
-service ARS{
+service RPC{
     rpc Request(RequestContext)returns(ResponseContext){}
+    rpc Query(RequestContext)returns(ResponseContext){}
+    rpc Update(RequestContext)returns(ResponseNoResultContext){}
+    rpc Delete(RequestContext)returns(ResponseNoResultContext){}
+    rpc Insert(RequestContext)returns(ResponseNoResultContext){}
     rpc Heartbeat(HBRequest)returns(HBResponse){}
 }
+
+//go get -u github.com/golang/protobuf/proto-gen-go
+//添加到环境变量
+//protoc --go_out=plugins=grpc:. rpc.proto
+
+
