@@ -13,8 +13,12 @@ import (
 
 // RoundRobin returns a Balancer that selects addresses round-robin. It uses r to watch
 // the name resolution updates and updates the addresses available correspondingly.
-func RoundRobin(r naming.Resolver) grpc.Balancer {
-	return &roundRobin{r: r}
+func RoundRobin(service string, r naming.Resolver, limit map[string]int) CustomerBalancer {
+	return &roundRobin{r: r, limiter: NewLimiter(service, limit)}
+}
+
+func (rr *roundRobin) UpdateLimiter(lt map[string]int) {
+	rr.limiter.Update(lt)
 }
 
 type addrInfo struct {
@@ -23,14 +27,15 @@ type addrInfo struct {
 }
 
 type roundRobin struct {
-	r      naming.Resolver
-	w      naming.Watcher
-	addrs  []*addrInfo // all the addresses the client should potentially connect
-	mu     sync.Mutex
-	addrCh chan []grpc.Address // the channel to notify gRPC internals the list of addresses the client should connect to.
-	next   int                 // index of the next address to return for Get()
-	waitCh chan struct{}       // the channel to block when there is no connected address available
-	done   bool                // The Balancer is closed.
+	r       naming.Resolver
+	w       naming.Watcher
+	limiter *Limiter
+	addrs   []*addrInfo // all the addresses the client should potentially connect
+	mu      sync.Mutex
+	addrCh  chan []grpc.Address // the channel to notify gRPC internals the list of addresses the client should connect to.
+	next    int                 // index of the next address to return for Get()
+	waitCh  chan struct{}       // the channel to block when there is no connected address available
+	done    bool                // The Balancer is closed.
 }
 
 func (rr *roundRobin) watchAddrUpdates() error {
@@ -170,7 +175,7 @@ func (rr *roundRobin) Get(ctx context.Context, opts grpc.BalancerGetOptions) (ad
 		for {
 			a := rr.addrs[next]
 			next = (next + 1) % len(rr.addrs)
-			if a.connected {
+			if a.connected && rr.limiter.Check(a.addr.Addr) {
 				addr = a.addr
 				rr.next = next
 				rr.mu.Unlock()
@@ -190,6 +195,7 @@ func (rr *roundRobin) Get(ctx context.Context, opts grpc.BalancerGetOptions) (ad
 		}
 		// Returns the next addr on rr.addrs for failfast RPCs.
 		addr = rr.addrs[rr.next].addr
+		rr.limiter.Check(addr.Addr)
 		rr.next++
 		rr.mu.Unlock()
 		return
@@ -223,7 +229,7 @@ func (rr *roundRobin) Get(ctx context.Context, opts grpc.BalancerGetOptions) (ad
 				for {
 					a := rr.addrs[next]
 					next = (next + 1) % len(rr.addrs)
-					if a.connected {
+					if a.connected && rr.limiter.Check(a.addr.Addr) {
 						addr = a.addr
 						rr.next = next
 						rr.mu.Unlock()

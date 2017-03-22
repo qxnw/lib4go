@@ -2,9 +2,11 @@ package server
 
 import (
 	"net"
+	"os/signal"
 	"strconv"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"os"
@@ -33,6 +35,9 @@ func Version() string {
 type serverOption struct {
 	logger   Logger
 	handlers []Handler
+	limiter  *Limiter
+	services []string
+	register IServiceRegister
 }
 
 //Option 配置选项
@@ -53,9 +58,18 @@ func WithInfluxMetric(host string, dataBase string, userName string, password st
 }
 
 //WithLimiter 设置流量限制组件
-func WithLimiter(limit map[string]float64) Option {
+func WithLimiter(limit map[string]int) Option {
 	return func(o *serverOption) {
-		o.handlers = append(o.handlers, limiter{data: limit})
+		o.limiter = NewLimiter(limit)
+		o.handlers = append(o.handlers, o.limiter)
+	}
+}
+
+//WithRegister 设置服务注册组件
+func WithRegister(i IServiceRegister, services ...string) Option {
+	return func(o *serverOption) {
+		o.register = i
+		o.services = services
 	}
 }
 
@@ -91,13 +105,22 @@ func NewServer(name string, address string, opts ...Option) *Server {
 	return s
 }
 
-//Use 使用新的插件
+//Use 添加全局插件
 func (s *Server) Use(handlers ...Handler) {
 	s.handlers = append(s.handlers, handlers...)
 }
 
-//Run 启动RPC服务器
-func (s *Server) Run() (err error) {
+//Run 运行服务堵塞当前线程直到系统被中断退出
+func (s *Server) Run() {
+	s.Start()
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT, syscall.SIGKILL, syscall.SIGHUP, syscall.SIGQUIT)
+	<-ch
+	s.Close()
+}
+
+//Start 启动RPC服务器
+func (s *Server) Start() (err error) {
 	s.logger.Info("Listening on " + s.address)
 	lis, err := net.Listen("tcp", s.address)
 	if err != nil {
@@ -105,12 +128,20 @@ func (s *Server) Run() (err error) {
 	}
 	s.server = grpc.NewServer()
 	pb.RegisterRPCServer(s.server, s.process)
-	s.server.Serve(lis)
+	go func() {
+		err = s.server.Serve(lis)
+
+	}()
+	if err != nil {
+		return
+	}
+	register(s.register, s.services, s.address)
 	return
 }
 
 //Close 关闭连接
 func (s *Server) Close() {
+	unRegister(s.register, s.services, s.address)
 	if s.server != nil {
 		s.server.GracefulStop()
 	}
@@ -119,6 +150,13 @@ func (s *Server) Close() {
 //Logger 获取日志组件
 func (s *Server) Logger() Logger {
 	return s.logger
+}
+
+//UpdateLimiter 更新限流规则
+func (s *Server) UpdateLimiter(limit map[string]int) {
+	if s.limiter != nil {
+		s.limiter.Update(limit)
+	}
 }
 
 //Request 设置Request路由

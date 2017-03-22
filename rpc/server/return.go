@@ -17,8 +17,8 @@ type StatusResult struct {
 }
 
 const (
-	AutoResponse = iota
-	JsonResponse
+	//AutoResponse = iota
+	JsonResponse = iota
 	XmlResponse
 )
 
