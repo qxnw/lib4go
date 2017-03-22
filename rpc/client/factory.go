@@ -13,12 +13,13 @@ type RPCClientFactory struct {
 	cache   cmap.ConcurrentMap
 	address string
 	opts    []ClientOption
-	logger  Logger
-	lb      balancer.CustomerBalancer
+
+	lb balancer.CustomerBalancer
 	*facotryOption
 }
 
 type facotryOption struct {
+	logger       Logger
 	timerout     time.Duration
 	balancerType int
 	servers      string
@@ -38,6 +39,13 @@ const (
 //FactoryOption 客户端配置选项
 type FactoryOption func(*facotryOption)
 
+//WithFactoryLogger 设置日志记录器
+func WithFactoryLogger(log Logger) FactoryOption {
+	return func(o *facotryOption) {
+		o.logger = log
+	}
+}
+
 //WithRoundRobin 设置为轮询负载
 func WithRoundRobin() FactoryOption {
 	return func(o *facotryOption) {
@@ -54,9 +62,10 @@ func WithLocalFirst(local string) FactoryOption {
 }
 
 //WithZKBalancer 设置基于Zookeeper服务发现的负载均衡器
-func WithZKBalancer(servers string) FactoryOption {
+func WithZKBalancer(servers string, timeout time.Duration) FactoryOption {
 	return func(o *facotryOption) {
 		o.servers = servers
+		o.timerout = timeout
 		o.balancerType = ZKBalancer
 	}
 }
@@ -70,11 +79,10 @@ func WithFileBalancer(f string) FactoryOption {
 }
 
 //NewRPCClientFactory new rpc client factory
-func NewRPCClientFactory(address string, logger Logger, opts ...FactoryOption) (f *RPCClientFactory) {
+func NewRPCClientFactory(address string, opts ...FactoryOption) (f *RPCClientFactory) {
 	f = &RPCClientFactory{
 		address:       address,
 		cache:         cmap.New(),
-		logger:        logger,
 		facotryOption: &facotryOption{},
 	}
 	for _, opt := range opts {
