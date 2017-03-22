@@ -21,15 +21,15 @@ type RPCClientFactory struct {
 type facotryOption struct {
 	logger       Logger
 	timerout     time.Duration
+	resolverType int
 	balancerType int
 	servers      string
 	local        string
-	mode         int
 }
 
 const (
-	ZKBalancer = iota + 1
-	FileBalancer
+	ZKResolver = iota + 1
+	FileResolver
 )
 const (
 	RoundRobin = iota
@@ -49,14 +49,14 @@ func WithFactoryLogger(log Logger) FactoryOption {
 //WithRoundRobin 设置为轮询负载
 func WithRoundRobin() FactoryOption {
 	return func(o *facotryOption) {
-		o.mode = RoundRobin
+		o.balancerType = RoundRobin
 	}
 }
 
 //WithLocalFirst 设置为轮询负载
 func WithLocalFirst(local string) FactoryOption {
 	return func(o *facotryOption) {
-		o.mode = LocalFirst
+		o.balancerType = LocalFirst
 		o.local = local
 	}
 }
@@ -66,7 +66,7 @@ func WithZKBalancer(servers string, timeout time.Duration) FactoryOption {
 	return func(o *facotryOption) {
 		o.servers = servers
 		o.timerout = timeout
-		o.balancerType = ZKBalancer
+		o.resolverType = ZKResolver
 	}
 }
 
@@ -74,7 +74,7 @@ func WithZKBalancer(servers string, timeout time.Duration) FactoryOption {
 func WithFileBalancer(f string) FactoryOption {
 	return func(o *facotryOption) {
 		o.servers = f
-		o.balancerType = FileBalancer
+		o.resolverType = FileResolver
 	}
 }
 
@@ -91,19 +91,30 @@ func NewRPCClientFactory(address string, opts ...FactoryOption) (f *RPCClientFac
 	return
 }
 
+//PreInitClient 预初始化客户端
+func (r *RPCClientFactory) PreInitClient(services ...string) (err error) {
+	for _, v := range services {
+		_, err = r.Get(v)
+		if err != nil {
+			return
+		}
+	}
+	return
+}
+
 //Get 获取rpc client
 func (r *RPCClientFactory) Get(service string) (c *Client, err error) {
 	_, client, err := r.cache.SetIfAbsentCb(service, func(i ...interface{}) (interface{}, error) {
 		opts := make([]ClientOption, 0, 0)
 		opts = append(opts, WithLogger(r.logger))
-		if r.balancerType > 0 {
+		if r.resolverType > 0 {
 			var rs naming.Resolver
-			switch r.balancerType {
-			case ZKBalancer:
+			switch r.resolverType {
+			case ZKResolver:
 				rs = balancer.NewZKResolver(service, r.local, time.Second)
 			}
 			if rs != nil {
-				switch r.mode {
+				switch r.balancerType {
 				case RoundRobin:
 					opts = append(opts, WithRoundRobinBalancer(rs, service, time.Second, map[string]int{}))
 				case LocalFirst:
