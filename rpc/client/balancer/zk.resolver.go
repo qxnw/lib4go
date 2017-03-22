@@ -17,8 +17,8 @@ type ZKResolver struct {
 	local   string
 }
 
-//NewResolver 返回服务解析器
-func NewResolver(service string, local string, timeout time.Duration) naming.Resolver {
+//NewZKResolver 返回服务解析器
+func NewZKResolver(service string, local string, timeout time.Duration) naming.Resolver {
 	return &ZKResolver{timeout: timeout, service: service, local: local}
 }
 

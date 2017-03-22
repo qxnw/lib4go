@@ -76,10 +76,18 @@ func WithRoundRobinBalancer(r naming.Resolver, service string, timeout time.Dura
 }
 
 //WithLocalFirstBalancer 设置本地优先负载均衡器
-func WithLocalFirstBalancer(r naming.Resolver, service string, local string, timeout time.Duration, limit map[string]int) ClientOption {
+func WithLocalFirstBalancer(r naming.Resolver, service string, local string, limit map[string]int) ClientOption {
 	return func(o *clientOption) {
 		o.service = service
 		o.balancer = balancer.FickFirst(service, local, r, limit)
+	}
+}
+
+//WithBalancer 设置负载均衡器
+func WithBalancer(service string, lb balancer.CustomerBalancer) ClientOption {
+	return func(o *clientOption) {
+		o.service = service
+		o.balancer = lb
 	}
 }
 
@@ -121,7 +129,7 @@ func (c *Client) connect() (b bool) {
 }
 
 //Request 发送请求
-func (c *Client) Request(service string, input map[string]string, failFast bool, kv ...string) (status int, result string, err error) {
+func (c *Client) Request(service string, input map[string]string, failFast bool) (status int, result string, err error) {
 	if !strings.HasPrefix(service, c.service) {
 		return 500, "", fmt.Errorf("服务:%s调用失败", service)
 	}
@@ -137,7 +145,7 @@ func (c *Client) Request(service string, input map[string]string, failFast bool,
 }
 
 //Query 发送请求
-func (c *Client) Query(service string, input map[string]string, failFast bool, kv ...string) (status int, result string, err error) {
+func (c *Client) Query(service string, input map[string]string, failFast bool) (status int, result string, err error) {
 	if !strings.HasPrefix(service, c.service) {
 		return 500, "", fmt.Errorf("服务:%s调用失败", service)
 	}
@@ -152,7 +160,7 @@ func (c *Client) Query(service string, input map[string]string, failFast bool, k
 }
 
 //Update 发送请求
-func (c *Client) Update(service string, input map[string]string, failFast bool, kv ...string) (status int, err error) {
+func (c *Client) Update(service string, input map[string]string, failFast bool) (status int, err error) {
 	if !strings.HasPrefix(service, c.service) {
 		return 500, fmt.Errorf("服务:%s调用失败", service)
 	}
@@ -166,7 +174,7 @@ func (c *Client) Update(service string, input map[string]string, failFast bool, 
 }
 
 //Insert 发送请求
-func (c *Client) Insert(service string, input map[string]string, failFast bool, kv ...string) (status int, err error) {
+func (c *Client) Insert(service string, input map[string]string, failFast bool) (status int, err error) {
 	if !strings.HasPrefix(service, c.service) {
 		return 500, fmt.Errorf("服务:%s调用失败", service)
 	}
@@ -180,7 +188,7 @@ func (c *Client) Insert(service string, input map[string]string, failFast bool, 
 }
 
 //Delete 发送请求
-func (c *Client) Delete(service string, input map[string]string, failFast bool, kv ...string) (status int, err error) {
+func (c *Client) Delete(service string, input map[string]string, failFast bool) (status int, err error) {
 	if !strings.HasPrefix(service, c.service) {
 		return 500, fmt.Errorf("服务:%s调用失败", service)
 	}
