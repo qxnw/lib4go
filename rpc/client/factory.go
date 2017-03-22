@@ -32,7 +32,7 @@ const (
 	FileResolver
 )
 const (
-	RoundRobin = iota
+	RoundRobin = iota + 1
 	LocalFirst
 )
 
