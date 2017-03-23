@@ -133,6 +133,16 @@ const (
 	ConsistencyAny = "any"
 )
 
+//NewJSON will instantiate and return a connected client to issue commands to the server.
+func NewJSON(config string) (client *Client, err error) {
+	conf := Config{}
+	err = json.Unmarshal([]byte(config), &conf)
+	if err != nil {
+		return nil, fmt.Errorf("mq 配置文件有误:%v", err)
+	}
+	return NewClient(conf)
+}
+
 // NewClient will instantiate and return a connected client to issue commands to the server.
 func NewClient(c Config) (*Client, error) {
 	tlsConfig := &tls.Config{
@@ -346,6 +356,9 @@ func (c *Client) WriteLineProtocol(data, database, retentionPolicy, precision, w
 	req.Header.Set("User-Agent", c.userAgent)
 	if c.username != "" {
 		req.SetBasicAuth(c.username, c.password)
+	}
+	if precision == "" {
+		precision = c.precision
 	}
 	params := req.URL.Query()
 	params.Set("db", database)
