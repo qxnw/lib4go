@@ -92,6 +92,5 @@ func (producer *StompProducer) Close() {
 		return
 	}
 	/*end*/
-
 	producer.conn.Disconnect(stompngo.Headers{})
 }

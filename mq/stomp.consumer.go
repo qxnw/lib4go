@@ -7,6 +7,8 @@ import (
 	"strings"
 	"sync"
 
+	"errors"
+
 	"github.com/gmallard/stompngo"
 	"github.com/qxnw/lib4go/concurrent/cmap"
 )
@@ -72,15 +74,12 @@ func (consumer *StompConsumer) Connect() error {
 
 //Consume 注册消费信息
 func (consumer *StompConsumer) Consume(queue string, callback func(IMessage)) (err error) {
-	/*add by champly 2016年11月30日15:32:57*/
 	if strings.EqualFold(queue, "") {
-		return fmt.Errorf("队列名字不能为空")
+		return errors.New("队列名字不能为空")
 	}
-
 	if callback == nil {
-		return fmt.Errorf("回调函数不能为nil")
+		return errors.New("回调函数不能为nil")
 	}
-	/*end*/
 
 	if err = consumer.Connect(); err != nil {
 		return
