@@ -18,12 +18,12 @@ func New() *Transform {
 }
 
 //NewMaps 根据map创建组件
-func NewMaps(d map[string]interface{}) Transform {
+func NewMaps(d map[string]interface{}) *Transform {
 	current := make(map[string]string)
 	for k, v := range d {
 		current[fmt.Sprintf("@%s", k)] = fmt.Sprint(v)
 	}
-	return Transform{data: current}
+	return &Transform{data: current}
 }
 
 //Set 设置变量的值
