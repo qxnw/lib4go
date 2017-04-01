@@ -1,6 +1,7 @@
 package zk
 
 import (
+	"errors"
 	"io"
 	"sync/atomic"
 	"time"
@@ -13,7 +14,7 @@ import (
 )
 
 // TIMEOUT 连接zk服务器操作的超时时间
-var TIMEOUT = time.Second * 2
+var TIMEOUT = time.Second
 
 type Logger interface {
 	Debugf(format string, v ...interface{})
@@ -27,6 +28,11 @@ type Logger interface {
 	Printf(string, ...interface{})
 }
 
+var (
+	ErrColientCouldNotConnect = errors.New("zk: could not connect to the server")
+	ErrClientConnClosing      = errors.New("zk: the client connection is closing")
+)
+
 //ZookeeperClient zookeeper客户端
 type ZookeeperClient struct {
 	servers            []string
@@ -38,9 +44,8 @@ type ZookeeperClient struct {
 	Log                Logger
 	useCount           int32
 	isConnect          bool
-
 	// 是否是手动关闭
-	isCloseManually bool
+	done bool
 }
 
 //New 连接到Zookeeper服务器
@@ -81,6 +86,8 @@ func (client *ZookeeperClient) Connect() (err error) {
 		go client.eventWatch()
 	}
 	atomic.AddInt32(&client.useCount, 1)
+	time.Sleep(client.timeout)
+	client.isConnect = true
 	return
 }
 
@@ -90,11 +97,12 @@ func (client *ZookeeperClient) Reconnect() (err error) {
 		client.conn.Close()
 		client.conn = nil
 	}
+	client.done = false
 	return client.Connect()
 }
 
-//Disconnect 断开服务器连接
-func (client *ZookeeperClient) Disconnect() {
+//Close 关闭服务器
+func (client *ZookeeperClient) Close() {
 	atomic.AddInt32(&client.useCount, -1)
 	if client.useCount > 0 {
 		return
@@ -105,7 +113,7 @@ func (client *ZookeeperClient) Disconnect() {
 	}
 
 	client.isConnect = false
-	client.isCloseManually = true
+	client.done = true
 	client.conn = nil
 
 }

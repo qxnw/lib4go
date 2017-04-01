@@ -1,7 +1,6 @@
 package zk
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -12,13 +11,18 @@ import (
 //CreatePersistentNode 创建持久化的节点
 func (client *ZookeeperClient) CreatePersistentNode(path string, data string) (err error) {
 	if !client.isConnect {
-		err = errors.New("未连接到zk服务器")
+		err = ErrColientCouldNotConnect
 		return
 	}
 	//检查目录是否存在
-	if b, err := client.Exists(path); b || err != nil {
-		err = fmt.Errorf("create node %s fail(node is exists : %t, err : %v)", path, b, err)
+	if b, err := client.Exists(path); err != nil {
+		err = fmt.Errorf("create node %s fail(%t, err : %v)", path, b, err)
 		return err
+	} else if b {
+		return nil
+	}
+	if path == "/" {
+		return nil
 	}
 	//获取每级目录并检查是否存在，不存在则创建
 	paths := client.getPaths(path)
@@ -44,12 +48,12 @@ func (client *ZookeeperClient) CreatePersistentNode(path string, data string) (e
 }
 
 //CreateTempNode 创建临时节点
-func (client *ZookeeperClient) CreateTempNode(path string, data string) (rpath string, err error) {
+func (client *ZookeeperClient) CreateTempNode(path string, data string) (err error) {
 	err = client.CreatePersistentNode(client.GetDir(path), "")
 	if err != nil {
 		return
 	}
-	rpath, err = client.create(path, []byte(data), int32(zk.FlagEphemeral), zk.WorldACL(zk.PermAll))
+	_, err = client.create(path, []byte(data), int32(zk.FlagEphemeral), zk.WorldACL(zk.PermAll))
 	return
 }
 
@@ -69,13 +73,13 @@ type createType struct {
 }
 
 func (client *ZookeeperClient) create(path string, data []byte, flags int32, acl []zk.ACL) (rpath string, err error) {
-	if !client.isConnect || client.conn == nil {
-		err = errors.New("未连接到zk服务器")
+	if !client.isConnect {
+		err = ErrColientCouldNotConnect
 		return
 	}
 
 	// 开启一个协程，创建节点
-	ch := make(chan interface{})
+	ch := make(chan interface{}, 1)
 	go func(ch chan interface{}) {
 		data, err := client.conn.Create(path, data, flags, acl)
 		if err != nil {
@@ -86,16 +90,11 @@ func (client *ZookeeperClient) create(path string, data []byte, flags int32, acl
 	}(ch)
 
 	// 使用计时器判断创建节点是否超时
-	tk := time.NewTicker(TIMEOUT)
 	select {
-	case _, ok := <-tk.C:
-		if ok {
-			tk.Stop()
-			err = fmt.Errorf("create node : %s timeout", path)
-			return
-		}
+	case <-time.After(TIMEOUT):
+		err = fmt.Errorf("create node : %s timeout", path)
+		return
 	case data := <-ch:
-		tk.Stop()
 		err = data.(createType).err
 		if err != nil {
 			return
@@ -103,7 +102,6 @@ func (client *ZookeeperClient) create(path string, data []byte, flags int32, acl
 		rpath = data.(createType).rpath
 		return
 	}
-	return
 }
 
 //getPaths 获取当前路径的所有子路径

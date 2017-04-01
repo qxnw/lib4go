@@ -74,10 +74,13 @@ func NewSysDB(provider string, connString string, maxIdle int, maxOpen int) (obj
 func (db *SysDB) Query(query string, args ...interface{}) (dataRows []map[string]interface{}, colus []string, err error) {
 	rows, err := db.db.Query(query, args...)
 	if err != nil {
+		if rows != nil {
+			rows.Close()
+		}
 		return
 	}
-	defer rows.Close()
 	dataRows, colus, err = resolveRows(rows, 0)
+	rows.Close()
 	return
 
 }

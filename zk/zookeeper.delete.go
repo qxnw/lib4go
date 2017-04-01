@@ -1,7 +1,6 @@
 package zk
 
 import (
-	"errors"
 	"fmt"
 	"time"
 )
@@ -9,7 +8,7 @@ import (
 //Delete 修改指定节点的值
 func (client *ZookeeperClient) Delete(path string) (err error) {
 	if !client.isConnect {
-		return errors.New("未连接到zk服务器")
+		return ErrColientCouldNotConnect
 	}
 
 	// 启动一个协程，删除节点

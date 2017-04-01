@@ -93,7 +93,7 @@ func (m *ConcurrentMap) SetIfAbsentCb(key string, cb SetCb, input ...interface{}
 		v, err = cb(input...)
 		if err != nil {
 			shard.Unlock()
-			return
+			return false, nil, err
 		}
 		shard.items[key] = v
 	}

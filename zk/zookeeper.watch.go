@@ -55,9 +55,9 @@
 package zk
 
 import (
-	"errors"
 	"time"
 
+	"github.com/qxnw/lib4go/registry"
 	"github.com/samuel/go-zookeeper/zk"
 )
 
@@ -89,10 +89,15 @@ import (
 //			StateDisconnected :   {Type:EventSession State:StateDisconnected Path: Err:<nil> Server:192.168.0.159:2181} true
 //			->StateDisconnected : {Type:Unknown State:StateDisconnected Path: Err:<nil> Server:}						false
 //			(连接关闭)
+
 func (client *ZookeeperClient) eventWatch() {
 START:
 	for {
 		select {
+		case <-time.After(TIMEOUT):
+			if client.done {
+				break START
+			}
 		case v, ok := <-client.eventChan:
 			if ok {
 				client.Log.Infof("event.watch:%+v", v)
@@ -122,7 +127,7 @@ START:
 	}
 }
 
-//BindWatchValue 监控指定节点的值是否发生变化，变化时返回变化后的值
+//WatchValue 监控指定节点的值是否发生变化，变化时返回变化后的值
 // 测试情况：
 //		网络正常时修改节点的值：
 //			EventNodeDataChanged : {Type:EventNodeDataChanged State:Unknown Path:/zk_test/123 Err:<nil> Server:}   true
@@ -130,168 +135,147 @@ START:
 //			EventNotWatching(断开时间过短不会出现) : {Type:EventNotWatching State:StateDisconnected Path:/zk_test/123 Err:zk: session has been expired by the server Server:} true
 //		关闭连接:
 //			EventNotWatching : {Type:EventNotWatching State:StateDisconnected Path:/zk_test/123 Err:zk: zookeeper is closing Server:}      true
-func (client *ZookeeperClient) BindWatchValue(path string, data chan string) error {
-	_, value := client.watchValueEvents.SetIfAbsent(path, 0) //添加/更新监控时间
-	if value.(int) == -1 {
-		client.watchValueEvents.Remove(path)
-		return errors.New(path + " is UnbindWatchValue")
-	}
-	_, _, event, err := client.conn.GetW(path)
-	if err != nil {
-		return err
-	}
-	select {
-	case e, ok := <-event:
-		client.Log.Infof("watch:value %+v[%+v]%t", path, e, ok)
-		if !ok {
-			return e.Err
-		}
-		switch e.Type {
-		case zk.EventNodeDataChanged:
-			v, err := client.GetValue(path)
-			if err != nil {
-				client.Log.Error(err)
-			} else {
-				data <- v
-			}
-		case zk.EventNotWatching:
-			err = client.checkConnectStatus(path, false)
-			if err != nil {
-				return err
-			}
-		}
-	}
-	//继续监控值变化
-	return client.BindWatchValue(path, data)
-}
-
-//UnbindWatchValue 取消绑定
-func (client *ZookeeperClient) UnbindWatchValue(path string) {
-	if v, ok := client.watchValueEvents.Get(path); !ok || v.(int) == -1 {
+func (client *ZookeeperClient) WatchValue(path string) (data chan registry.ValueWatcher, err error) {
+	if !client.isConnect {
+		err = ErrColientCouldNotConnect
 		return
 	}
-	client.watchValueEvents.Set(path, -1)
+	if client.done {
+		err = ErrClientConnClosing
+		return
+	}
+	data = make(chan registry.ValueWatcher, 1)
+	_, _, event, err := client.conn.GetW(path)
+	if err != nil {
+		return
+	}
+	go func(data chan registry.ValueWatcher) {
+		for {
+			select {
+			case <-time.After(TIMEOUT):
+				if client.done {
+					data <- &valueEntity{Err: ErrClientConnClosing}
+					return
+				}
+			case e, ok := <-event:
+				client.Log.Infof("watch:value %+v[%+v]%t", path, e, ok)
+				if client.done {
+					data <- &valueEntity{Err: ErrClientConnClosing}
+					return
+				}
+				if e.Err != nil {
+					data <- &valueEntity{Err: e.Err}
+					return
+				}
+				switch e.Type {
+				case zk.EventNodeDataChanged:
+					v, err := client.GetValue(path)
+					if err != nil {
+						client.Log.Error(err)
+					}
+					data <- &valueEntity{Value: v, Err: err}
+					return
+				case zk.EventNotWatching:
+					err = client.checkConnectStatus(path)
+					if err != nil {
+						return
+					}
+					data <- &valueEntity{Err: err}
+				}
+			}
+		}
+	}(data)
+	return
 }
 
-func (client *ZookeeperClient) WatchChildren(path string) (ch []string, err error) {
+//WatchChildren 监控子节点变化
+func (client *ZookeeperClient) WatchChildren(path string) (ch chan registry.ChildrenWatcher, err error) {
+	ch = make(chan registry.ChildrenWatcher, 1)
 	_, _, event, err := client.conn.ChildrenW(path)
 	if err != nil {
 		return nil, err
 	}
-	select {
-	case e, ok := <-event:
-		client.Log.Infof("watch:children %s %s[%+v]%t", e.Type.String(), path, e, ok)
-		if !ok {
-			return nil, e.Err
-		}
-		switch e.Type {
-		case zk.EventNodeChildrenChanged:
-			paths, err := client.GetChildren(path)
-			if err != nil {
-				client.Log.Error(err)
-			} else {
-				return paths, nil
+	go func(ch chan registry.ChildrenWatcher) {
+		select {
+		case <-time.After(TIMEOUT):
+			if client.done {
+				ch <- &valuesEntity{Err: ErrClientConnClosing}
+				return
 			}
-		// 网络重新连接
-		case zk.EventNotWatching:
-			err = client.checkConnectStatus(path, true)
-			if err != nil {
-				return nil, err
+		case e, ok := <-event:
+			if client.done || !ok {
+				ch <- &valuesEntity{Err: ErrClientConnClosing}
+				return
+			}
+			if e.Err != nil {
+				ch <- &valuesEntity{Err: e.Err}
+				return
+			}
+			client.Log.Infof("watch:children %s %s[%+v]%t", e.Type.String(), path, e, ok)
+			switch e.Type {
+			case zk.EventNodeChildrenChanged:
+				paths, err := client.GetChildren(path)
+				if err != nil {
+					client.Log.Error(err)
+				}
+				ch <- &valuesEntity{Err: err, values: paths}
+				return
+			// 网络重新连接
+			case zk.EventNotWatching:
+				err = client.checkConnectStatus(path)
+				if err != nil {
+					ch <- &valuesEntity{Err: err}
+					return
+				}
 			}
 		}
-	}
-	return nil, errors.New("not watch")
-}
+	}(ch)
 
-//BindWatchChildren 监控子节点是否发生变化，变化时返回变化后的值
-// 测试情况：
-//		网络正常时修改节点的值：
-//			EventNodeChildrenChanged : {Type:EventNodeChildrenChanged State:Unknown Path:/zk_test Err:<nil> Server:}   true
-// 		网络断开之后，节点值的修改不会触发，直到网络恢复正常：
-//			EventNotWatching(断开时间过短不会出现) : {Type:EventNotWatching State:StateDisconnected Path:/zk_test Err:zk: session has been expired by the server Server:} true
-//		关闭连接
-//			EventNotWatching : {Type:EventNotWatching State:StateDisconnected Path:/zk_test Err:zk: zookeeper is closing Server:}       true
-func (client *ZookeeperClient) BindWatchChildren(path string, data chan []string) (err error) {
-	_, value := client.watchChilrenEvents.SetIfAbsent(path, 0) //添加/更新监控时间
-	if value.(int) == -1 {
-		client.watchChilrenEvents.Remove(path)
-		return errors.New(path + " is UnbindWatchChildren")
-	}
-	_, _, event, err := client.conn.ChildrenW(path)
-	if err != nil {
-		return err
-	}
-	select {
-	case e, ok := <-event:
-		client.Log.Infof("watch:children %s %s[%+v]%t", e.Type.String(), path, e, ok)
-		if !ok {
-			return e.Err
-		}
-		switch e.Type {
-		case zk.EventNodeChildrenChanged:
-			paths, err := client.GetChildren(path)
-			if err != nil {
-				client.Log.Error(err)
-			} else {
-				data <- paths
-			}
-		// 网络重新连接
-		case zk.EventNotWatching:
-			err = client.checkConnectStatus(path, true)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return client.BindWatchChildren(path, data)
-}
-
-//UnbindWatchChildren 取消绑定
-func (client *ZookeeperClient) UnbindWatchChildren(path string) {
-	if v, ok := client.watchChilrenEvents.Get(path); !ok || v.(int) == -1 {
-		return
-	}
-	client.watchChilrenEvents.Set(path, -1)
+	return
 }
 
 // checkConnectStatus 检查当前的连接状态
-func (client *ZookeeperClient) checkConnectStatus(path string, isWatchChildren bool) error {
-	if client.isCloseManually {
+func (client *ZookeeperClient) checkConnectStatus(path string) error {
+	if client.done {
 		return zk.ErrClosing
 	}
-	ticker := time.NewTicker(time.Second)
 START:
 	for {
 		select {
-		case _, ok := <-ticker.C:
-			if ok {
-				// 检查是否手动关闭连接
-				if client.isCloseManually {
-					ticker.Stop()
-					return zk.ErrClosing
-				}
-
-				if isWatchChildren {
-					if v, ok := client.watchChilrenEvents.Get(path); !ok || v.(int) == -1 {
-						ticker.Stop()
-						return errors.New(path + " is UnbindWatchChildren")
-					}
-				} else {
-					// 检查是否取消绑定
-					if v, ok := client.watchValueEvents.Get(path); !ok || v.(int) == -1 {
-						ticker.Stop()
-						return errors.New(path + " is UnbindWatchValue")
-					}
-				}
-
-				// 检查是否连接成功
-				if client.isConnect {
-					ticker.Stop()
-					break START
-				}
+		case <-time.After(TIMEOUT):
+			// 检查是否手动关闭连接
+			if client.done {
+				return zk.ErrClosing
 			}
+			// 检查是否连接成功
+			if client.isConnect {
+				break START
+			}
+
 		}
 	}
 	return nil
+}
+
+type valueEntity struct {
+	Value []byte
+	Err   error
+}
+type valuesEntity struct {
+	values []string
+	Err    error
+}
+
+func (v *valueEntity) GetValue() []byte {
+	return v.Value
+}
+func (v *valueEntity) GetError() error {
+	return v.Err
+}
+
+func (v *valuesEntity) GetValue() []string {
+	return v.values
+}
+func (v *valuesEntity) GetError() error {
+	return v.Err
 }

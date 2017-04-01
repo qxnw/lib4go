@@ -13,6 +13,7 @@ type pool struct {
 	conns       chan *idleConn
 	factory     func() (interface{}, error)
 	close       func(interface{}) error
+	done        bool
 	idleTimeout time.Duration
 }
 
@@ -76,6 +77,9 @@ func New(config *PoolConfigOptions) (IPool, error) {
 
 	// 添加设置自动清理超时连接
 	TimeOut = config.IdleTimeout
+	if TimeOut == 0 {
+		TimeOut = time.Hour * 30
+	}
 	/*end*/
 
 	c := &pool{
@@ -108,7 +112,7 @@ func (c *pool) getConns() chan *idleConn {
 //Get 从pool中取一个连接
 func (c *pool) Get() (interface{}, error) {
 	conns := c.getConns()
-	if conns == nil {
+	if conns == nil || c.done {
 		return nil, ErrClosed
 	}
 	for {
@@ -147,7 +151,7 @@ func (c *pool) Put(conn interface{}) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	if c.conns == nil {
+	if c.conns == nil || c.done {
 		return c.Close(conn)
 	}
 
@@ -155,13 +159,13 @@ func (c *pool) Put(conn interface{}) error {
 	case c.conns <- &idleConn{conn: conn, t: time.Now()}:
 		return nil
 	default:
-		//连接池已满，直接关闭该链接
 		return c.Close(conn)
 	}
 }
 
 //Close 关闭单条连接
 func (c *pool) Close(conn interface{}) error {
+	c.done = true
 	if conn == nil {
 		return errors.New("connection is nil. rejecting")
 	}
@@ -192,12 +196,12 @@ func (c *pool) Release() {
 // AutoReleaseTimeout 自动清除超时的连接
 func (c *pool) AutoReleaseStart() {
 	go func() {
-		tk := time.NewTicker(TimeOut)
 		for {
 			select {
-			case _, ok := <-tk.C:
-				if ok {
-					c.clear()
+			case <-time.After(TimeOut):
+				c.clear()
+				if c.done {
+					return
 				}
 			}
 		}
@@ -207,13 +211,12 @@ func (c *pool) AutoReleaseStart() {
 func (c *pool) clear() {
 	start := time.Now()
 	if c.Len() > 0 {
-		conns := c.getConns()
+		c.mu.Lock()
+		conns := c.conns
+		defer c.mu.Unlock()
 		if conns == nil {
 			return
 		}
-
-		// c.mu.Lock()
-		// defer c.mu.Unlock()
 
 		fmt.Println("pool中总连接数：", len(c.conns))
 		length := len(c.conns)
@@ -223,7 +226,6 @@ func (c *pool) clear() {
 				if wrapConn == nil {
 					return
 				}
-
 				// 如果超时
 				if timeout := c.idleTimeout; timeout > 0 {
 					if wrapConn.t.Add(timeout).Before(time.Now()) {
