@@ -1,10 +1,10 @@
 package registry
 
 type ValueWatcher interface {
-	GetValue() []byte
+	GetValue() ([]byte, int32)
 	GetError() error
 }
 type ChildrenWatcher interface {
-	GetValue() []string
+	GetValue() ([]string, int32)
 	GetError() error
 }

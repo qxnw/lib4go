@@ -169,11 +169,11 @@ func (client *ZookeeperClient) WatchValue(path string) (data chan registry.Value
 				}
 				switch e.Type {
 				case zk.EventNodeDataChanged:
-					v, err := client.GetValue(path)
+					v, version, err := client.GetValue(path)
 					if err != nil {
 						client.Log.Error(err)
 					}
-					data <- &valueEntity{Value: v, Err: err}
+					data <- &valueEntity{Value: v, Err: err, version: version}
 					return
 				case zk.EventNotWatching:
 					err = client.checkConnectStatus(path)
@@ -214,11 +214,11 @@ func (client *ZookeeperClient) WatchChildren(path string) (ch chan registry.Chil
 			client.Log.Infof("watch:children %s %s[%+v]%t", e.Type.String(), path, e, ok)
 			switch e.Type {
 			case zk.EventNodeChildrenChanged:
-				paths, err := client.GetChildren(path)
+				paths, version, err := client.GetChildren(path)
 				if err != nil {
 					client.Log.Error(err)
 				}
-				ch <- &valuesEntity{Err: err, values: paths}
+				ch <- &valuesEntity{Err: err, values: paths, version: version}
 				return
 			// 网络重新连接
 			case zk.EventNotWatching:
@@ -258,23 +258,25 @@ START:
 }
 
 type valueEntity struct {
-	Value []byte
-	Err   error
+	Value   []byte
+	version int32
+	Err     error
 }
 type valuesEntity struct {
-	values []string
-	Err    error
+	values  []string
+	version int32
+	Err     error
 }
 
-func (v *valueEntity) GetValue() []byte {
-	return v.Value
+func (v *valueEntity) GetValue() ([]byte, int32) {
+	return v.Value, v.version
 }
 func (v *valueEntity) GetError() error {
 	return v.Err
 }
 
-func (v *valuesEntity) GetValue() []string {
-	return v.values
+func (v *valuesEntity) GetValue() ([]string, int32) {
+	return v.values, v.version
 }
 func (v *valuesEntity) GetError() error {
 	return v.Err
