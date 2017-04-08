@@ -9,7 +9,7 @@ import (
 
 //Config memcached配置选项
 type Config struct {
-	Servers []string `json:"servers"`
+	Servers []string `json:"servers,omitempty"`
 }
 
 // MemcacheClient memcache配置文件
