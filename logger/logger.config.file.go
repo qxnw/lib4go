@@ -19,7 +19,7 @@ var defaultConfigAdapter string
 
 func init() {
 	configAdapter = make(map[string]func() []*Appender)
-	Register("file", readFromFile)
+	Register(appender_file, readFromFile)
 }
 
 func Register(adapterName string, f func() []*Appender) error {
