@@ -17,12 +17,11 @@ var loggerPath = file.GetAbs("../conf/ars.logger.json")
 var configAdapter map[string]func() []*Appender
 var defaultConfigAdapter string
 
-func init() {
-	configAdapter = make(map[string]func() []*Appender)
-	Register(appender_file, readFromFile)
-}
-
-func Register(adapterName string, f func() []*Appender) error {
+//register 设置配置文件
+func register(adapterName string, f func() []*Appender) error {
+	if configAdapter == nil {
+		configAdapter = make(map[string]func() []*Appender)
+	}
 	if _, ok := configAdapter[adapterName]; ok {
 		return fmt.Errorf("adapter(%s) is exist", adapterName)
 	}
@@ -44,6 +43,16 @@ func readFromFile() (appenders []*Appender) {
 		sysLoggerError(err)
 	}
 
+	return
+}
+
+//NewAppender 构建appender
+func NewAppender(conf string) (appenders []*Appender, err error) {
+	appenders = make([]*Appender, 0, 2)
+	if err = json.Unmarshal([]byte(conf), &appenders); err != nil {
+		err = errors.New("配置文件格式有误，无法序列化")
+		return
+	}
 	return
 }
 
