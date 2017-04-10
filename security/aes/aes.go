@@ -65,7 +65,7 @@ func Decrypt(src string, key string) (msg string, err error) {
 }
 
 // EncryptCBCPKCS7 CBC模式,PKCS7填充
-func EncryptCBCPKCS7(contentStr string, keyStr string, iv []byte) (string, error) {
+func EncryptCBCPKCS7(contentStr string, keyStr string) (string, error) {
 	content := []byte(contentStr)
 	key := []byte(keyStr)
 	if len(content)&aes.BlockSize != 0 {
@@ -77,12 +77,8 @@ func EncryptCBCPKCS7(contentStr string, keyStr string, iv []byte) (string, error
 		return "", err
 	}
 
-	if len(iv) != block.BlockSize() {
-		return "", fmt.Errorf("IV length must equal block size")
-	}
-
 	content = des.PKCS7Padding(content)
-	// iv := key[:block.BlockSize()]
+	iv := make([]byte, block.BlockSize())
 	blockModel := cipher.NewCBCEncrypter(block, iv)
 
 	cipherText := make([]byte, len(content))
@@ -91,7 +87,7 @@ func EncryptCBCPKCS7(contentStr string, keyStr string, iv []byte) (string, error
 }
 
 // DecryptCBCPKCS7 CBC模式,PKCS7填充
-func DecryptCBCPKCS7(contentStr string, keyStr string, iv []byte) (string, error) {
+func DecryptCBCPKCS7(contentStr string, keyStr string) (string, error) {
 	content, err := base64.DecodeBytes(contentStr)
 	if err != nil {
 		return "", err
@@ -107,11 +103,7 @@ func DecryptCBCPKCS7(contentStr string, keyStr string, iv []byte) (string, error
 		return "", fmt.Errorf("要解密的字符串太短")
 	}
 
-	if len(iv) != block.BlockSize() {
-		return "", fmt.Errorf("IV length must equal block size")
-	}
-
-	// iv := key[:block.BlockSize()]
+	iv := make([]byte, block.BlockSize())
 	blockModel := cipher.NewCBCDecrypter(block, iv)
 
 	plantText := make([]byte, len(content))
