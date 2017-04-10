@@ -40,6 +40,9 @@ func NewStompProducerJSON(config string) (producer *StompProducer, err error) {
 func NewStompProducer(config ProducerConfig) (producer *StompProducer, err error) {
 	producer = &StompProducer{}
 	producer.config = config
+	if config.Version == "" {
+		config.Version = "1.1"
+	}
 	producer.header = stompngo.Headers{"accept-version", config.Version}
 	return
 }

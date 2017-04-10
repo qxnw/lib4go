@@ -23,7 +23,7 @@ func TestWatchValueChange(t *testing.T) {
 	expect(t, err, nil)
 
 	//获取节点值，检查是否正确
-	buf, err := zk.GetValue(path1)
+	buf, _, err := zk.GetValue(path1)
 	expect(t, err, nil)
 	expect(t, string(buf), "data")
 
@@ -35,7 +35,7 @@ func TestWatchValueChange(t *testing.T) {
 	err = zk.Update(path1, value2)
 	expect(t, err, nil)
 
-	buf, err = zk.GetValue(path1)
+	buf, _, err = zk.GetValue(path1)
 	expect(t, err, nil)
 	expect(t, string(buf), value2)
 
@@ -45,7 +45,8 @@ func TestWatchValueChange(t *testing.T) {
 		t.Error("获取节点值超时")
 	case v := <-valueCh:
 		expect(t, v.GetError(), nil)
-		expect(t, string(v.GetValue()), value2)
+		value, _ := v.GetValue()
+		expect(t, string(value), value2)
 	}
 	zk.Close()
 }
@@ -75,7 +76,8 @@ func TestWatchChildren(t *testing.T) {
 		t.Error("获取节点值超时")
 	case v := <-valueCh:
 		expect(t, v.GetError(), nil)
-		expect(t, strings.Join(v.GetValue(), ","), child)
+		values, _ := v.GetValue()
+		expect(t, strings.Join(values, ","), child)
 	}
 
 	zk.Close()

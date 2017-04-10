@@ -1,6 +1,7 @@
 package metrics
 
 import (
+	"fmt"
 	"log"
 	uurl "net/url"
 	"strings"
@@ -10,6 +11,10 @@ import (
 	"github.com/zkfy/go-metrics"
 )
 
+type IReporter interface {
+	Close() error
+	Run()
+}
 type reporter struct {
 	reg      metrics.Registry
 	interval time.Duration
@@ -19,6 +24,7 @@ type reporter struct {
 	password string
 	tags     map[string]string
 	client   *influxdb.Client
+	done     bool
 }
 
 const (
@@ -31,8 +37,8 @@ const (
 )
 
 // InfluxDB starts a InfluxDB reporter which will post the metrics from the given registry at each d interval.
-func InfluxDB(r metrics.Registry, d time.Duration, url, database, username, password string) {
-	InfluxDBWithTags(r, d, url, database, username, password, nil)
+func InfluxDB(r metrics.Registry, d time.Duration, url, database, username, password string) (IReporter, error) {
+	return InfluxDBWithTags(r, d, url, database, username, password, nil)
 }
 
 //MakeName 构建参数名称
@@ -57,11 +63,10 @@ func splitGroup(name string) (string, map[string]string) {
 }
 
 // InfluxDBWithTags starts a InfluxDB reporter which will post the metrics from the given registry at each d interval with the specified tags
-func InfluxDBWithTags(r metrics.Registry, d time.Duration, url, database, username, password string, tags map[string]string) {
+func InfluxDBWithTags(r metrics.Registry, d time.Duration, url, database, username, password string, tags map[string]string) (IReporter, error) {
 	u, err := uurl.Parse(url)
 	if err != nil {
-		log.Printf("unable to parse InfluxDB url %s. err=%v", url, err)
-		return
+		return nil, fmt.Errorf("unable to parse InfluxDB url %s. err=%v", url, err)
 	}
 
 	rep := &reporter{
@@ -74,13 +79,14 @@ func InfluxDBWithTags(r metrics.Registry, d time.Duration, url, database, userna
 		tags:     tags,
 	}
 	if err := rep.makeClient(); err != nil {
-		log.Printf("unable to make InfluxDB client. err=%v", err)
-		return
+		return nil, fmt.Errorf("unable to make InfluxDB client. err=%v", err)
 	}
 
-	rep.run()
+	return rep, nil
 }
-
+func (r *reporter) Run() {
+	r.run()
+}
 func (r *reporter) makeClient() (err error) {
 	r.client, err = influxdb.NewClient(influxdb.Config{
 		URL:      r.url,
@@ -97,6 +103,10 @@ func (r *reporter) run() {
 
 	for {
 		select {
+		case <-time.After(time.Second):
+			if r.done {
+				return
+			}
 		case <-intervalTicker:
 			if err := r.send(); err != nil {
 				log.Printf("unable to send metrics to InfluxDB. err=%v", err)
@@ -221,4 +231,8 @@ func (r *reporter) send() error {
 	}
 	_, err := r.client.Write(bps)
 	return err
+}
+func (r *reporter) Close() error {
+	r.done = true
+	return nil
 }
