@@ -19,8 +19,19 @@ var loggers cmap.ConcurrentMap
 var manager *loggerManager
 
 func init() {
+	register(appender_file, readFromFile)
 	loggers = cmap.New()
 	manager = newLoggerManager()
+}
+
+//ResetConfig 重置日志配置
+func ResetConfig(conf string) (err error) {
+	apds, err := NewAppender(conf)
+	if err != nil {
+		return err
+	}
+	manager.configs = apds
+	return nil
 }
 
 //New 根据一个或多个日志名称构建日志对象，该日志对象具有新的session id系统不会缓存该日志组件
