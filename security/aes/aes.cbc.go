@@ -1,47 +1,55 @@
 package aes
 
 import (
-	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
+	"fmt"
+	"lib4go/encoding/base64"
+	"lib4go/security/des"
 )
 
-func EncryptCBC(msg, keyStr string) ([]byte, error) {
+// EncryptCBCPKCS7 CBC模式,PKCS7填充
+func EncryptCBCPKCS7(contentStr string, keyStr string) (string, error) {
+	content := []byte(contentStr)
 	key := []byte(keyStr)
-	plantText := []byte(msg)
-	block, err := aes.NewCipher(key) //选择加密算法
+
+	block, err := aes.NewCipher(key)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	plantText = PKCS7Padding(plantText, block.BlockSize())
-	blockModel := cipher.NewCBCEncrypter(block, plantText)
-	ciphertext := make([]byte, len(plantText))
-	blockModel.CryptBlocks(ciphertext, plantText)
-	return ciphertext, nil
+
+	content = des.PKCS7Padding(content)
+	iv := make([]byte, block.BlockSize())
+	blockModel := cipher.NewCBCEncrypter(block, iv)
+
+	cipherText := make([]byte, len(content))
+	blockModel.CryptBlocks(cipherText, content)
+	return base64.EncodeBytes(cipherText), nil
 }
 
-func PKCS7Padding(ciphertext []byte, blockSize int) []byte {
-	padding := blockSize - len(ciphertext)%blockSize
-	padtext := bytes.Repeat([]byte{byte(padding)}, padding)
-	return append(ciphertext, padtext...)
-}
-func DecryptCBC(msg, keyStr string) ([]byte, error) {
-	key := []byte(keyStr)
-	ciphertext := []byte(msg)
-	keyBytes := []byte(key)
-	block, err := aes.NewCipher(keyBytes) //选择加密算法
+// DecryptCBCPKCS7 CBC模式,PKCS7填充
+func DecryptCBCPKCS7(contentStr string, keyStr string) (string, error) {
+	content, err := base64.DecodeBytes(contentStr)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	blockModel := cipher.NewCBCDecrypter(block, ciphertext)
-	plantText := make([]byte, len(ciphertext))
-	blockModel.CryptBlocks(plantText, ciphertext)
-	plantText = PKCS7UnPadding(ciphertext, block.BlockSize())
-	return plantText, nil
-}
 
-func PKCS7UnPadding(plantText []byte, blockSize int) []byte {
-	length := len(plantText)
-	unpadding := int(plantText[length-1])
-	return plantText[:(length - unpadding)]
+	key := []byte(keyStr)
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return "", err
+	}
+
+	if len(content) < aes.BlockSize {
+		return "", fmt.Errorf("要解密的字符串太短")
+	}
+
+	iv := make([]byte, block.BlockSize())
+	blockModel := cipher.NewCBCDecrypter(block, iv)
+
+	plantText := make([]byte, len(content))
+	blockModel.CryptBlocks(plantText, content)
+	plantText = des.UnPKCS7Padding(plantText)
+
+	return string(plantText), nil
 }
