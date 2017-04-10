@@ -13,9 +13,6 @@ import (
 func EncryptCBCPKCS7(contentStr string, keyStr string) (string, error) {
 	content := []byte(contentStr)
 	key := []byte(keyStr)
-	if len(content)&aes.BlockSize != 0 {
-		return "", fmt.Errorf("要加密的明文不是块大小的倍数")
-	}
 
 	block, err := aes.NewCipher(key)
 	if err != nil {
