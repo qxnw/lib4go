@@ -13,7 +13,7 @@ import (
 	"github.com/qxnw/lib4go/file"
 )
 
-var loggerPath = file.GetAbs("../conf/ars.logger.json")
+var loggerPath, _ = file.GetAbs("../conf/ars.logger.json")
 var configAdapter map[string]func() []*Appender
 var defaultConfigAdapter string
 
@@ -104,12 +104,12 @@ func writeToFile(loggerPath string, appenders []*Appender) (err error) {
 }
 func getDefConfig() (appenders []*Appender) {
 	fileAppender := &Appender{Type: "file", Level: SLevel_ALL}
-	fileAppender.Path = file.GetAbs("../logs/%name/%level_%date.log")
+	fileAppender.Path, _ = file.GetAbs("../logs/%name/%level_%date.log")
 	fileAppender.Layout = "[%datetime][%l][%session] %content%n"
 	appenders = append(appenders, fileAppender)
 
 	sdtoutAppender := &Appender{Type: "stdout", Level: SLevel_ALL}
-	sdtoutAppender.Layout = "[%datetime][%l][%session] %content%n"
+	sdtoutAppender.Layout = "%content%n"
 	appenders = append(appenders, sdtoutAppender)
 
 	return

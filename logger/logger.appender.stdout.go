@@ -3,6 +3,8 @@ package logger
 import (
 	"os"
 	"time"
+
+	"github.com/lunny/log"
 )
 
 //StdoutAppender 标准输出器
@@ -10,6 +12,7 @@ type StdoutAppender struct {
 	name      string
 	lastWrite time.Time
 	layout    *Appender
+	output    *log.Logger
 	unq       string
 	Level     int
 }
@@ -18,6 +21,8 @@ type StdoutAppender struct {
 func NewStudoutAppender(unq string, layout *Appender) (fa *StdoutAppender, err error) {
 	fa = &StdoutAppender{layout: layout, unq: unq}
 	fa.Level = getLevel(layout.Level)
+	fa.output = log.New(os.Stdout, "", log.Ldefault())
+	fa.output.SetOutputLevel(log.Ldebug)
 	return
 }
 
@@ -28,7 +33,18 @@ func (f *StdoutAppender) Write(event LogEvent) {
 		return
 	}
 	f.lastWrite = time.Now()
-	os.Stdout.WriteString(event.Output)
+	//f.output.SetPrefix(fmt.Sprintf("[%s][%s]", event.Name, event.Session))
+	switch current {
+	case ILevel_Debug:
+		f.output.Debug(event.Output)
+	case ILevel_Error:
+		f.output.Error(event.Output)
+	case ILevel_Info:
+		f.output.Info(event.Output)
+	case ILevel_Fatal:
+		f.output.Fatal(event.Output)
+	}
+
 }
 
 //Close 关闭当前appender

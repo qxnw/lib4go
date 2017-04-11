@@ -12,10 +12,10 @@ func Exists(path string) bool {
 }
 
 //GetAbs 获取文件绝对路径
-func GetAbs(path string) string {
+func GetAbs(path string) (string, error) {
 	absPath, err := filepath.Abs(path)
 	if err != nil {
-		return ""
+		return "", err
 	}
-	return absPath
+	return absPath, nil
 }

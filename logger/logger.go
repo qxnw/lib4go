@@ -3,6 +3,7 @@ package logger
 import (
 	"fmt"
 	"os"
+	"sync"
 
 	"github.com/qxnw/lib4go/concurrent/cmap"
 	"github.com/qxnw/lib4go/utility"
@@ -15,10 +16,16 @@ type Logger struct {
 	tags     map[string]string
 }
 
+var loggerPool *sync.Pool
 var loggers cmap.ConcurrentMap
 var manager *loggerManager
 
 func init() {
+	loggerPool = &sync.Pool{
+		New: func() interface{} {
+			return New()
+		},
+	}
 	register(appender_file, readFromFile)
 	loggers = cmap.New()
 	manager = newLoggerManager()
@@ -45,9 +52,9 @@ func New(names ...string) (logger *Logger) {
 	return logger
 }
 
+/*
 //Get 根据名称从缓存中获取日志组件，如果缓存中不存在则创建并保存到缓存中
 func Get(names ...string) (logger *Logger) {
-	logger = &Logger{}
 	for _, name := range names {
 		_, session := loggers.SetIfAbsent(name, getSessionID())
 		logger.names = append(logger.names, name)
@@ -55,7 +62,7 @@ func Get(names ...string) (logger *Logger) {
 	}
 	return logger
 }
-
+*/
 //GetSession 根据日志名称及session获取日志组件
 func GetSession(name string, sessionID string) (logger *Logger) {
 	logger = &Logger{}
@@ -80,7 +87,7 @@ func (logger *Logger) GetSessionID() string {
 //Debug 输出debug日志
 func (logger *Logger) Debug(content ...interface{}) {
 	for i, name := range logger.names {
-		event := NewLogEvent(name, SLevel_Debug, logger.sessions[i], fmt.Sprint(content...), logger.tags)
+		event := NewLogEvent(name, SLevel_Debug, logger.sessions[i], fmt.Sprintln(content...), logger.tags)
 		go manager.Log(event)
 	}
 }
@@ -96,7 +103,7 @@ func (logger *Logger) Debugf(format string, content ...interface{}) {
 //Info 输出info日志
 func (logger *Logger) Info(content ...interface{}) {
 	for i, name := range logger.names {
-		event := NewLogEvent(name, SLevel_Info, logger.sessions[i], fmt.Sprint(content...), logger.tags)
+		event := NewLogEvent(name, SLevel_Info, logger.sessions[i], fmt.Sprintln(content...), logger.tags)
 		go manager.Log(event)
 	}
 }
@@ -112,7 +119,7 @@ func (logger *Logger) Infof(format string, content ...interface{}) {
 //Error 输出Error日志
 func (logger *Logger) Error(content ...interface{}) {
 	for i, name := range logger.names {
-		event := NewLogEvent(name, SLevel_Error, logger.sessions[i], fmt.Sprint(content...), logger.tags)
+		event := NewLogEvent(name, SLevel_Error, logger.sessions[i], fmt.Sprintln(content...), logger.tags)
 		go manager.Log(event)
 	}
 
@@ -129,7 +136,7 @@ func (logger *Logger) Errorf(format string, content ...interface{}) {
 //Fatal 输出Fatal日志
 func (logger *Logger) Fatal(content ...interface{}) {
 	for i, name := range logger.names {
-		event := NewLogEvent(name, SLevel_Fatal, logger.sessions[i], fmt.Sprint(content...), logger.tags)
+		event := NewLogEvent(name, SLevel_Fatal, logger.sessions[i], fmt.Sprintln(content...), logger.tags)
 		go manager.Log(event)
 	}
 	os.Exit(999)

@@ -28,7 +28,8 @@ func sysLoggerWrite(level string, content interface{}) {
 	e.Name = "sys"
 	e.Session = getSessionID()
 	e.Content = fmt.Sprintf("%v", content)
-	e.Output = "[%datetime][%l][%session] %content%n"
+	//e.Output = "[%datetime][%l][%session] %content%n"
+	e.Output = "%content%n"
 	os.Stderr.WriteString(transform(e.Output, e))
 
 	// 测试时候回调
