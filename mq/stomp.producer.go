@@ -52,7 +52,6 @@ func (producer *StompProducer) Connect() error {
 	if producer.conn != nil && producer.conn.Connected() {
 		return nil
 	}
-
 	producer.lk.Lock()
 	defer producer.lk.Unlock()
 	if producer.conn != nil && producer.conn.Connected() {

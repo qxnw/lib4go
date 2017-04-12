@@ -65,10 +65,15 @@ func Get(names ...string) (logger *Logger) {
 */
 //GetSession 根据日志名称及session获取日志组件
 func GetSession(name string, sessionID string) (logger *Logger) {
-	logger = &Logger{}
-	logger.names = append(logger.names, name)
-	logger.sessions = append(logger.sessions, sessionID)
+	logger = loggerPool.Get().(*Logger)
+	logger.names = []string{name}
+	logger.sessions = []string{sessionID}
 	return logger
+}
+
+//Close 关闭当前日志组件
+func (logger *Logger) Close() {
+	loggerPool.Put(logger)
 }
 
 //SetTag 设置tag

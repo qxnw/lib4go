@@ -46,7 +46,6 @@ func NewStompConsumer(config ConsumerConfig) (consumer *StompConsumer, err error
 	consumer = &StompConsumer{}
 	consumer.queues = cmap.New()
 	consumer.config = config
-	fmt.Println("version:", config.Version)
 	consumer.header = stompngo.Headers{"accept-version", "1.1"}
 	return
 }
@@ -61,12 +60,10 @@ func (consumer *StompConsumer) Connect() error {
 	if consumer.conn != nil && consumer.conn.Connected() {
 		return nil
 	}
-	fmt.Println("Address:", consumer.config.Address)
 	con, err := net.Dial("tcp", consumer.config.Address)
 	if err != nil {
 		return fmt.Errorf("mq 无法连接到远程服务器:%v", err)
 	}
-	fmt.Println("header:", consumer.header)
 	consumer.conn, err = stompngo.Connect(con, consumer.header)
 	if err != nil {
 		return fmt.Errorf("mq 无法连接到MQ:%v", err)

@@ -33,7 +33,6 @@ func (f *StdoutAppender) Write(event LogEvent) {
 		return
 	}
 	f.lastWrite = time.Now()
-	//f.output.SetPrefix(fmt.Sprintf("[%s][%s]", event.Name, event.Session))
 	switch current {
 	case ILevel_Debug:
 		f.output.Debug(event.Output)

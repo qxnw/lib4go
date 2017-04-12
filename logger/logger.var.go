@@ -67,6 +67,6 @@ type ILogger interface {
 	Fatal(content ...interface{})
 	Fatalln(args ...interface{})
 
-	Warnf(format string, v ...interface{})
-	Warn(v ...interface{})
+	//Warnf(format string, v ...interface{})
+	//Warn(v ...interface{})
 }

@@ -109,7 +109,7 @@ func getDefConfig() (appenders []*Appender) {
 	appenders = append(appenders, fileAppender)
 
 	sdtoutAppender := &Appender{Type: "stdout", Level: SLevel_ALL}
-	sdtoutAppender.Layout = "%content%n"
+	sdtoutAppender.Layout = "%content"
 	appenders = append(appenders, sdtoutAppender)
 
 	return
