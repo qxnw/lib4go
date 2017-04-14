@@ -28,6 +28,7 @@ type reporter struct {
 }
 
 const (
+	WORKING       = "working"
 	COUNTER       = "counter"
 	GAUGE         = "gauge"
 	GAUGEFLOAST64 = "gaugeFloat64"

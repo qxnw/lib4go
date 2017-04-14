@@ -28,7 +28,7 @@ func newLoggerManager() (m *loggerManager) {
 	m.factory = &loggerAppenderFactory{}
 	m.appenders = cmap.New()
 	m.configs = ReadConfig()
-	m.ticker = time.NewTicker(time.Second)
+	m.ticker = time.NewTicker(time.Second * 300)
 	go m.clearUp()
 	return m
 }
@@ -83,7 +83,7 @@ START:
 					return false
 				})
 				if count > 0 {
-					sysLoggerInfo("已移除:", count)
+					//sysLoggerInfo("已移除:", count)
 				}
 			} else {
 				break START

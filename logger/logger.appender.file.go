@@ -25,7 +25,7 @@ type FileAppender struct {
 func NewFileAppender(path string, layout *Appender) (fa *FileAppender, err error) {
 	fa = &FileAppender{layout: layout}
 	fa.Level = getLevel(layout.Level)
-	fa.buffer = bytes.NewBufferString("\n---------------------begin-------------------------\n\n")
+	fa.buffer = bytes.NewBufferString("\n--------------------begin------------------------\n\n")
 	fa.ticker = time.NewTicker(TimeWriteToFile)
 	fa.file, err = file.CreateFile(path)
 	if err != nil {
@@ -67,6 +67,7 @@ START:
 			if ok {
 				f.locker.Lock()
 				f.buffer.WriteTo(f.file)
+				f.buffer.Reset()
 				f.locker.Unlock()
 			} else {
 				break START

@@ -165,7 +165,6 @@ func (c *pool) Put(conn interface{}) error {
 
 //Close 关闭单条连接
 func (c *pool) Close(conn interface{}) error {
-	c.done = true
 	if conn == nil {
 		return errors.New("connection is nil. rejecting")
 	}

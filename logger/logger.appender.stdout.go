@@ -4,6 +4,8 @@ import (
 	"os"
 	"time"
 
+	"sync"
+
 	"github.com/lunny/log"
 )
 
@@ -15,6 +17,7 @@ type StdoutAppender struct {
 	output    *log.Logger
 	unq       string
 	Level     int
+	mu        sync.Mutex
 }
 
 //NewStudoutAppender 构建基于文件流的日志输出对象
@@ -33,6 +36,7 @@ func (f *StdoutAppender) Write(event LogEvent) {
 		return
 	}
 	f.lastWrite = time.Now()
+	f.mu.Lock()
 	switch current {
 	case ILevel_Debug:
 		f.output.Debug(event.Output)
@@ -43,7 +47,7 @@ func (f *StdoutAppender) Write(event LogEvent) {
 	case ILevel_Fatal:
 		f.output.Fatal(event.Output)
 	}
-
+	f.mu.Unlock()
 }
 
 //Close 关闭当前appender
