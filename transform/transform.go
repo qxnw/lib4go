@@ -2,21 +2,22 @@ package transform
 
 import (
 	"fmt"
+	"net/url"
 	"regexp"
 	"sync"
 )
 
 type ITransformGetter interface {
 	Set(string, string)
-	Get(string) string
+	Get(string) (string, error)
 }
 type transformData map[string]string
 
-func (t transformData) Get(key string) string {
+func (t transformData) Get(key string) (string, error) {
 	if v, ok := t[key]; ok {
-		return fmt.Sprintf("%v", v)
+		return fmt.Sprintf("%v", v), nil
 	}
-	return ""
+	return "", fmt.Errorf("key(%s) not exist", key)
 }
 func (t transformData) Set(key string, value string) {
 	t[key] = value
@@ -34,7 +35,14 @@ func New() *Transform {
 	return &Transform{Data: data}
 }
 
-//NewGetter getter
+//NewValues getter
+func NewValues(t url.Values) *Transform {
+	var data transformData = make(map[string]string)
+	for k, v := range t {
+		data[k] = fmt.Sprint(v)
+	}
+	return &Transform{Data: data}
+}
 func NewGetter(t ITransformGetter) *Transform {
 	return &Transform{Data: t}
 }
@@ -65,21 +73,38 @@ func (d *Transform) Set(k string, v string) {
 }
 
 //Get 获取变量的值
-func (d *Transform) Get(k string) string {
+func (d *Transform) Get(k string) (string, error) {
 	return d.Data.Get(k)
 }
 
 //Translate 翻译带有@变量的字符串
 func (d *Transform) Translate(format string) string {
+	return d.TranslateAll(format, false)
+}
+
+//TranslateAll 翻译带有@变量的字符串
+func (d *Transform) TranslateAll(format string, a bool) string {
 	d.mutex.Lock()
 	defer d.mutex.Unlock()
 	brackets, _ := regexp.Compile(`\{@\w+\}`)
 	result := brackets.ReplaceAllStringFunc(format, func(s string) string {
-		return d.Data.Get(s[2 : len(s)-1])
+		if v, err := d.Data.Get(s[2 : len(s)-1]); err == nil {
+			return v
+		}
+		if a {
+			return ""
+		}
+		return s
 	})
 	word, _ := regexp.Compile(`@\w+`)
 	result = word.ReplaceAllStringFunc(result, func(s string) string {
-		return d.Data.Get(s[1:])
+		if v, err := d.Data.Get(s[1:]); err == nil {
+			return v
+		}
+		if a {
+			return ""
+		}
+		return s
 	})
 	return result
 }
