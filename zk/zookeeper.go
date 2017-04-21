@@ -2,20 +2,19 @@ package zk
 
 import (
 	"errors"
-	"io"
 	"sync/atomic"
 	"time"
 
-	"os"
-
-	"github.com/lunny/log"
 	"github.com/qxnw/lib4go/concurrent/cmap"
+	"github.com/qxnw/lib4go/logger"
+	"github.com/qxnw/lib4go/utility"
 	"github.com/samuel/go-zookeeper/zk"
 )
 
 // TIMEOUT 连接zk服务器操作的超时时间
 var TIMEOUT = time.Second
 
+/*
 type Logger interface {
 	Debugf(format string, v ...interface{})
 	Debug(v ...interface{})
@@ -27,7 +26,7 @@ type Logger interface {
 	Error(v ...interface{})
 	Printf(string, ...interface{})
 }
-
+*/
 var (
 	ErrColientCouldNotConnect = errors.New("zk: could not connect to the server")
 	ErrClientConnClosing      = errors.New("zk: the client connection is closing")
@@ -41,9 +40,10 @@ type ZookeeperClient struct {
 	eventChan          <-chan zk.Event
 	watchValueEvents   cmap.ConcurrentMap
 	watchChilrenEvents cmap.ConcurrentMap
-	Log                Logger
+	Log                *logger.Logger
 	useCount           int32
 	isConnect          bool
+	CloseCh            chan struct{}
 	// 是否是手动关闭
 	done bool
 }
@@ -51,26 +51,21 @@ type ZookeeperClient struct {
 //New 连接到Zookeeper服务器
 func New(servers []string, timeout time.Duration) (*ZookeeperClient, error) {
 	client := &ZookeeperClient{servers: servers, timeout: timeout, useCount: 0}
+	client.CloseCh = make(chan struct{})
 	client.watchValueEvents = cmap.New()
 	client.watchChilrenEvents = cmap.New()
-	client.Log = NewLogger(os.Stdout)
+	client.Log = logger.GetSession("zk", utility.GetGUID())
 	return client, nil
 }
 
 //NewWithLogger 连接到Zookeeper服务器
-func NewWithLogger(servers []string, timeout time.Duration, logger Logger) (*ZookeeperClient, error) {
+func NewWithLogger(servers []string, timeout time.Duration, logger *logger.Logger) (*ZookeeperClient, error) {
 	client := &ZookeeperClient{servers: servers, timeout: timeout, useCount: 0}
+	client.CloseCh = make(chan struct{})
 	client.watchValueEvents = cmap.New()
 	client.watchChilrenEvents = cmap.New()
 	client.Log = logger
 	return client, nil
-}
-
-//NewLogger 创建日志组件
-func NewLogger(out io.Writer) Logger {
-	l := log.New(out, "[WebServer] ", log.Ldefault())
-	l.SetOutputLevel(log.Ldebug)
-	return l
 }
 
 //Connect 连接到远程zookeeper服务器
@@ -114,6 +109,7 @@ func (client *ZookeeperClient) Close() {
 
 	client.isConnect = false
 	client.done = true
+	close(client.CloseCh)
 	client.conn = nil
 
 }

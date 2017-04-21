@@ -55,6 +55,7 @@
 package zk
 
 import (
+	"errors"
 	"time"
 
 	"github.com/qxnw/lib4go/registry"
@@ -94,13 +95,11 @@ func (client *ZookeeperClient) eventWatch() {
 START:
 	for {
 		select {
-		case <-time.After(TIMEOUT):
-			if client.done {
-				break START
-			}
+		case <-client.CloseCh:
+			break START
 		case v, ok := <-client.eventChan:
 			if ok {
-				client.Log.Infof("event.watch:%+v", v)
+				//client.Log.Infof("event.watch:%+v", v)
 				switch v.State {
 				case zk.StateAuthFailed:
 					client.isConnect = false
@@ -112,6 +111,7 @@ START:
 					client.isConnect = false
 				// 网络连接不成功
 				case zk.StateDisconnected:
+					client.Log.Errorf("关闭与zk的连接:%v", client.servers)
 					client.isConnect = false
 				// 网络断开，正在连接
 				case zk.StateConnecting:
@@ -152,19 +152,21 @@ func (client *ZookeeperClient) WatchValue(path string) (data chan registry.Value
 	go func(data chan registry.ValueWatcher) {
 		for {
 			select {
-			case <-time.After(TIMEOUT):
-				if client.done {
-					data <- &valueEntity{Err: ErrClientConnClosing}
-					return
-				}
-			case e, ok := <-event:
-				client.Log.Infof("watch:value %+v[%+v]%t", path, e, ok)
+			case <-client.CloseCh:
+				data <- &valueEntity{Err: ErrClientConnClosing}
+				return
+			case e, _ := <-event:
+				//	client.Log.Infof("watch:value %+v[%+v]%t", path, e, ok)
 				if client.done {
 					data <- &valueEntity{Err: ErrClientConnClosing}
 					return
 				}
 				if e.Err != nil {
 					data <- &valueEntity{Err: e.Err}
+					return
+				}
+				if e.State == zk.StateDisconnected {
+					data <- &valueEntity{Err: errors.New("zk:StateDisconnected")}
 					return
 				}
 				switch e.Type {
@@ -174,6 +176,7 @@ func (client *ZookeeperClient) WatchValue(path string) (data chan registry.Value
 						client.Log.Error(err)
 					}
 					data <- &valueEntity{Value: v, Err: err, version: version}
+
 					return
 				case zk.EventNotWatching:
 					err = client.checkConnectStatus(path)
@@ -197,7 +200,7 @@ func (client *ZookeeperClient) WatchChildren(path string) (ch chan registry.Chil
 	}
 	go func(ch chan registry.ChildrenWatcher) {
 		select {
-		case <-time.After(TIMEOUT):
+		case <-client.CloseCh:
 			if client.done {
 				ch <- &valuesEntity{Err: ErrClientConnClosing}
 				return
@@ -207,11 +210,12 @@ func (client *ZookeeperClient) WatchChildren(path string) (ch chan registry.Chil
 				ch <- &valuesEntity{Err: ErrClientConnClosing}
 				return
 			}
+			//	client.Log.Infof("watch:children %s %s[%+v]%t", e.Type.String(), path, e, ok)
 			if e.Err != nil {
 				ch <- &valuesEntity{Err: e.Err}
 				return
 			}
-			client.Log.Infof("watch:children %s %s[%+v]%t", e.Type.String(), path, e, ok)
+
 			switch e.Type {
 			case zk.EventNodeChildrenChanged:
 				paths, version, err := client.GetChildren(path)
@@ -242,6 +246,8 @@ func (client *ZookeeperClient) checkConnectStatus(path string) error {
 START:
 	for {
 		select {
+		case <-client.CloseCh:
+			break START
 		case <-time.After(TIMEOUT):
 			// 检查是否手动关闭连接
 			if client.done {
