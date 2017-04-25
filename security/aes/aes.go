@@ -61,3 +61,7 @@ func Decrypt(src string, key string) (msg string, err error) {
 	aesDecrypter.XORKeyStream(decrypted, []byte(content))
 	return strings.TrimSpace(string(decrypted)), nil
 }
+<<<<<<< HEAD
+=======
+
+>>>>>>> 76ec02be3c179b7a76608cf872b2f784d93624ff
