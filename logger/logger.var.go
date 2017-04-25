@@ -9,6 +9,7 @@ const (
 	ILevel_ALL = iota
 	ILevel_Debug
 	ILevel_Info
+	ILevel_Warn
 	ILevel_Error
 	ILevel_Fatal
 	ILevel_OFF
@@ -16,6 +17,7 @@ const (
 const (
 	SLevel_OFF   = "Off"
 	SLevel_Info  = "Info"
+	SLevel_Warn  = "Warn"
 	SLevel_Error = "Error"
 	SLevel_Fatal = "Fatal"
 	SLevel_Debug = "Debug"
@@ -33,6 +35,7 @@ func init() {
 	levelMap = map[string]int{
 		SLevel_OFF:   ILevel_OFF,
 		SLevel_Info:  ILevel_Info,
+		SLevel_Warn:  ILevel_Warn,
 		SLevel_Error: ILevel_Error,
 		SLevel_Fatal: ILevel_Fatal,
 		SLevel_Debug: ILevel_Debug,
@@ -67,6 +70,6 @@ type ILogger interface {
 	Fatal(content ...interface{})
 	Fatalln(args ...interface{})
 
-	//Warnf(format string, v ...interface{})
-	//Warn(v ...interface{})
+	Warnf(format string, v ...interface{})
+	Warn(v ...interface{})
 }

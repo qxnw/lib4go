@@ -20,3 +20,8 @@ func Unmarshal(buf []byte) (c map[string]interface{}, err error) {
 	err = json.Unmarshal(buf, &c)
 	return
 }
+
+//Marshal 序列化JSON
+func Marshal(data interface{}) (b []byte, err error) {
+	return json.Marshal(data)
+}

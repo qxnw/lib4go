@@ -112,6 +112,22 @@ func (logger *Logger) Infof(format string, content ...interface{}) {
 	}
 }
 
+//Warn 输出info日志
+func (logger *Logger) Warn(content ...interface{}) {
+	for i, name := range logger.names {
+		event := NewLogEvent(name, SLevel_Warn, logger.sessions[i], getString(content...), logger.tags)
+		go manager.Log(event)
+	}
+}
+
+//Warnf 输出info日志
+func (logger *Logger) Warnf(format string, content ...interface{}) {
+	for i, name := range logger.names {
+		event := NewLogEvent(name, SLevel_Warn, logger.sessions[i], fmt.Sprintf(format, content...), logger.tags)
+		go manager.Log(event)
+	}
+}
+
 //Error 输出Error日志
 func (logger *Logger) Error(content ...interface{}) {
 	for i, name := range logger.names {

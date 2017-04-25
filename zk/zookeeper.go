@@ -5,6 +5,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"sync"
+
 	"github.com/qxnw/lib4go/concurrent/cmap"
 	"github.com/qxnw/lib4go/logger"
 	"github.com/qxnw/lib4go/utility"
@@ -43,6 +45,7 @@ type ZookeeperClient struct {
 	Log                *logger.Logger
 	useCount           int32
 	isConnect          bool
+	once               sync.Once
 	CloseCh            chan struct{}
 	// 是否是手动关闭
 	done bool
@@ -109,7 +112,9 @@ func (client *ZookeeperClient) Close() {
 
 	client.isConnect = false
 	client.done = true
-	close(client.CloseCh)
+	client.once.Do(func() {
+		close(client.CloseCh)
+	})
 	client.conn = nil
 
 }

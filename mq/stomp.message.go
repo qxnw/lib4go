@@ -23,6 +23,11 @@ func (m *StompMessage) GetMessage() string {
 	return m.Message
 }
 
+//Has 是否报含数据
+func (m *StompMessage) Has() bool {
+	return len(m.msg.Headers) > 0 && m.msg.Headers.Value("connection_read_error") != "EOF"
+}
+
 //NewStompMessage 创建消息
 func NewStompMessage(s *StompConsumer, msg *s.Message) *StompMessage {
 	return &StompMessage{s: s, msg: msg, Message: string(msg.Body)}

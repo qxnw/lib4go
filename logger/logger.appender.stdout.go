@@ -40,10 +40,12 @@ func (f *StdoutAppender) Write(event LogEvent) {
 	switch current {
 	case ILevel_Debug:
 		f.output.Debug(event.Output)
-	case ILevel_Error:
-		f.output.Error(event.Output)
 	case ILevel_Info:
 		f.output.Info(event.Output)
+	case ILevel_Warn:
+		f.output.Warn(event.Output)
+	case ILevel_Error:
+		f.output.Error(event.Output)
 	case ILevel_Fatal:
 		f.output.Fatal(event.Output)
 	}
