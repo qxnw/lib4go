@@ -10,6 +10,7 @@ import (
 type ITransformGetter interface {
 	Set(string, string)
 	Get(string) (string, error)
+	Each(func(string, string))
 }
 type transformData map[string]string
 
@@ -21,6 +22,11 @@ func (t transformData) Get(key string) (string, error) {
 }
 func (t transformData) Set(key string, value string) {
 	t[key] = value
+}
+func (i transformData) Each(f func(string, string)) {
+	for k, v := range i {
+		f(k, v)
+	}
 }
 
 //Transform 翻译组件
@@ -39,7 +45,11 @@ func New() *Transform {
 func NewValues(t url.Values) *Transform {
 	var data transformData = make(map[string]string)
 	for k, v := range t {
-		data[k] = fmt.Sprint(v)
+		if len(v) > 1 {
+			data[k] = fmt.Sprint(v)
+		} else if len(v) > 0 {
+			data[k] = fmt.Sprint(v[0])
+		}
 	}
 	return &Transform{Data: data}
 }

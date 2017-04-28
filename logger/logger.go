@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"sync"
+	"time"
 
 	"bytes"
 
@@ -64,7 +65,10 @@ func GetSession(name string, sessionID string) (logger *Logger) {
 
 //Close 关闭当前日志组件
 func (logger *Logger) Close() {
-	loggerPool.Put(logger)
+	go func() {
+		time.Sleep(time.Second * 3)
+		loggerPool.Put(logger)
+	}()
 }
 
 //SetTag 设置tag
@@ -106,6 +110,9 @@ func (logger *Logger) Info(content ...interface{}) {
 
 //Infof 输出info日志
 func (logger *Logger) Infof(format string, content ...interface{}) {
+	if logger == nil {
+		return
+	}
 	for i, name := range logger.names {
 		event := NewLogEvent(name, SLevel_Info, logger.sessions[i], fmt.Sprintf(format, content...), logger.tags)
 		go manager.Log(event)
@@ -177,6 +184,9 @@ func (logger *Logger) Print(content ...interface{}) {
 
 //Printf 输出info日志
 func (logger *Logger) Printf(format string, content ...interface{}) {
+	if logger == nil {
+		return
+	}
 	logger.Infof(format, content...)
 }
 

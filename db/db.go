@@ -55,14 +55,14 @@ func (db *DB) Scalar(sql string, input map[string]interface{}) (data interface{}
 //Execute 根据包含@名称占位符的语句执行查询语句
 func (db *DB) Execute(sql string, input map[string]interface{}) (row int64, query string, args []interface{}, err error) {
 	query, args = db.tpl.GetSQLContext(sql, input)
-	row, err = db.db.Execute(query, args)
+	row, err = db.db.Execute(query, args...)
 	return
 }
 
 //ExecuteSP 根据包含@名称占位符的语句执行查询语句
 func (db *DB) ExecuteSP(sql string, input map[string]interface{}) (row int64, query string, args []interface{}, err error) {
 	query, args = db.tpl.GetSPContext(sql, input)
-	row, err = db.db.Execute(query, args)
+	row, err = db.db.Execute(query, args...)
 	return
 }
 

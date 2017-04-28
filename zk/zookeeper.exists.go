@@ -33,6 +33,9 @@ func (client *ZookeeperClient) Exists(path string) (b bool, err error) {
 	// 启动一个协程，判断节点是否存在
 	ch := make(chan interface{}, 1)
 	go func(ch chan interface{}) {
+		if client.conn == nil {
+			return
+		}
 		b, _, err = client.conn.Exists(path)
 		ch <- existsType{b: b, err: err}
 	}(ch)

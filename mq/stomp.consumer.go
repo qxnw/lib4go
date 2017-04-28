@@ -1,7 +1,6 @@
 package mq
 
 import (
-	"encoding/json"
 	"fmt"
 	"net"
 	"strings"
@@ -20,31 +19,10 @@ type consumerChan struct {
 	msgChan     <-chan stompngo.MessageData
 	unconsumeCh chan struct{}
 }
-type option struct {
-	logger *logger.Logger
-}
-
-//Option 配置选项
-type Option func(*option)
-
-//WithLogger 设置日志记录组件
-func WithLogger(logger *logger.Logger) Option {
-	return func(o *option) {
-		o.logger = logger
-	}
-}
-
-//ConsumerConfig 配置信息
-type ConsumerConfig struct {
-	Address    string `json:"address"`
-	Version    string `json:"version"`
-	Persistent string `json:"persistent"`
-	Ack        string `json:"ack"`
-}
 
 //StompConsumer Consumer
 type StompConsumer struct {
-	config     ConsumerConfig
+	address    string
 	conn       *stompngo.Connection
 	cache      cmap.ConcurrentMap
 	queues     cmap.ConcurrentMap
@@ -56,19 +34,9 @@ type StompConsumer struct {
 	*option
 }
 
-//NewStompConsumerJSON 创建新的producer
-func NewStompConsumerJSON(config string, opts ...Option) (producer *StompConsumer, err error) {
-	conf := ConsumerConfig{}
-	err = json.Unmarshal([]byte(config), &conf)
-	if err != nil {
-		return nil, fmt.Errorf("mq 配置文件有误:%v", err)
-	}
-	return NewStompConsumer(conf, opts...)
-}
-
 //NewStompConsumer 创建新的Consumer
-func NewStompConsumer(config ConsumerConfig, opts ...Option) (consumer *StompConsumer, err error) {
-	consumer = &StompConsumer{}
+func NewStompConsumer(address string, opts ...Option) (consumer *StompConsumer, err error) {
+	consumer = &StompConsumer{address: address}
 	consumer.option = &option{logger: logger.GetSession("mq.consumer", utility.GetGUID())}
 	consumer.closeCh = make(chan struct{})
 	consumer.queues = cmap.New()
@@ -76,22 +44,21 @@ func NewStompConsumer(config ConsumerConfig, opts ...Option) (consumer *StompCon
 	for _, opt := range opts {
 		opt(consumer.option)
 	}
-	if strings.EqualFold(config.Version, "") {
-		config.Version = "1.1"
+	if strings.EqualFold(consumer.option.version, "") {
+		consumer.option.version = "1.1"
 	}
-	if strings.EqualFold(config.Persistent, "") {
-		config.Persistent = "true"
+	if strings.EqualFold(consumer.option.persistent, "") {
+		consumer.option.persistent = "true"
 	}
-	if strings.EqualFold(config.Ack, "") {
-		config.Ack = "client-individual"
+	if strings.EqualFold(consumer.option.ack, "") {
+		consumer.option.ack = "client-individual"
 	}
-	consumer.config = config
-	consumer.header = stompngo.Headers{"accept-version", "1.1"}
+	consumer.header = stompngo.Headers{"accept-version", consumer.option.version}
 	return
 }
 
-//ConnectLoop  循环连接服务器
-func (consumer *StompConsumer) ConnectLoop() error {
+//Connect  循环连接服务器
+func (consumer *StompConsumer) Connect() error {
 	err := consumer.ConnectOnce()
 	if err == nil {
 		return nil
@@ -128,7 +95,7 @@ func (consumer *StompConsumer) ConnectOnce() (err error) {
 	defer func() {
 		consumer.connecting = false
 	}()
-	con, err := net.Dial("tcp", consumer.config.Address)
+	con, err := net.Dial("tcp", consumer.address)
 	if err != nil {
 		return fmt.Errorf("mq 无法连接到远程服务器:%v", err)
 	}
@@ -172,7 +139,7 @@ func (consumer *StompConsumer) Consume(queue string, callback func(IMessage)) (e
 func (consumer *StompConsumer) consume(queue string, callback func(IMessage)) (err error) {
 	success, ch, err := consumer.queues.SetIfAbsentCb(queue, func(input ...interface{}) (c interface{}, err error) {
 		queue := input[0].(string)
-		header := stompngo.Headers{"destination", fmt.Sprintf("/%s/%s", "queue", queue), "ack", consumer.config.Ack}
+		header := stompngo.Headers{"destination", fmt.Sprintf("/%s/%s", "queue", queue), "ack", consumer.ack}
 		msgChan, err := consumer.conn.Subscribe(header)
 		if err != nil {
 			return
@@ -219,7 +186,7 @@ func (consumer *StompConsumer) reconnect(queue string) {
 	}
 	consumer.queues.Remove(queue)
 	consumer.conn.Disconnect(stompngo.Headers{})
-	consumer.ConnectLoop()
+	consumer.Connect()
 }
 
 //UnConsume 取消注册消费
@@ -228,7 +195,7 @@ func (consumer *StompConsumer) UnConsume(queue string) {
 		return
 	}
 	header := stompngo.Headers{"destination",
-		fmt.Sprintf("/%s/%s", "queue", queue), "ack", consumer.config.Ack}
+		fmt.Sprintf("/%s/%s", "queue", queue), "ack", consumer.ack}
 	consumer.conn.Unsubscribe(header)
 	if v, b := consumer.queues.Get(queue); b {
 		ch := v.(*consumerChan)
@@ -240,6 +207,7 @@ func (consumer *StompConsumer) UnConsume(queue string) {
 
 //Close 关闭当前连接
 func (consumer *StompConsumer) Close() {
+
 	if consumer.conn == nil {
 		return
 	}
@@ -250,6 +218,20 @@ func (consumer *StompConsumer) Close() {
 		return true
 	})
 	consumer.cache.Clear()
-	consumer.conn.Disconnect(stompngo.Headers{})
+	go func() {
+		defer recover()
+		time.Sleep(time.Millisecond * 100)
+		consumer.conn.Disconnect(stompngo.Headers{})
+	}()
 
+}
+
+type stompConsumerResolver struct {
+}
+
+func (s *stompConsumerResolver) Resolve(address string, opts ...Option) (MQConsumer, error) {
+	return NewStompConsumer(address, opts...)
+}
+func init() {
+	Register("stomp", &stompConsumerResolver{})
 }
