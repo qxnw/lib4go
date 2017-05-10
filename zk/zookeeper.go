@@ -9,7 +9,6 @@ import (
 
 	"github.com/qxnw/lib4go/concurrent/cmap"
 	"github.com/qxnw/lib4go/logger"
-	"github.com/qxnw/lib4go/utility"
 	"github.com/samuel/go-zookeeper/zk"
 )
 
@@ -57,7 +56,7 @@ func New(servers []string, timeout time.Duration) (*ZookeeperClient, error) {
 	client.CloseCh = make(chan struct{})
 	client.watchValueEvents = cmap.New()
 	client.watchChilrenEvents = cmap.New()
-	client.Log = logger.GetSession("zk", utility.GetGUID())
+	client.Log = logger.GetSession("zk", logger.CreateSession())
 	return client, nil
 }
 

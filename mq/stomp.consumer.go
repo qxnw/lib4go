@@ -12,7 +12,6 @@ import (
 	"github.com/gmallard/stompngo"
 	"github.com/qxnw/lib4go/concurrent/cmap"
 	"github.com/qxnw/lib4go/logger"
-	"github.com/qxnw/lib4go/utility"
 )
 
 type consumerChan struct {
@@ -37,7 +36,7 @@ type StompConsumer struct {
 //NewStompConsumer 创建新的Consumer
 func NewStompConsumer(address string, opts ...Option) (consumer *StompConsumer, err error) {
 	consumer = &StompConsumer{address: address}
-	consumer.option = &option{logger: logger.GetSession("mq.consumer", utility.GetGUID())}
+	consumer.option = &option{logger: logger.GetSession("mq.consumer", logger.CreateSession())}
 	consumer.closeCh = make(chan struct{})
 	consumer.queues = cmap.New()
 	consumer.cache = cmap.New()

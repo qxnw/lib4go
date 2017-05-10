@@ -11,7 +11,7 @@ import (
 // const dbConnectStr = "oc_test/123456@orcl136"
 
 func TestDBTEST1(t *testing.T) {
-	obj, err := NewSysDB("oracle", dbConnectStr, 2, 2)
+	obj, err := NewSysDB("oracle", dbConnectStr, 2)
 	if obj == nil || err != nil {
 		t.Error("创建数据库连接失败:", err)
 	}
@@ -47,7 +47,7 @@ func TestDBTEST1(t *testing.T) {
 
 }
 func TestDBTRansQuery(t *testing.T) {
-	obj, err := NewSysDB("oracle", dbConnectStr, 2, 2)
+	obj, err := NewSysDB("oracle", dbConnectStr, 2)
 	if obj == nil || err != nil {
 		t.Error("创建数据库连接失败:", err)
 	}
@@ -72,7 +72,7 @@ func TestDBTRansQuery(t *testing.T) {
 	}
 
 	// 数据库连接串错误测试
-	obj, err = NewSysDB("oracle", "", 2, 2)
+	obj, err = NewSysDB("oracle", "", 2)
 	if obj != nil || err == nil {
 		t.Error("创建数据库连接失败:", err)
 	}
@@ -92,7 +92,7 @@ func TestDBTRansQuery(t *testing.T) {
 	}
 
 	// 数据库连接串错误测试
-	obj, err = NewSysDB("", dbConnectStr, 2, 2)
+	obj, err = NewSysDB("", dbConnectStr, 2)
 	if obj != nil || err == nil {
 		t.Error("创建数据库连接失败:", err)
 	}
@@ -112,7 +112,7 @@ func TestDBTRansQuery(t *testing.T) {
 	}
 
 	// sql错误
-	obj, err = NewSysDB("oracle", dbConnectStr, 2, 2)
+	obj, err = NewSysDB("oracle", dbConnectStr, 2)
 	if obj == nil || err != nil {
 		t.Error("创建数据库连接失败:", err)
 	}
@@ -125,7 +125,7 @@ func TestDBTRansQuery(t *testing.T) {
 	}
 
 	// sql错误
-	obj, err = NewSysDB("oracle", dbConnectStr, 2, 2)
+	obj, err = NewSysDB("oracle", dbConnectStr, 2)
 	if obj == nil || err != nil {
 		t.Error("创建数据库连接失败:", err)
 	}
@@ -139,7 +139,7 @@ func TestDBTRansQuery(t *testing.T) {
 }
 
 func TestDBTRansExecute(t *testing.T) {
-	obj, err := NewSysDB("oracle", dbConnectStr, 2, 2)
+	obj, err := NewSysDB("oracle", dbConnectStr, 2)
 	if obj == nil || err != nil {
 		t.Error("创建数据库连接失败:", err)
 	}
@@ -161,7 +161,7 @@ func TestDBTRansExecute(t *testing.T) {
 	}
 
 	// 数据库连接串错误测试
-	obj, err = NewSysDB("oracle", "", 2, 2)
+	obj, err = NewSysDB("oracle", "", 2)
 	if obj != nil || err == nil {
 		t.Error("创建数据库连接失败:", err)
 	}
@@ -178,7 +178,7 @@ func TestDBTRansExecute(t *testing.T) {
 	}
 
 	// 数据库连接串错误测试
-	obj, err = NewSysDB("", dbConnectStr, 2, 2)
+	obj, err = NewSysDB("", dbConnectStr, 2)
 	if obj != nil || err == nil {
 		t.Error("创建数据库连接失败:", err)
 	}
@@ -195,7 +195,7 @@ func TestDBTRansExecute(t *testing.T) {
 	}
 
 	// sql错误
-	obj, err = NewSysDB("oracle", dbConnectStr, 2, 2)
+	obj, err = NewSysDB("oracle", dbConnectStr, 2)
 	if err != nil {
 		t.Error("创建数据库连接失败:", err)
 	}
@@ -209,7 +209,7 @@ func TestDBTRansExecute(t *testing.T) {
 	}
 
 	// sql错误
-	obj, err = NewSysDB("oracle", dbConnectStr, 2, 2)
+	obj, err = NewSysDB("oracle", dbConnectStr, 2)
 	if err != nil {
 		t.Error("创建数据库连接失败:", err)
 	}
@@ -225,7 +225,7 @@ func TestDBTRansExecute(t *testing.T) {
 
 func TestDBTransRollback(t *testing.T) {
 	// 正常测试
-	obj, err := NewSysDB("oracle", dbConnectStr, 2, 2)
+	obj, err := NewSysDB("oracle", dbConnectStr, 2)
 	if obj == nil || err != nil {
 		t.Error("创建数据库连接失败:", err)
 	}
@@ -252,7 +252,7 @@ func TestDBTransRollback(t *testing.T) {
 }
 
 func TestDBTransCommit(t *testing.T) {
-	obj, err := NewSysDB("oracle", dbConnectStr, 2, 2)
+	obj, err := NewSysDB("oracle", dbConnectStr, 2)
 	if obj == nil || err != nil {
 		t.Error("创建数据库连接失败:", err)
 	}
@@ -268,7 +268,7 @@ func TestDBTransCommit(t *testing.T) {
 	}
 
 	// // 数据库连接串错误
-	// obj, err = NewSysDB("oracle", "", 2, 2)
+	// obj, err = NewSysDB("oracle", "",2)
 	// if obj != nil || err == nil {
 	// 	t.Error("创建数据库连接失败:", err)
 	// }

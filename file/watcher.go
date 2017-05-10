@@ -16,6 +16,7 @@ type DirWatcher struct {
 	files    cmap.ConcurrentMap
 	lastTime time.Time
 	timeSpan time.Duration
+	closeCh  chan struct{}
 	done     bool
 	mu       sync.Mutex
 }
@@ -23,6 +24,7 @@ type DirWatcher struct {
 //NewDirWatcher 构建脚本监控文件
 func NewDirWatcher(callback func(), timeSpan time.Duration) *DirWatcher {
 	w := &DirWatcher{callback: callback, lastTime: time.Now(), timeSpan: timeSpan}
+	w.closeCh = make(chan struct{}, 1)
 	w.files = cmap.New()
 	go w.watch()
 	return w
@@ -38,10 +40,8 @@ func (w *DirWatcher) Append(path string) (err error) {
 func (w *DirWatcher) watch() {
 	for {
 		select {
-		case <-time.After(time.Second):
-			if w.done {
-				return
-			}
+		case <-w.closeCh:
+			return
 		case <-time.After(w.timeSpan):
 			if w.done {
 				return
@@ -61,19 +61,20 @@ func (w *DirWatcher) checkChange() bool {
 	w.files.IterCb(func(path string, v interface{}) bool {
 		fileinfo, err := os.Stat(path)
 		if err != nil {
-			return !change
+			return true //继续检查下一个文件
 		}
 		if fileinfo.ModTime().Sub(w.lastTime) > 0 {
 			w.lastTime = time.Now()
 			change = true
-			return !change
+			return false //当前文件发生变化，退出不再检查
 		}
-		return !change
+		return true //继续检查下一个文件
 	})
 	return change
 }
 
 //Close 关闭服务
 func (w *DirWatcher) Close() {
+	close(w.closeCh)
 	w.done = true
 }

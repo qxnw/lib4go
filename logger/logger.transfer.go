@@ -44,7 +44,11 @@ func transform(tpl string, event LogEvent) (result string) {
 		case "content":
 			return event.Content
 		default:
-			return event.Tags[key]
+			v, ok := event.Tags.Get(key)
+			if ok {
+				return v.(string)
+			}
+			return ""
 		}
 	})
 	return

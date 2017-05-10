@@ -88,7 +88,7 @@ func New(config *PoolConfigOptions) (IPool, error) {
 		close:       config.Close,
 		idleTimeout: config.IdleTimeout,
 	}
-
+	fmt.Println("c.idleTimeout:", c.idleTimeout)
 	for i := 0; i < config.InitialCap; i++ {
 		conn, err := c.factory()
 		if err != nil {

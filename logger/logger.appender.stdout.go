@@ -24,7 +24,7 @@ type StdoutAppender struct {
 func NewStudoutAppender(unq string, layout *Appender) (fa *StdoutAppender, err error) {
 	fa = &StdoutAppender{layout: layout, unq: unq}
 	fa.Level = getLevel(layout.Level)
-	fa.output = log.New(os.Stdout, "", log.Ldefault())
+	fa.output = log.New(os.Stdout, "", log.Llongcolor)
 	fa.output.SetOutputLevel(log.Ldebug)
 	return
 }

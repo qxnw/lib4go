@@ -10,6 +10,8 @@ import (
 	"runtime"
 	"time"
 
+	"strings"
+
 	"github.com/qxnw/lib4go/file"
 )
 
@@ -63,7 +65,7 @@ func NewAppender(conf string) (appenders []*Appender, err error) {
 var TimeWriteToFile = time.Second
 
 func read() (appenders []*Appender, err error) {
-	appenders = make([]*Appender, 0, 2)
+	currentAppenders := make([]*Appender, 0, 2)
 	if !exists(loggerPath) {
 		err = errors.New("配置文件不存在:" + loggerPath)
 		return
@@ -73,9 +75,19 @@ func read() (appenders []*Appender, err error) {
 		err = errors.New("无法读取配置文件")
 		return
 	}
-	if err = json.Unmarshal(bytes, &appenders); err != nil {
+	if err = json.Unmarshal(bytes, &currentAppenders); err != nil {
 		err = errors.New("配置文件格式有误，无法序列化")
 		return
+	}
+	if len(currentAppenders) == 0 {
+		return
+	}
+	appenders = make([]*Appender, 0, len(currentAppenders))
+	for _, v := range currentAppenders {
+		if strings.EqualFold(v.Level, "off") {
+			continue
+		}
+		appenders = append(appenders, v)
 	}
 	return
 }
@@ -120,6 +132,9 @@ func exists(p string) bool {
 }
 func getCaller(index int) string {
 	defer recover()
-	_, file, line, _ := runtime.Caller(index)
-	return fmt.Sprintf("%s%d", filepath.Base(file), line)
+	_, file, line, ok := runtime.Caller(index)
+	if ok {
+		return fmt.Sprintf("%s:%d", filepath.Base(file), line)
+	}
+	return ""
 }

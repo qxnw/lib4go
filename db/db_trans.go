@@ -28,9 +28,7 @@ func (t *DBTrans) Scalar(sql string, input map[string]interface{}) (data interfa
 
 //Execute 根据包含@名称占位符的语句执行查询语句
 func (t *DBTrans) Execute(sql string, input map[string]interface{}) (row int64, query string, args []interface{}, err error) {
-	//fmt.Println("DBTrans:", sql, input)
 	query, args = t.tpl.GetSQLContext(sql, input)
-	//fmt.Printf("DBTrans_ext:%s,%+v\n", query, args)
 	row, err = t.tx.Execute(query, args...)
 	return
 }

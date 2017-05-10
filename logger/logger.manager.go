@@ -1,10 +1,13 @@
 package logger
 
 import (
+	"errors"
 	"time"
 
 	"github.com/qxnw/lib4go/concurrent/cmap"
 )
+
+var isOpen bool
 
 type ILoggerAppenderFactory interface {
 	MakeAppender(*Appender, LogEvent) (IAppender, error)
@@ -23,14 +26,18 @@ type appenderEntity struct {
 	last     time.Time
 }
 
-func newLoggerManager() (m *loggerManager) {
+func newLoggerManager() (m *loggerManager, err error) {
 	m = &loggerManager{isClose: false}
 	m.factory = &loggerAppenderFactory{}
 	m.appenders = cmap.New()
 	m.configs = ReadConfig()
-	m.ticker = time.NewTicker(time.Second * 300)
-	go m.clearUp()
-	return m
+	isOpen = len(m.configs) > 0
+	if isOpen {
+		m.ticker = time.NewTicker(time.Second * 300)
+		go m.clearUp()
+		return m, nil
+	}
+	return nil, errors.New("未启动日志")
 }
 
 // Log 将日志内容写入appender, 如果appender不存在则创建
@@ -94,7 +101,10 @@ START:
 
 func (a *loggerManager) Close() {
 	a.isClose = true
-	a.ticker.Stop()
+	if a.ticker != nil {
+		a.ticker.Stop()
+	}
+
 	a.appenders.RemoveIterCb(func(key string, v interface{}) bool {
 		apd := v.(*appenderEntity)
 		apd.appender.Close()

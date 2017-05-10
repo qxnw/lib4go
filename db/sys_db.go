@@ -6,8 +6,11 @@ import (
 	"fmt"
 	"strings"
 
+	"time"
+
 	_ "github.com/mattn/go-oci8"
 	_ "github.com/mattn/go-sqlite3"
+	_ "gopkg.in/rana/ora.v4"
 )
 
 /*
@@ -36,6 +39,8 @@ const (
 	SQLITE3 = "sqlite3"
 	//OCI8 oralce数据库
 	OCI8 = "oci8"
+	//ora  oralce数据库
+	ORA = "ora"
 )
 
 //SysDB 数据库实体
@@ -48,7 +53,7 @@ type SysDB struct {
 }
 
 //NewSysDB 创建DB实例
-func NewSysDB(provider string, connString string, maxIdle int, maxOpen int) (obj *SysDB, err error) {
+func NewSysDB(provider string, connString string, max int) (obj *SysDB, err error) {
 	/*add by champly 2016年11月14日17:03:46*/
 	if provider == "" || connString == "" {
 		err = errors.New("provider or connString not allow nil")
@@ -58,6 +63,8 @@ func NewSysDB(provider string, connString string, maxIdle int, maxOpen int) (obj
 
 	obj = &SysDB{provider: provider, connString: connString}
 	switch strings.ToLower(provider) {
+	case "ora":
+		obj.db, err = sql.Open(ORA, connString)
 	case "oracle":
 		obj.db, err = sql.Open(OCI8, connString)
 	case "sqlite":
@@ -65,13 +72,20 @@ func NewSysDB(provider string, connString string, maxIdle int, maxOpen int) (obj
 	default:
 		return nil, errors.New("数据库类型不支持:" + provider)
 	}
-	obj.db.SetMaxIdleConns(maxIdle)
-	obj.db.SetMaxOpenConns(maxOpen)
+	if err != nil {
+		return
+	}
+	if max > 0 {
+		obj.db.SetMaxIdleConns(max)
+		obj.db.SetMaxOpenConns(max)
+	}
+	obj.db.SetConnMaxLifetime(time.Second * 300)
 	return
 }
 
 //Query 执行SQL查询语句
 func (db *SysDB) Query(query string, args ...interface{}) (dataRows []map[string]interface{}, colus []string, err error) {
+
 	rows, err := db.db.Query(query, args...)
 	if err != nil {
 		if rows != nil {
@@ -138,12 +152,10 @@ func (db *SysDB) Begin() (r IDBTrans, err error) {
 	return t, err
 }
 
-//Close 关闭数据库
-func (db *SysDB) Close() {
-	db.db.Close()
-}
-
 func (db *SysDB) Print() {
 	fmt.Printf("maxIdle: %+v\n", db.db.Stats())
 	fmt.Println("maxOpen: ", db.maxOpen)
+}
+func (db *SysDB) Close() {
+	db.db.Close()
 }

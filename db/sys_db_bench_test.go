@@ -115,7 +115,7 @@ func TestSysDbTest(b *testing.T) {
 		wg.Add(n)
 		for i := 0; i < n; i++ {
 			go func() {
-				obj, err := NewSysDB("oracle", dbConnectStr, 1, 20)
+				obj, err := NewSysDB("oracle", dbConnectStr, 10)
 				if obj == nil || err != nil {
 					b.Error("创建数据库连接失败:", err)
 				}
@@ -123,7 +123,7 @@ func TestSysDbTest(b *testing.T) {
 				if err != nil {
 					b.Errorf("test fail %v", err)
 				}
-				obj.Close()
+				//obj.Close()
 				// fmt.Printf("%+v\t%+v\n", dataRows, colus)
 				wg.Done()
 			}()
@@ -144,7 +144,7 @@ func TestSysDbTest2(b *testing.T) {
 	times := time.Second * 0
 
 	for j := 0; j < 100; j++ {
-		obj, err := NewSysDB("oracle", dbConnectStr, 1, 20)
+		obj, err := NewSysDB("oracle", dbConnectStr, 10)
 		if obj == nil || err != nil {
 			b.Error("创建数据库连接失败:", err)
 		}

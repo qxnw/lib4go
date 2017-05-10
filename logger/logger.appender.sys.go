@@ -26,7 +26,7 @@ func sysLoggerWrite(level string, content interface{}) {
 	e.Now = time.Now()
 	e.Level = level
 	e.Name = "sys"
-	e.Session = getSessionID()
+	e.Session = CreateSession()
 	e.Content = fmt.Sprintf("%v", content)
 	e.Output = "%content%n"
 	os.Stderr.WriteString(transform(e.Output, e))

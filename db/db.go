@@ -7,6 +7,7 @@ type IDB interface {
 	Query(string, ...interface{}) ([]map[string]interface{}, []string, error)
 	Execute(string, ...interface{}) (int64, error)
 	Begin() (IDBTrans, error)
+	Close()
 }
 
 //IDBTrans 数据库事务接口
@@ -24,13 +25,13 @@ type DB struct {
 }
 
 //NewDB 创建DB实例
-func NewDB(provider string, connString string, maxIdle int, maxOpen int) (obj *DB, err error) {
+func NewDB(provider string, connString string, max int) (obj *DB, err error) {
 	obj = &DB{}
 	obj.tpl, err = tpl.GetDBContext(provider)
 	if err != nil {
 		return
 	}
-	obj.db, err = NewSysDB(provider, connString, maxIdle, maxOpen)
+	obj.db, err = NewSysDB(provider, connString, max)
 	return
 }
 
@@ -80,4 +81,7 @@ func (db *DB) Begin() (t *DBTrans, err error) {
 	}
 	t.tpl = db.tpl
 	return
+}
+func (db *DB) Close() {
+	db.db.Close()
 }

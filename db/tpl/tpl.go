@@ -6,6 +6,7 @@ import (
 )
 
 const (
+	cOra    = "ora"
 	cOracle = "oracle"
 	cSqlite = "sqlite"
 )
@@ -24,6 +25,7 @@ type ITPLContext interface {
 func init() {
 	tpls = make(map[string]ITPLContext)
 	tpls[cOracle] = OracleTPLContext{}
+	tpls[cOra] = OracleTPLContext{}
 	tpls[cSqlite] = SqliteTPLContext{}
 }
 
