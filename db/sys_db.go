@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"strings"
 
-	"time"
-
 	_ "github.com/mattn/go-oci8"
 	_ "github.com/mattn/go-sqlite3"
 	_ "gopkg.in/rana/ora.v4"
@@ -79,7 +77,7 @@ func NewSysDB(provider string, connString string, max int) (obj *SysDB, err erro
 		obj.db.SetMaxIdleConns(max)
 		obj.db.SetMaxOpenConns(max)
 	}
-	obj.db.SetConnMaxLifetime(time.Second * 300)
+	//obj.db.SetConnMaxLifetime(time.Second * 300)
 	return
 }
 

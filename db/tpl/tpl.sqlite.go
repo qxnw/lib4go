@@ -15,7 +15,7 @@ func (o SqliteTPLContext) GetSQLContext(tpl string, input map[string]interface{}
 	f := func() string {
 		return "?"
 	}
-	return AnalyzeTPL(tpl, input, f)
+	return AnalyzeTPLFromCache("sqlite", tpl, input, f)
 }
 
 //GetSPContext 获取存储过程

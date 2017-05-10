@@ -3,6 +3,8 @@ package tpl
 import (
 	"fmt"
 	"strings"
+
+	"github.com/qxnw/lib4go/concurrent/cmap"
 )
 
 const (
@@ -12,7 +14,8 @@ const (
 )
 
 var (
-	tpls map[string]ITPLContext
+	tpls      map[string]ITPLContext
+	tplCaches cmap.ConcurrentMap
 )
 
 //ITPLContext 模板上下文
@@ -27,6 +30,7 @@ func init() {
 	tpls[cOracle] = OracleTPLContext{}
 	tpls[cOra] = OracleTPLContext{}
 	tpls[cSqlite] = SqliteTPLContext{}
+	tplCaches = cmap.New()
 }
 
 //GetDBContext 获取数据库上下文操作

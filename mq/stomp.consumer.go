@@ -105,7 +105,6 @@ func (consumer *StompConsumer) ConnectOnce() (err error) {
 
 	//连接成功后开始订阅消息
 	consumer.cache.IterCb(func(key string, value interface{}) bool {
-		//consumer.option.logger.Info("consume:", key)
 		go func() {
 			err = consumer.consume(key, value.(func(IMessage)))
 			if err != nil {

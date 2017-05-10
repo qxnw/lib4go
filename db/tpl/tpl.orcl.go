@@ -22,7 +22,7 @@ func (o OracleTPLContext) GetSQLContext(tpl string, input map[string]interface{}
 		index++
 		return fmt.Sprint(":", index)
 	}
-	return AnalyzeTPL(tpl, input, f)
+	return AnalyzeTPLFromCache("orcl", tpl, input, f)
 }
 
 //GetSPContext 获取
