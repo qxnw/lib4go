@@ -7,6 +7,7 @@ type option struct {
 	version    string
 	persistent string
 	ack        string
+	retry      bool
 }
 
 //Option 配置选项
@@ -37,5 +38,12 @@ func WithPersistent(persistent string) Option {
 func WithAck(ack string) Option {
 	return func(o *option) {
 		o.ack = ack
+	}
+}
+
+//WithRetrySend 发送失败后重试
+func WithRetrySend(b bool) Option {
+	return func(o *option) {
+		o.retry = b
 	}
 }
