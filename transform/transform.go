@@ -75,6 +75,13 @@ func NewMap(d map[string]string) *Transform {
 	return &Transform{Data: data}
 }
 
+//Append ITransformGetter 添加到当前对象
+func (d *Transform) Append(t ITransformGetter) {
+	t.Each(func(k, v string) {
+		d.Set(k, v)
+	})
+}
+
 //Set 设置变量的值
 func (d *Transform) Set(k string, v string) {
 	d.mutex.Lock()

@@ -1,38 +1,17 @@
 package memcache
 
-import (
-	"encoding/json"
-	"errors"
-
-	"github.com/bradfitz/gomemcache/memcache"
-)
-
-//Config memcached配置选项
-type Config struct {
-	Servers []string `json:"servers,omitempty"`
-}
+import "github.com/bradfitz/gomemcache/memcache"
 
 // MemcacheClient memcache配置文件
 type MemcacheClient struct {
-	config Config
-	client *memcache.Client
-}
-
-//NewJSON 根据json初始化memcache
-func NewJSON(config string) (m *MemcacheClient, err error) {
-	conf := Config{}
-	err = json.Unmarshal([]byte(config), &conf)
-	if err != nil {
-		err = errors.New("memcache配置文件有误:" + err.Error())
-		return
-	}
-	return New(conf)
+	servers []string
+	client  *memcache.Client
 }
 
 // New 根据配置文件创建一个memcache连接
-func New(conf Config) (m *MemcacheClient, err error) {
-	m = &MemcacheClient{config: conf}
-	m.client = memcache.New(conf.Servers...)
+func New(addrs []string) (m *MemcacheClient, err error) {
+	m = &MemcacheClient{servers: addrs}
+	m.client = memcache.New(addrs...)
 	return
 }
 
