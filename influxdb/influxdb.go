@@ -206,7 +206,7 @@ func (c *Client) Query(q Query) (*Response, error) {
 		values.Set("epoch", c.precision)
 	}
 	u.RawQuery = values.Encode()
-
+	fmt.Println("query:", u.String())
 	req, err := http.NewRequest("POST", u.String(), nil)
 	if err != nil {
 		return nil, err
