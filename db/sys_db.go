@@ -5,8 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-
-	_ "github.com/mattn/go-oci8"
+	//_ "github.com/mattn/go-oci8"
 	//_ "github.com/mattn/go-sqlite3"
 	//_ "gopkg.in/rana/ora.v4"
 )
