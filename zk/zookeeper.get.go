@@ -30,7 +30,7 @@ func (client *ZookeeperClient) GetValue(path string) (value []byte, version int3
 
 	select {
 	case <-time.After(TIMEOUT):
-		err = fmt.Errorf("get node : %s value timeout", path)
+		err = fmt.Errorf("get node:%s value timeout", path)
 		return
 	case data := <-ch:
 		if client.done {
@@ -39,6 +39,7 @@ func (client *ZookeeperClient) GetValue(path string) (value []byte, version int3
 		}
 		err = data.(getValueType).err
 		if err != nil {
+			err = fmt.Errorf("get node:%s error(err:%v)", path, err)
 			return
 		}
 		value = data.(getValueType).data
@@ -87,6 +88,9 @@ func (client *ZookeeperClient) GetChildren(path string) (paths []string, version
 		paths = data.(getChildrenType).data
 		version = data.(getChildrenType).version
 		err = data.(getChildrenType).err
+		if err != nil {
+			err = fmt.Errorf("get node(%s) children error(err:%v)", path, err)
+		}
 		return
 	}
 }
