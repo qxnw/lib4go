@@ -23,7 +23,7 @@ func GetReader(content string, charset string) io.Reader {
 }
 
 // Convert []byte转换为字符串
-// encoding 支持gbk，gb2312，utf-8	不区分大小写
+// encoding 将utf-8格式数据，转换为其它格式 支持gbk，gb2312，utf-8	不区分大小写
 func Convert(data []byte, encoding string) (content string, err error) {
 	encoding = strings.ToLower(encoding)
 	if !strings.EqualFold(encoding, "gbk") && !strings.EqualFold(encoding, "gb2312") &&
