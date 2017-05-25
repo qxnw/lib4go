@@ -1,14 +1,6 @@
-package client_test
+package client
 
-import (
-	"fmt"
-	"math/rand"
-	"os"
-	"time"
-
-	"github.com/qxnw/lib4go/influxdb/v2"
-)
-
+/*
 // Create a new client
 func ExampleClient() {
 	// NOTE: this assumes you've setup a user and have setup shell env variables,
@@ -263,3 +255,4 @@ func ExampleClient_createDatabase() {
 		fmt.Println(response.Results)
 	}
 }
+*/

@@ -44,6 +44,7 @@ func New() *Transform {
 //NewValues getter
 func NewValues(t url.Values) *Transform {
 	var data transformData = make(map[string]string)
+
 	for k, v := range t {
 		if len(v) > 1 {
 			data[k] = fmt.Sprint(v)

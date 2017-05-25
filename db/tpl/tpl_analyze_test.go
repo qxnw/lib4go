@@ -40,7 +40,7 @@ func TestAnalyzeTPL(t *testing.T) {
 	}
 
 	for tpl, except := range tpls {
-		actual, params := AnalyzeTPL(tpl, input, f)
+		actual, params, _ := AnalyzeTPL(tpl, input, f)
 		if actual != except[0].(string) || len(params) != except[1].(int) {
 			t.Errorf("AnalyzeTPL解析参数有误:except:%s actual:%s", except[0].(string), actual)
 		}
@@ -49,7 +49,7 @@ func TestAnalyzeTPL(t *testing.T) {
 	//正确参数解析
 	tpl := "select seq_wxaccountmenu_auto_id.nextval from where name=@name2"
 	except := "select seq_wxaccountmenu_auto_id.nextval from where name=:"
-	actual, params := AnalyzeTPL(tpl, input, f)
+	actual, params, _ := AnalyzeTPL(tpl, input, f)
 	if actual != except || len(params) != 1 || params[0].(string) != input["name2"] {
 		t.Error("AnalyzeTPL解析参数有误")
 	}
@@ -57,7 +57,7 @@ func TestAnalyzeTPL(t *testing.T) {
 	//值不存在
 	tpl = "select seq_wxaccountmenu_auto_id.nextval from where name=@id"
 	except = "select seq_wxaccountmenu_auto_id.nextval from where name=:"
-	actual, params = AnalyzeTPL(tpl, input, f)
+	actual, params, _ = AnalyzeTPL(tpl, input, f)
 	if actual != except || len(params) != 1 || params[0] != nil {
 		t.Error("AnalyzeTPL解析参数有误")
 	}
@@ -65,7 +65,7 @@ func TestAnalyzeTPL(t *testing.T) {
 	//多个相同属性
 	tpl = "select seq_wxaccountmenu_auto_id.nextval from where name=@id and id=@id"
 	except = "select seq_wxaccountmenu_auto_id.nextval from where name=: and id=:"
-	actual, params = AnalyzeTPL(tpl, input, f)
+	actual, params, _ = AnalyzeTPL(tpl, input, f)
 	if actual != except || len(params) != 2 || params[0] != nil || params[1] != nil {
 		t.Error("AnalyzeTPL解析参数有误")
 	}
@@ -74,7 +74,7 @@ func TestAnalyzeTPL(t *testing.T) {
 	// 多个不同的参数
 	tpl = "select seq_wxaccountmenu_auto_id.nextbal from where name=@name and name2='#name2' &name3_ |name ~name"
 	except = "select seq_wxaccountmenu_auto_id.nextbal from where name=: and name2='colin2' and name3_=: or name=: ,name=:"
-	actual, params = AnalyzeTPL(tpl, input, f)
+	actual, params, _ = AnalyzeTPL(tpl, input, f)
 	if actual != except || len(params) != 4 || params[0].(string) != input["name"] || params[1].(string) != input["name3_"] || params[2].(string) != input["name"] || params[3].(string) != input["name"] {
 		t.Error("AnalyzeTPL解析参数有误")
 	}

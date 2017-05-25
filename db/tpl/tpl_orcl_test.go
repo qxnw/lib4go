@@ -137,13 +137,27 @@ func TestORCTPLGetContext(t *testing.T) {
 	/*end*/
 }
 
+/*
+func TestORCLNICEName(t *testing.T) {
+	orcl := OracleTPLContext{}
+	input := make(map[string]interface{})
+
+	input["id"] = 1
+	input["name"] = "colin"
+	tpl := "&t.id&t.name),"
+	except := "t.id=:1 and t.name=:2"
+	actual, params := orcl.GetSPContext(tpl, input)
+	if actual != except || len(params) != 2 || params[0] != input["id"] || params[1] != input["name"] {
+		t.Error("GetSPContext解析参数有误", actual)
+	}
+}
+*/
 func TestORCTPLGetSPContext(t *testing.T) {
 	orcl := OracleTPLContext{}
 	input := make(map[string]interface{})
 
 	input["id"] = 1
 	input["name"] = "colin"
-
 	//正确参数解析
 	tpl := "order_create(@id,@name,@colin)"
 	except := "begin order_create(:1,:2,:3);end;"
@@ -255,5 +269,5 @@ func TestORCTPLReplace(t *testing.T) {
 	if actual != except {
 		t.Error("Replace解析参数有误", actual)
 	}
-	/*end*/
+
 }

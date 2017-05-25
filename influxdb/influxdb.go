@@ -196,6 +196,8 @@ func (c *Client) Query(q Query) (*Response, error) {
 	values := u.Query()
 	values.Set("q", q.Command)
 	values.Set("db", q.Database)
+	values.Set("u", c.username)
+	values.Set("p", c.password)
 	if q.Chunked {
 		values.Set("chunked", "true")
 		if q.ChunkSize > 0 {
@@ -206,8 +208,7 @@ func (c *Client) Query(q Query) (*Response, error) {
 		values.Set("epoch", c.precision)
 	}
 	u.RawQuery = values.Encode()
-	fmt.Println("query:", u.String())
-	req, err := http.NewRequest("POST", u.String(), nil)
+	req, err := http.NewRequest("GET", u.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -221,7 +222,6 @@ func (c *Client) Query(q Query) (*Response, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
-
 	var response Response
 	if q.Chunked {
 		cr := NewChunkedResponse(resp.Body)
@@ -231,7 +231,6 @@ func (c *Client) Query(q Query) (*Response, error) {
 				// If we got an error while decoding the response, send that back.
 				return nil, err
 			}
-
 			if r == nil {
 				break
 			}

@@ -12,7 +12,6 @@ func QueryStringToMap(urlQuery string) (result map[string]interface{}, err error
 	if index == -1 || index >= len(urlQuery)-1 {
 		return
 	}
-
 	values, err := url.ParseQuery(urlQuery[index+1:])
 	if err != nil {
 		err = fmt.Errorf("url ParseQuery fail: %v", err)

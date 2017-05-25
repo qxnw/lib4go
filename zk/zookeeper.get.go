@@ -3,6 +3,8 @@ package zk
 import (
 	"fmt"
 	"time"
+
+	"github.com/qxnw/lib4go/encoding"
 )
 
 type getValueType struct {
@@ -42,7 +44,11 @@ func (client *ZookeeperClient) GetValue(path string) (value []byte, version int3
 			err = fmt.Errorf("get node:%s error(err:%v)", path, err)
 			return
 		}
-		value = data.(getValueType).data
+		value, err = encoding.ConvertBytes(data.(getValueType).data, "gbk")
+		if err != nil {
+			err = fmt.Errorf("get node 编码转换失败:%s error(err:%v)", path, err)
+			return
+		}
 		version = data.(getValueType).version
 		return
 	}

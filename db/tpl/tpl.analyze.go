@@ -50,7 +50,11 @@ func AnalyzeTPL(tpl string, input map[string]interface{}, prefix func() string) 
 	word, _ := regexp.Compile(`[@|#|&|~|\||!]\w+`)
 	//@变量, 将数据放入params中
 	sql = word.ReplaceAllStringFunc(tpl, func(s string) string {
+		//fullKey := s[1:]
 		key := s[1:]
+		//if strings.Index(fullKey, ".") > 0 {
+		//key = strings.Split(fullKey, ".")[1]
+		//}
 		pre := s[:1]
 		value := input[key]
 		switch pre {

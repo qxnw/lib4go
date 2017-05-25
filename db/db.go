@@ -35,6 +35,11 @@ func NewDB(provider string, connString string, max int) (obj *DB, err error) {
 	return
 }
 
+//GetTPL 获取模板翻译参数
+func (db *DB) GetTPL() tpl.ITPLContext {
+	return db.tpl
+}
+
 //Query 查询数据
 func (db *DB) Query(sql string, input map[string]interface{}) (data []map[string]interface{}, query string, args []interface{}, err error) {
 	query, args = db.tpl.GetSQLContext(sql, input)

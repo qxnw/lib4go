@@ -16,12 +16,12 @@ func New(addrs []string) (m *MemcacheClient, err error) {
 }
 
 // Get 根据key获取memcache中的数据
-func (c *MemcacheClient) Get(key string) string {
+func (c *MemcacheClient) Get(key string) (string, error) {
 	data, err := c.client.Get(key)
 	if err != nil {
-		return ""
+		return "", err
 	}
-	return string(data.Value)
+	return string(data.Value), nil
 }
 
 // Add 添加数据到memcache中,如果memcache存在，则报错
@@ -44,7 +44,10 @@ func (c *MemcacheClient) Delete(key string) error {
 
 // Delay 延长数据在memcache中的时间(从现在开始计时)
 func (c *MemcacheClient) Delay(key string, expiresAt int) error {
-	v := c.Get(key)
+	v, err := c.Get(key)
+	if err != nil {
+		return err
+	}
 	data := &memcache.Item{Key: key, Value: []byte(v), Expiration: int32(expiresAt)}
 	return c.client.Set(data)
 }
