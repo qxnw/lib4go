@@ -13,8 +13,9 @@ func GetMapWithQuery(query string) (r map[string]string, err error) {
 	}
 	r = make(map[string]string)
 	for k, v := range values {
-		if len(v) >= 0 {
-			r[k] = v[0]
+		count := len(v)
+		if count >= 0 {
+			r[k] = v[count-1]
 		}
 	}
 	return
