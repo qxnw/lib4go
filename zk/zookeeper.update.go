@@ -6,7 +6,7 @@ import (
 )
 
 // Update 更新一个节点的值，如果存在则更新，如果不存在则报错
-func (client *ZookeeperClient) Update(path string, data string) (err error) {
+func (client *ZookeeperClient) Update(path string, data string, version int32) (err error) {
 	if !client.isConnect {
 		err = ErrColientCouldNotConnect
 		return
@@ -23,7 +23,7 @@ func (client *ZookeeperClient) Update(path string, data string) (err error) {
 	// 启动一个协程，更新节点
 	ch := make(chan error, 1)
 	go func(ch chan error) {
-		_, err = client.conn.Set(path, []byte(data), -1)
+		_, err = client.conn.Set(path, []byte(data), version)
 		ch <- err
 	}(ch)
 
