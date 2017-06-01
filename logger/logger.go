@@ -2,7 +2,6 @@ package logger
 
 import (
 	"fmt"
-	"os"
 	"sync"
 
 	"bytes"
@@ -194,8 +193,6 @@ func (logger *Logger) Fatal(content ...interface{}) {
 		event := NewLogEvent(name, SLevel_Fatal, logger.sessions[i], getString(content...), logger.tags)
 		loggerEventChan <- event
 	}
-	os.Exit(999)
-
 }
 
 //Fatalf 输出Fatalf日志
@@ -207,7 +204,6 @@ func (logger *Logger) Fatalf(format string, content ...interface{}) {
 		event := NewLogEvent(name, SLevel_Fatal, logger.sessions[i], fmt.Sprintf(format, content...), logger.tags)
 		loggerEventChan <- event
 	}
-	os.Exit(999)
 }
 
 //Fatalln 输出Fatal日志

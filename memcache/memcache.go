@@ -24,6 +24,30 @@ func (c *MemcacheClient) Get(key string) (string, error) {
 	return string(data.Value), nil
 }
 
+//Decrement 增加变量的值
+func (c *MemcacheClient) Decrement(key string, delta uint64) (n uint64, err error) {
+	return c.client.Decrement(key, delta)
+}
+
+//Increment 减少变量的值
+func (c *MemcacheClient) Increment(key string, delta uint64) (n uint64, err error) {
+	return c.client.Increment(key, delta)
+}
+
+//Gets 获取多条数据
+func (c *MemcacheClient) Gets(key ...string) (r []string, err error) {
+
+	data, err := c.client.GetMulti(key)
+	if err != nil {
+		return nil, err
+	}
+	r = make([]string, len(data))
+	for _, v := range key {
+		r = append(r, string(data[v].Value))
+	}
+	return
+}
+
 // Add 添加数据到memcache中,如果memcache存在，则报错
 func (c *MemcacheClient) Add(key string, value string, expiresAt int) error {
 	data := &memcache.Item{Key: key, Value: []byte(value), Expiration: int32(expiresAt)}
@@ -42,12 +66,12 @@ func (c *MemcacheClient) Delete(key string) error {
 	return c.client.Delete(key)
 }
 
-// Delay 延长数据在memcache中的时间(从现在开始计时)
+// Delay 延长数据在memcache中的时间
 func (c *MemcacheClient) Delay(key string, expiresAt int) error {
-	v, err := c.Get(key)
-	if err != nil {
-		return err
-	}
-	data := &memcache.Item{Key: key, Value: []byte(v), Expiration: int32(expiresAt)}
-	return c.client.Set(data)
+	return c.client.Touch(key, int32(expiresAt))
+}
+
+// DeleteAll 删除所有缓存数据
+func (c *MemcacheClient) DeleteAll() error {
+	return c.client.DeleteAll()
 }
