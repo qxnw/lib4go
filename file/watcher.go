@@ -2,7 +2,6 @@ package file
 
 import (
 	"os"
-	"path/filepath"
 	"time"
 
 	"sync"
@@ -32,8 +31,9 @@ func NewDirWatcher(callback func(), timeSpan time.Duration) *DirWatcher {
 
 //Append 添加监控文件
 func (w *DirWatcher) Append(path string) (err error) {
-	dir := filepath.Dir(path)
-	w.files.SetIfAbsent(dir, dir)
+	//dir := filepath.Dir(path)
+	//w.files.SetIfAbsent(dir, dir)
+	w.files.SetIfAbsent(path, struct{}{})
 	return nil
 }
 
@@ -64,7 +64,7 @@ func (w *DirWatcher) checkChange() bool {
 			return true //继续检查下一个文件
 		}
 		if fileinfo.ModTime().Sub(w.lastTime) > 0 {
-			w.lastTime = time.Now()
+			w.lastTime = fileinfo.ModTime()
 			change = true
 			return false //当前文件发生变化，退出不再检查
 		}
