@@ -9,8 +9,8 @@ import (
 	"github.com/qxnw/lib4go/security/des"
 )
 
-// EncryptCBCPKCS7 CBC模式,PKCS7填充
-func EncryptCBCPKCS7(contentStr string, keyStr string) (string, error) {
+// EncryptCBCPKCS7WithIV CBC模式,PKCS7填充
+func EncryptCBCPKCS7WithIV(contentStr string, keyStr string, iv []byte) (string, error) {
 	content := []byte(contentStr)
 	key := []byte(keyStr)
 
@@ -20,7 +20,9 @@ func EncryptCBCPKCS7(contentStr string, keyStr string) (string, error) {
 	}
 
 	content = des.PKCS7Padding(content)
-	iv := make([]byte, block.BlockSize())
+	if iv == nil {
+		iv = make([]byte, block.BlockSize())
+	}
 	blockModel := cipher.NewCBCEncrypter(block, iv)
 
 	cipherText := make([]byte, len(content))
@@ -28,8 +30,8 @@ func EncryptCBCPKCS7(contentStr string, keyStr string) (string, error) {
 	return base64.EncodeBytes(cipherText), nil
 }
 
-// DecryptCBCPKCS7 CBC模式,PKCS7填充
-func DecryptCBCPKCS7(contentStr string, keyStr string) (string, error) {
+// DecryptCBCPKCS7WithIV CBC模式,PKCS7填充
+func DecryptCBCPKCS7WithIV(contentStr string, keyStr string, iv []byte) (string, error) {
 	content, err := base64.DecodeBytes(contentStr)
 	if err != nil {
 		return "", err
@@ -44,8 +46,9 @@ func DecryptCBCPKCS7(contentStr string, keyStr string) (string, error) {
 	if len(content) < aes.BlockSize {
 		return "", fmt.Errorf("要解密的字符串太短")
 	}
-
-	iv := make([]byte, block.BlockSize())
+	if iv == nil {
+		iv = make([]byte, block.BlockSize())
+	}
 	blockModel := cipher.NewCBCDecrypter(block, iv)
 
 	plantText := make([]byte, len(content))
