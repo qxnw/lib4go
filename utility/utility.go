@@ -16,14 +16,3 @@ func GetGUID() string {
 	}
 	return md5.Encrypt(base64.URLEncoding.EncodeToString(b))
 }
-
-//IsStringEmpty 当前对像是否是字符串空
-func IsStringEmpty(v interface{}) bool {
-	if v == nil {
-		return true
-	}
-	if t, ok := v.(string); ok && len(t) == 0 {
-		return true
-	}
-	return false
-}
