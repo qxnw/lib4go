@@ -4,7 +4,7 @@ import "github.com/qxnw/lib4go/db/tpl"
 
 //IDB 数据库操作接口,安装可需能需要执行export LD_LIBRARY_PATH=/usr/local/lib
 type IDB interface {
-	Query(string, ...interface{}) ([]map[string]interface{}, []string, error)
+	Query(string, ...interface{}) ([]QueryRow, []string, error)
 	Execute(string, ...interface{}) (int64, error)
 	Begin() (IDBTrans, error)
 	Close()
@@ -12,7 +12,7 @@ type IDB interface {
 
 //IDBTrans 数据库事务接口
 type IDBTrans interface {
-	Query(string, ...interface{}) ([]map[string]interface{}, []string, error)
+	Query(string, ...interface{}) ([]QueryRow, []string, error)
 	Execute(string, ...interface{}) (int64, error)
 	Rollback() error
 	Commit() error
@@ -41,7 +41,7 @@ func (db *DB) GetTPL() tpl.ITPLContext {
 }
 
 //Query 查询数据
-func (db *DB) Query(sql string, input map[string]interface{}) (data []map[string]interface{}, query string, args []interface{}, err error) {
+func (db *DB) Query(sql string, input map[string]interface{}) (data []QueryRow, query string, args []interface{}, err error) {
 	query, args = db.tpl.GetSQLContext(sql, input)
 	data, _, err = db.db.Query(query, args...)
 	return

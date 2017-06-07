@@ -82,7 +82,7 @@ func NewSysDB(provider string, connString string, max int) (obj *SysDB, err erro
 }
 
 //Query 执行SQL查询语句
-func (db *SysDB) Query(query string, args ...interface{}) (dataRows []map[string]interface{}, colus []string, err error) {
+func (db *SysDB) Query(query string, args ...interface{}) (dataRows []QueryRow, colus []string, err error) {
 
 	rows, err := db.db.Query(query, args...)
 	if err != nil {
@@ -97,8 +97,8 @@ func (db *SysDB) Query(query string, args ...interface{}) (dataRows []map[string
 
 }
 
-func resolveRows(rows *sql.Rows, col int) (dataRows []map[string]interface{}, columns []string, err error) {
-	dataRows = make([]map[string]interface{}, 0)
+func resolveRows(rows *sql.Rows, col int) (dataRows []QueryRow, columns []string, err error) {
+	dataRows = make([]QueryRow, 0)
 	colus, err := rows.Columns()
 	if err != nil {
 		return
@@ -109,7 +109,7 @@ func resolveRows(rows *sql.Rows, col int) (dataRows []map[string]interface{}, co
 	}
 
 	for rows.Next() {
-		row := make(map[string]interface{})
+		row := make(QueryRow)
 		dataRows = append(dataRows, row)
 		var buffer []interface{}
 		for index := 0; index < len(columns); index++ {

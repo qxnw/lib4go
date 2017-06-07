@@ -6,7 +6,7 @@ import (
 )
 
 type tqDbData struct {
-	data []map[string]interface{}
+	data []QueryRow
 	cols []string
 	err  error
 }
@@ -55,7 +55,7 @@ func (t *tTPL) Replace(sql string, args []interface{}) string {
 	return "REPLACE"
 }
 
-func (t *tDB) Query(q string, input ...interface{}) ([]map[string]interface{}, []string, error) {
+func (t *tDB) Query(q string, input ...interface{}) ([]QueryRow, []string, error) {
 	return t.qdata[q].data, t.qdata[q].cols, t.qdata[q].err
 }
 func (t *tDB) Execute(q string, input ...interface{}) (int64, error) {
@@ -87,7 +87,7 @@ func (t *tIDBTrans) Commit() error {
 	return nil
 }
 
-func (t *tIDBTrans) Query(q string, input ...interface{}) ([]map[string]interface{}, []string, error) {
+func (t *tIDBTrans) Query(q string, input ...interface{}) ([]QueryRow, []string, error) {
 	return t.qdata[q].data, t.qdata[q].cols, t.qdata[q].err
 }
 func (t *tIDBTrans) Execute(q string, input ...interface{}) (int64, error) {
@@ -144,7 +144,7 @@ func TestDBQuery(t *testing.T) {
 	queryMap["select 'a' from dual"] = tqDbData{
 		err:  nil,
 		cols: []string{"name", "id"},
-		data: []map[string]interface{}{
+		data: []QueryRow{
 			map[string]interface{}{
 				"name": "colin",
 			},
@@ -221,7 +221,7 @@ func TestDBTrans(t *testing.T) {
 	queryMap["select 'a' from dual"] = tqDbData{
 		err:  nil,
 		cols: []string{"name", "id"},
-		data: []map[string]interface{}{
+		data: []QueryRow{
 			map[string]interface{}{
 				"name": "colin",
 			},
