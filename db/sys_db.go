@@ -61,7 +61,8 @@ func NewSysDB(provider string, connString string, max int) (obj *SysDB, err erro
 	obj = &SysDB{provider: provider, connString: connString}
 	switch strings.ToLower(provider) {
 	case "ora":
-		obj.db, err = sql.Open(ORA, connString)
+		//obj.db, err = sql.Open(ORA, connString)
+		obj.db, err = sql.Open(OCI8, connString)
 	case "oracle":
 		obj.db, err = sql.Open(OCI8, connString)
 	case "sqlite":
