@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"strconv"
 )
 
 //DecodeString 判断变量的值与指定相等时设置为另一个值，否则使用原值
@@ -20,4 +21,39 @@ func DecodeString(def interface{}, a interface{}, b interface{}, e ...interface{
 		return fmt.Sprint(values[len(values)-1])
 	}
 	return ""
+}
+
+//DecodeInt 判断变量的值与指定相等时设置为另一个值，否则使用原值
+func DecodeInt(def interface{}, a interface{}, b interface{}, e ...interface{}) int {
+	values := make([]interface{}, 0, len(e)+2)
+	values = append(values, a)
+	values = append(values, b)
+	values = append(values, e...)
+
+	for i := 0; i < len(values); i = i + 2 {
+		if def == values[i] {
+			v, err := Convert2Int(values[i+1])
+			if err == nil {
+				return v
+			}
+		}
+	}
+	if len(values)%2 == 1 {
+		v, err := Convert2Int(values[len(values)-1])
+		if err == nil {
+			return v
+		}
+	}
+	return 0
+}
+
+//Convert2Int 转换为int类型
+func Convert2Int(i interface{}) (int, error) {
+	switch i.(type) {
+	case int:
+		return i.(int), nil
+	case string:
+		return strconv.Atoi(i.(string))
+	}
+	return 0, fmt.Errorf("类型错误无法转换为int(%v)", i)
 }
