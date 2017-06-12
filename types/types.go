@@ -33,7 +33,7 @@ func DecodeInt(def interface{}, a interface{}, b interface{}, e ...interface{}) 
 	values = append(values, b)
 	values = append(values, e...)
 
-	for i := 0; i < len(values); i = i + 2 {
+	for i := 0; i < len(values)-1; i = i + 2 {
 		if def == values[i] {
 			v, err := Convert2Int(values[i+1])
 			if err == nil {
@@ -60,8 +60,20 @@ func Convert2Int(i interface{}) (int, error) {
 		return i.(int), nil
 	case string:
 		return strconv.Atoi(i.(string))
+	default:
+		return strconv.Atoi(fmt.Sprint(i))
 	}
-	return 0, fmt.Errorf("类型错误无法转换为int(%v)", i)
+}
+
+func ToInt(i interface{}, def ...int) int {
+	v, err := Convert2Int(i)
+	if err != nil {
+		if len(def) > 0 {
+			return def[0]
+		}
+		return 0
+	}
+	return v
 }
 
 //IsEmpty 当前对像是否是字符串空
@@ -76,4 +88,10 @@ func IsEmpty(v interface{}) bool {
 		return true
 	}
 	return false
+}
+func GetString(i interface{}) string {
+	if i == nil {
+		return ""
+	}
+	return fmt.Sprint(i)
 }

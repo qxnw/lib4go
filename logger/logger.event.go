@@ -23,6 +23,6 @@ func NewLogEvent(name string, level string, session string, content string, tags
 	e.Session = session
 	e.Content = content
 	e.Tags = tags
-	e.Tags.Set("caller", getCaller(3))
+	e.Tags.Set("caller", getCaller(5))
 	return e
 }
