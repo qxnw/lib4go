@@ -2,12 +2,12 @@ package metrics
 
 import (
 	"fmt"
-	"log"
 	uurl "net/url"
 	"strings"
 	"time"
 
 	"github.com/qxnw/lib4go/influxdb"
+	"github.com/qxnw/lib4go/logger"
 	"github.com/zkfy/go-metrics"
 )
 
@@ -24,6 +24,7 @@ type reporter struct {
 	password string
 	tags     map[string]string
 	client   *influxdb.Client
+	logger   *logger.Logger
 	done     bool
 }
 
@@ -38,8 +39,8 @@ const (
 )
 
 // InfluxDB starts a InfluxDB reporter which will post the metrics from the given registry at each d interval.
-func InfluxDB(r metrics.Registry, d time.Duration, url, database, username, password string) (IReporter, error) {
-	return InfluxDBWithTags(r, d, url, database, username, password, nil)
+func InfluxDB(r metrics.Registry, d time.Duration, url, database, username, password string, logger *logger.Logger) (IReporter, error) {
+	return InfluxDBWithTags(r, d, url, database, username, password, nil, logger)
 }
 
 //MakeName 构建参数名称
@@ -64,13 +65,14 @@ func splitGroup(name string) (string, map[string]string) {
 }
 
 // InfluxDBWithTags starts a InfluxDB reporter which will post the metrics from the given registry at each d interval with the specified tags
-func InfluxDBWithTags(r metrics.Registry, d time.Duration, url, database, username, password string, tags map[string]string) (IReporter, error) {
+func InfluxDBWithTags(r metrics.Registry, d time.Duration, url, database, username, password string, tags map[string]string, logger *logger.Logger) (IReporter, error) {
 	u, err := uurl.Parse(url)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse InfluxDB url %s. err=%v", url, err)
 	}
 
 	rep := &reporter{
+		logger:   logger,
 		reg:      r,
 		interval: d,
 		url:      *u,
@@ -110,15 +112,15 @@ func (r *reporter) run() {
 			}
 		case <-intervalTicker:
 			if err := r.send(); err != nil {
-				log.Printf("unable to send metrics to InfluxDB. err=%v", err)
+				r.logger.Errorf("unable to send metrics to InfluxDB. err=%v", err)
 			}
 		case <-pingTicker:
 			_, _, err := r.client.Ping()
 			if err != nil {
-				log.Printf("got error while sending a ping to InfluxDB, trying to recreate client. err=%v", err)
+				r.logger.Errorf("got error while sending a ping to InfluxDB, trying to recreate client. err=%v", err)
 
 				if err = r.makeClient(); err != nil {
-					log.Printf("unable to make InfluxDB client. err=%v", err)
+					r.logger.Errorf("unable to make InfluxDB client. err=%v", err)
 				}
 			}
 		}
