@@ -56,8 +56,8 @@ func (s *Values) Sort() *Values {
 	return s
 }
 
-//Join 对参数进行拼接
-func (s *Values) Join(a string, b string) string {
+//JoinAll 对参数进行拼接
+func (s *Values) JoinAll(a string, b string) string {
 	buffer := bytes.NewBufferString("")
 	for i, v := range s.s {
 		buffer.WriteString(v.k)
@@ -66,6 +66,23 @@ func (s *Values) Join(a string, b string) string {
 		if i < len(s.s)-1 {
 			buffer.WriteString(b)
 		}
+	}
+	return buffer.String()
+}
+
+//Join 只拼接值不为空的参数
+func (s *Values) Join(a string, b string) string {
+	buffer := bytes.NewBufferString("")
+	for i, v := range s.s {
+		if v.v != "" {
+			buffer.WriteString(v.k)
+			buffer.WriteString(a)
+			buffer.WriteString(v.v)
+			if i < len(s.s)-1 {
+				buffer.WriteString(b)
+			}
+		}
+
 	}
 	return buffer.String()
 }
