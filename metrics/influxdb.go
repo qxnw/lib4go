@@ -36,7 +36,7 @@ const (
 	HISTOGRAM     = "histogram"
 	METER         = "meter"
 	TIMER         = "timer"
-	QPS           = "QPS"
+	QPS           = "rps"
 )
 
 // InfluxDB starts a InfluxDB reporter which will post the metrics from the given registry at each d interval.
