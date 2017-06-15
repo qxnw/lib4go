@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 )
 
@@ -17,7 +18,7 @@ func (q QueryRow) GetString(name string) string {
 
 //GetInt 从对象中获取数据值，如果不是字符串则返回0
 func (q QueryRow) GetInt(name string) int {
-	if value, ok := q[name].(int); ok {
+	if value, err := strconv.Atoi(fmt.Sprintf("%v", q[name])); err == nil {
 		return value
 	}
 	return 0

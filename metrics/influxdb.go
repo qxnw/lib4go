@@ -36,6 +36,7 @@ const (
 	HISTOGRAM     = "histogram"
 	METER         = "meter"
 	TIMER         = "timer"
+	QPS           = "QPS"
 )
 
 // InfluxDB starts a InfluxDB reporter which will post the metrics from the given registry at each d interval.
@@ -133,6 +134,18 @@ func (r *reporter) send() error {
 		now := time.Now()
 		rname, tags := splitGroup(name)
 		switch metric := obj.(type) {
+		case RPS:
+			metric.Mark(0)
+			pts = append(pts, influxdb.Point{
+				Measurement: rname,
+				Tags:        tags,
+				Fields: map[string]interface{}{
+					"m1":  metric.M1(),
+					"m5":  metric.M5(),
+					"m15": metric.M15(),
+				},
+				Time: now,
+			})
 		case Counter:
 			ms := metric.Snapshot()
 			pts = append(pts, influxdb.Point{
