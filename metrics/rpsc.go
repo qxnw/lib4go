@@ -42,6 +42,9 @@ func (r *RPSC) mark(new int32, currentStep int64) {
 
 func (r *RPSC) clear(l, n int64) (clearCounter int32) { //1-5:1,10:1,10 //2:1,3:1
 	clearCounter = int32(0)
+	if l == n {
+		return
+	}
 	//清空时间中间差
 	if int32(n-l) >= r.length {
 		for i := int32(0); i < r.total; i++ {

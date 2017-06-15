@@ -1,9 +1,6 @@
 package metrics
 
-import (
-	"fmt"
-	"sync"
-)
+import "sync"
 
 // RPS count events to produce exponentially-weighted moving average rates
 // at one-, five-, and fifteen-minutes and a mean rate.
@@ -32,7 +29,6 @@ type StandardRPS struct {
 }
 
 func newStandardRPS() RPS {
-	fmt.Println("newStandardRPS")
 	return &StandardRPS{
 		m1:  NewRPSC(60, 3600),
 		m5:  NewRPSC(300, 3600),
@@ -46,7 +42,6 @@ func (s *StandardRPS) Mark(i int32) {
 	s.m5.Mark(i)
 	s.m15.Mark(i)
 	s.lock.Unlock()
-	fmt.Println("rps.mark")
 }
 func (s *StandardRPS) M1() int32 {
 	return s.m1.counter

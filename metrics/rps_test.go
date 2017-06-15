@@ -102,3 +102,10 @@ func BenchmarkRing1(b *testing.B) {
 		counter.mark(int32(i), int64(i))
 	}
 }
+func TestRingCounter62(t *testing.T) {
+	counter := NewRPSC(60, 3600)
+	for i := 0; i < 1000; i++ {
+		counter.mark(1, int64(1))
+	}
+	ut.ExpectSkip(t, counter.counter, int32(1000))
+}
