@@ -14,7 +14,9 @@ func (client *ZookeeperClient) Delete(path string) (err error) {
 	// 启动一个协程，删除节点
 	ch := make(chan error)
 	go func(ch chan error) {
-		ch <- client.conn.Delete(path, -1)
+		if client.conn != nil {
+			ch <- client.conn.Delete(path, -1)
+		}
 	}(ch)
 
 	// 启动一个计时器，判断删除节点是否超时
