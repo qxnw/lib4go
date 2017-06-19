@@ -153,20 +153,20 @@ func (client *ZookeeperClient) WatchValue(path string) (data chan registry.Value
 		for {
 			select {
 			case <-client.CloseCh:
-				data <- &valueEntity{Err: ErrClientConnClosing}
+				data <- &valueEntity{path: path, Err: ErrClientConnClosing}
 				return
 			case e, _ := <-event:
 				//	client.Log.Infof("watch:value %+v[%+v]%t", path, e, ok)
 				if client.done {
-					data <- &valueEntity{Err: ErrClientConnClosing}
+					data <- &valueEntity{path: path, Err: ErrClientConnClosing}
 					return
 				}
 				if e.Err != nil {
-					data <- &valueEntity{Err: e.Err}
+					data <- &valueEntity{path: path, Err: e.Err}
 					return
 				}
 				if e.State == zk.StateDisconnected {
-					data <- &valueEntity{Err: errors.New("zk:StateDisconnected")}
+					data <- &valueEntity{path: path, Err: errors.New("zk:StateDisconnected")}
 					return
 				}
 				switch e.Type {
@@ -175,7 +175,7 @@ func (client *ZookeeperClient) WatchValue(path string) (data chan registry.Value
 					if err != nil {
 						client.Log.Error(err)
 					}
-					data <- &valueEntity{Value: v, Err: err, version: version}
+					data <- &valueEntity{path: path, Value: v, Err: err, version: version}
 
 					return
 				case zk.EventNotWatching:
@@ -183,7 +183,7 @@ func (client *ZookeeperClient) WatchValue(path string) (data chan registry.Value
 					if err != nil {
 						return
 					}
-					data <- &valueEntity{Err: err}
+					data <- &valueEntity{path: path, Err: err}
 				}
 			}
 		}
@@ -202,17 +202,17 @@ func (client *ZookeeperClient) WatchChildren(path string) (ch chan registry.Chil
 		select {
 		case <-client.CloseCh:
 			if client.done {
-				ch <- &valuesEntity{Err: ErrClientConnClosing}
+				ch <- &valuesEntity{path: path, Err: ErrClientConnClosing}
 				return
 			}
 		case e, ok := <-event:
 			if client.done || !ok {
-				ch <- &valuesEntity{Err: ErrClientConnClosing}
+				ch <- &valuesEntity{path: path, Err: ErrClientConnClosing}
 				return
 			}
 			//	client.Log.Infof("watch:children %s %s[%+v]%t", e.Type.String(), path, e, ok)
 			if e.Err != nil {
-				ch <- &valuesEntity{Err: e.Err}
+				ch <- &valuesEntity{path: path, Err: e.Err}
 				return
 			}
 
@@ -222,13 +222,13 @@ func (client *ZookeeperClient) WatchChildren(path string) (ch chan registry.Chil
 				if err != nil {
 					client.Log.Error(err)
 				}
-				ch <- &valuesEntity{Err: err, values: paths, version: version}
+				ch <- &valuesEntity{path: path, Err: err, values: paths, version: version}
 				return
 			// 网络重新连接
 			case zk.EventNotWatching:
 				err = client.checkConnectStatus(path)
 				if err != nil {
-					ch <- &valuesEntity{Err: err}
+					ch <- &valuesEntity{path: path, Err: err}
 					return
 				}
 			}
@@ -266,14 +266,19 @@ START:
 type valueEntity struct {
 	Value   []byte
 	version int32
+	path    string
 	Err     error
 }
 type valuesEntity struct {
 	values  []string
 	version int32
+	path    string
 	Err     error
 }
 
+func (v *valueEntity) GetPath() string {
+	return v.path
+}
 func (v *valueEntity) GetValue() ([]byte, int32) {
 	return v.Value, v.version
 }
@@ -286,4 +291,7 @@ func (v *valuesEntity) GetValue() ([]string, int32) {
 }
 func (v *valuesEntity) GetError() error {
 	return v.Err
+}
+func (v *valuesEntity) GetPath() string {
+	return v.path
 }
