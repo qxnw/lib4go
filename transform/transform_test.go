@@ -17,6 +17,11 @@ func (g getter) Get(key string) (string, error) {
 func (g getter) Set(key string, value string) {
 	g.data[key] = value
 }
+func (i getter) Each(f func(string, string)) {
+	for k, v := range i.data {
+		f(k, v)
+	}
+}
 
 // TestNewMaps 测试根据map创建一个翻译组件
 func TestNewMaps(t *testing.T) {
