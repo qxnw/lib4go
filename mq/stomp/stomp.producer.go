@@ -104,7 +104,9 @@ func (producer *StompProducer) sendLoop() {
 				if !ok {
 					break Loop1
 				}
+
 				err := producer.conn.Send(msg.Headers, msg.Data)
+				fmt.Println("send2:", msg, err)
 				if err != nil {
 					select {
 					case producer.backupMsg <- msg:
@@ -123,7 +125,9 @@ func (producer *StompProducer) sendLoop() {
 				if !ok {
 					break Loop2
 				}
+
 				err := producer.conn.Send(msg.Headers, msg.Data)
+				fmt.Println("send2:", msg, err)
 				if err != nil {
 					select {
 					case producer.backupMsg <- msg:
@@ -192,17 +196,23 @@ func (producer *StompProducer) Send(queue string, msg string, timeout time.Durat
 		return errors.New("mq producer 已关闭")
 	}
 	pm := &mq.ProcuderMessage{Queue: queue, Data: msg, Timeout: timeout}
-	pm.Headers = make([]string, 0, len(producer.header)+2)
+	pm.Headers = make([]string, 0, len(producer.header)+4)
 	copy(pm.Headers, producer.header)
+
 	pm.Headers = append(pm.Headers, "destination", "/queue/"+queue)
-	producer.messages <- pm
-	/*select {
+	if timeout > 0 {
+		pm.Headers = append(pm.Headers, "expires",
+			fmt.Sprintf("%d000", time.Now().Add(timeout).Unix()))
+	}
+
+	fmt.Println("send:", queue, msg, timeout)
+	//producer.messages <- pm
+	select {
 	case producer.messages <- pm:
 		return nil
 	default:
 		return errors.New("producer无法连接，消息发送失败")
-	}*/
-	return nil
+	}
 }
 
 //Close 关闭当前连接

@@ -12,7 +12,7 @@ func DecodeString(def interface{}, a interface{}, b interface{}, e ...interface{
 	values = append(values, b)
 	values = append(values, e...)
 
-	for i := 0; i < len(values); i = i + 2 {
+	for i := 0; i < len(values)-1; i = i + 2 {
 		if def == values[i] {
 			return fmt.Sprint(values[i+1])
 		}
