@@ -39,8 +39,8 @@ func NewStompConsumer(address string, opts ...mq.Option) (consumer *StompConsume
 	consumer = &StompConsumer{address: address}
 	consumer.OptionConf = &mq.OptionConf{Logger: logger.GetSession("mq.consumer", logger.CreateSession())}
 	consumer.closeCh = make(chan struct{})
-	consumer.queues = cmap.New()
-	consumer.cache = cmap.New()
+	consumer.queues = cmap.New(2)
+	consumer.cache = cmap.New(2)
 	for _, opt := range opts {
 		opt(consumer.OptionConf)
 	}

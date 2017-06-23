@@ -117,11 +117,11 @@ func writeToFile(loggerPath string, appenders []*Appender) (err error) {
 func getDefConfig() (appenders []*Appender) {
 	fileAppender := &Appender{Type: "file", Level: SLevel_ALL}
 	fileAppender.Path, _ = file.GetAbs("../logs/%date.log")
-	fileAppender.Layout = "[%datetime][%l][%session] %content%n"
+	fileAppender.Layout = "[%datetime.%ms][%l][%session] %content%n"
 	appenders = append(appenders, fileAppender)
 
 	sdtoutAppender := &Appender{Type: "stdout", Level: SLevel_ALL}
-	sdtoutAppender.Layout = "[%datetime][%l][%session]%content"
+	sdtoutAppender.Layout = "[%datetime.%ms][%l][%session]%content"
 	appenders = append(appenders, sdtoutAppender)
 
 	return

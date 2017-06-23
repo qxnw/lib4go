@@ -7,7 +7,6 @@ import (
 
 	"sync"
 
-	"github.com/qxnw/lib4go/concurrent/cmap"
 	"github.com/qxnw/lib4go/logger"
 	"github.com/samuel/go-zookeeper/zk"
 )
@@ -35,17 +34,17 @@ var (
 
 //ZookeeperClient zookeeper客户端
 type ZookeeperClient struct {
-	servers            []string
-	timeout            time.Duration
-	conn               *zk.Conn
-	eventChan          <-chan zk.Event
-	watchValueEvents   cmap.ConcurrentMap
-	watchChilrenEvents cmap.ConcurrentMap
-	Log                *logger.Logger
-	useCount           int32
-	isConnect          bool
-	once               sync.Once
-	CloseCh            chan struct{}
+	servers   []string
+	timeout   time.Duration
+	conn      *zk.Conn
+	eventChan <-chan zk.Event
+	//watchValueEvents   cmap.ConcurrentMap
+	//watchChilrenEvents cmap.ConcurrentMap
+	Log       *logger.Logger
+	useCount  int32
+	isConnect bool
+	once      sync.Once
+	CloseCh   chan struct{}
 	// 是否是手动关闭
 	done bool
 }
@@ -54,8 +53,8 @@ type ZookeeperClient struct {
 func New(servers []string, timeout time.Duration) (*ZookeeperClient, error) {
 	client := &ZookeeperClient{servers: servers, timeout: timeout, useCount: 0}
 	client.CloseCh = make(chan struct{})
-	client.watchValueEvents = cmap.New()
-	client.watchChilrenEvents = cmap.New()
+	//client.watchValueEvents = cmap.New()
+	//client.watchChilrenEvents = cmap.New()
 	client.Log = logger.GetSession("zk", logger.CreateSession())
 	return client, nil
 }
@@ -64,8 +63,8 @@ func New(servers []string, timeout time.Duration) (*ZookeeperClient, error) {
 func NewWithLogger(servers []string, timeout time.Duration, logger *logger.Logger) (*ZookeeperClient, error) {
 	client := &ZookeeperClient{servers: servers, timeout: timeout, useCount: 0}
 	client.CloseCh = make(chan struct{})
-	client.watchValueEvents = cmap.New()
-	client.watchChilrenEvents = cmap.New()
+	//client.watchValueEvents = cmap.New()
+	//client.watchChilrenEvents = cmap.New()
 	client.Log = logger
 	return client, nil
 }

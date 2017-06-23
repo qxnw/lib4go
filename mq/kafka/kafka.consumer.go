@@ -22,7 +22,7 @@ type kafkaConsumer struct {
 func NewKafkaConsumer(address string, opts ...mq.Option) (kafka *KafkaConsumer, err error) {
 	kafka = &KafkaConsumer{address: address, quitChan: make(chan struct{}, 0)}
 	kafka.OptionConf = &mq.OptionConf{}
-	kafka.consumers = cmap.New()
+	kafka.consumers = cmap.New(2)
 	for _, opt := range opts {
 		opt(kafka.OptionConf)
 	}

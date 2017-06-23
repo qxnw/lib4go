@@ -30,7 +30,7 @@ func init() {
 	tpls[cOracle] = OracleTPLContext{}
 	tpls[cOra] = OracleTPLContext{}
 	tpls[cSqlite] = SqliteTPLContext{}
-	tplCaches = cmap.New()
+	tplCaches = cmap.New(8)
 }
 
 //GetDBContext 获取数据库上下文操作

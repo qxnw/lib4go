@@ -30,9 +30,9 @@ type StandardRPS struct {
 
 func newStandardRPS() RPS {
 	return &StandardRPS{
-		m1:  NewRPSC(60, 3600),
-		m5:  NewRPSC(300, 3600),
-		m15: NewRPSC(900, 3600),
+		m1:  NewRPSC(60, 70),
+		m5:  NewRPSC(300, 350),
+		m15: NewRPSC(900, 910),
 	}
 }
 

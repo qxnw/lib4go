@@ -106,7 +106,6 @@ func (producer *StompProducer) sendLoop() {
 				}
 
 				err := producer.conn.Send(msg.Headers, msg.Data)
-				fmt.Println("send2:", msg, err)
 				if err != nil {
 					select {
 					case producer.backupMsg <- msg:
@@ -127,7 +126,6 @@ func (producer *StompProducer) sendLoop() {
 				}
 
 				err := producer.conn.Send(msg.Headers, msg.Data)
-				fmt.Println("send2:", msg, err)
 				if err != nil {
 					select {
 					case producer.backupMsg <- msg:
@@ -205,7 +203,6 @@ func (producer *StompProducer) Send(queue string, msg string, timeout time.Durat
 			fmt.Sprintf("%d000", time.Now().Add(timeout).Unix()))
 	}
 
-	fmt.Println("send:", queue, msg, timeout)
 	//producer.messages <- pm
 	select {
 	case producer.messages <- pm:

@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
-func transform(tpl string, event LogEvent) (result string) {
+func transform(tpl string, event *LogEvent) (result string) {
 	word, _ := regexp.Compile(`%\w+`)
 	//@变量, 将数据放入params中
 	result = word.ReplaceAllStringFunc(tpl, func(s string) string {
@@ -31,6 +32,8 @@ func transform(tpl string, event LogEvent) (result string) {
 			return event.Now.Format("04")
 		case "ss":
 			return event.Now.Format("05")
+		case "ms":
+			return strconv.Itoa(event.Now.Nanosecond() / 1e3)
 		case "level":
 			return strings.ToLower(event.Level)
 		case "l":
@@ -41,12 +44,14 @@ func transform(tpl string, event LogEvent) (result string) {
 			return fmt.Sprintf("%d", os.Getpid())
 		case "n":
 			return "\n"
+		case "caller":
+			return getCaller(8)
 		case "content":
 			return event.Content
 		default:
-			v, ok := event.Tags.Get(key)
+			v, ok := event.Tags[key]
 			if ok {
-				return v.(string)
+				return v
 			}
 			return ""
 		}

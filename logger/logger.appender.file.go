@@ -36,7 +36,7 @@ func NewFileAppender(path string, layout *Appender) (fa *FileAppender, err error
 }
 
 //Write 写入日志
-func (f *FileAppender) Write(event LogEvent) {
+func (f *FileAppender) Write(event *LogEvent) {
 	current := getLevel(event.Level)
 	if current < f.Level {
 		return

@@ -256,7 +256,6 @@ func aesEncrypt(plainData []byte, aesKey []byte) ([]byte, error) {
 	if len(plainData)%k != 0 {
 		plainData = PKCS7Pad(plainData, k)
 	}
-	fmt.Printf("aesEncrypt: after padding, plainData length = %d\n", len(plainData))
 
 	block, err := aes.NewCipher(aesKey)
 	if err != nil {

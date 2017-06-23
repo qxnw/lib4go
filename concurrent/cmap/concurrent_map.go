@@ -5,9 +5,6 @@ import (
 	"sync"
 )
 
-//SHARD_COUNT 共享map个数
-var SHARD_COUNT = 32
-
 //ConcurrentMap  线程安全的MAP，创建SHARD_COUNT个共享map(ConcurrentMapShared), 防止单个锁的瓶颈引用的性能问题
 type ConcurrentMap []*ConcurrentMapShared
 
@@ -18,9 +15,9 @@ type ConcurrentMapShared struct {
 }
 
 // New 创建ConcurrentMap，线程安全map
-func New() ConcurrentMap {
-	m := make(ConcurrentMap, SHARD_COUNT)
-	for i := 0; i < SHARD_COUNT; i++ {
+func New(count int) ConcurrentMap {
+	m := make(ConcurrentMap, count)
+	for i := 0; i < count; i++ {
 		m[i] = &ConcurrentMapShared{items: make(map[string]interface{})}
 	}
 	return m
@@ -28,7 +25,7 @@ func New() ConcurrentMap {
 
 //GetShard  根据KEY获取共享map
 func (m ConcurrentMap) GetShard(key string) *ConcurrentMapShared {
-	return m[uint(fnv32(key))%uint(SHARD_COUNT)]
+	return m[uint(fnv32(key))%uint(len(m))]
 }
 
 //MSet 根据map设置值
@@ -115,7 +112,8 @@ func (m ConcurrentMap) Get(key string) (interface{}, bool) {
 //Count  Returns the number of elements within the map.
 func (m ConcurrentMap) Count() int {
 	count := 0
-	for i := 0; i < SHARD_COUNT; i++ {
+	rcount := len(m)
+	for i := 0; i < rcount; i++ {
 		shard := m[i]
 		shard.RLock()
 		count += len(shard.items)
@@ -158,10 +156,11 @@ func (m *ConcurrentMap) Pop(key string) (v interface{}, exists bool) {
 //PopAll  Removes an element from the map and returns it
 func (m ConcurrentMap) PopAll() (v map[string]interface{}) {
 	v = make(map[string]interface{})
+	count := len(m)
 	ch := make(chan Tuple)
 	go func() {
 		wg := sync.WaitGroup{}
-		wg.Add(SHARD_COUNT)
+		wg.Add(count)
 		// Foreach shard.
 		for _, shard := range m {
 			go func(shard *ConcurrentMapShared) {
@@ -207,9 +206,10 @@ type Tuple struct {
 // Deprecated: using IterBuffered() will get a better performence
 func (m ConcurrentMap) Iter() <-chan Tuple {
 	ch := make(chan Tuple)
+	count := len(m)
 	go func() {
 		wg := sync.WaitGroup{}
-		wg.Add(SHARD_COUNT)
+		wg.Add(count)
 		// Foreach shard.
 		for _, shard := range m {
 			go func(shard *ConcurrentMapShared) {
@@ -231,9 +231,10 @@ func (m ConcurrentMap) Iter() <-chan Tuple {
 //IterBuffered Returns a buffered iterator which could be used in a for range loop.
 func (m ConcurrentMap) IterBuffered() <-chan Tuple {
 	ch := make(chan Tuple, m.Count())
+	count := len(m)
 	go func() {
 		wg := sync.WaitGroup{}
-		wg.Add(SHARD_COUNT)
+		wg.Add(count)
 		// Foreach shard.
 		for _, shard := range m {
 			go func(shard *ConcurrentMapShared) {
@@ -267,7 +268,8 @@ func (m ConcurrentMap) Items() map[string]interface{} {
 //Clear 删除所有元素
 func (m ConcurrentMap) Clear() {
 	wg := sync.WaitGroup{}
-	wg.Add(SHARD_COUNT)
+	count := len(m)
+	wg.Add(count)
 	// Foreach shard.
 	for _, shard := range m {
 		go func(shard *ConcurrentMapShared) {
@@ -337,7 +339,7 @@ func (m ConcurrentMap) Keys() []string {
 	go func() {
 		// Foreach shard.
 		wg := sync.WaitGroup{}
-		wg.Add(SHARD_COUNT)
+		wg.Add(count)
 		for _, shard := range m {
 			go func(shard *ConcurrentMapShared) {
 				// Foreach key, value pair.

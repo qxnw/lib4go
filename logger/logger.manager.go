@@ -10,8 +10,8 @@ import (
 var isOpen bool
 
 type ILoggerAppenderFactory interface {
-	MakeAppender(*Appender, LogEvent) (IAppender, error)
-	MakeUniq(*Appender, LogEvent) string
+	MakeAppender(*Appender, *LogEvent) (IAppender, error)
+	MakeUniq(*Appender, *LogEvent) string
 }
 
 type loggerManager struct {
@@ -29,7 +29,7 @@ type appenderEntity struct {
 func newLoggerManager() (m *loggerManager, err error) {
 	m = &loggerManager{isClose: false}
 	m.factory = &loggerAppenderFactory{}
-	m.appenders = cmap.New()
+	m.appenders = cmap.New(2)
 	m.configs = ReadConfig()
 	isOpen = len(m.configs) > 0
 	if isOpen {
@@ -42,7 +42,7 @@ func newLoggerManager() (m *loggerManager, err error) {
 
 // Log 将日志内容写入appender, 如果appender不存在则创建
 // callBack回调函数,如果不需要传nil
-func (a *loggerManager) Log(event LogEvent) {
+func (a *loggerManager) Log(event *LogEvent) {
 	if a.isClose {
 		return
 	}
@@ -65,7 +65,7 @@ func (a *loggerManager) Log(event LogEvent) {
 		}
 	}
 }
-func (a *loggerManager) write(capp *appenderEntity, format string, event LogEvent) {
+func (a *loggerManager) write(capp *appenderEntity, format string, event *LogEvent) {
 	defer func() {
 		if r := recover(); r != nil {
 			sysLoggerError(r)

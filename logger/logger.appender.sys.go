@@ -22,7 +22,7 @@ func sysLoggerWrite(level string, content interface{}) {
 		level = "All"
 	}
 
-	e := LogEvent{}
+	e := &LogEvent{}
 	e.Now = time.Now()
 	e.Level = level
 	e.Name = "sys"

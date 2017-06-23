@@ -1,7 +1,7 @@
 package logger
 
 type IAppender interface {
-	Write(LogEvent)
+	Write(*LogEvent)
 	Close()
 }
 

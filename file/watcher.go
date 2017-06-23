@@ -24,7 +24,7 @@ type DirWatcher struct {
 func NewDirWatcher(callback func(), timeSpan time.Duration) *DirWatcher {
 	w := &DirWatcher{callback: callback, lastTime: time.Now(), timeSpan: timeSpan}
 	w.closeCh = make(chan struct{}, 1)
-	w.files = cmap.New()
+	w.files = cmap.New(4)
 	go w.watch()
 	return w
 }

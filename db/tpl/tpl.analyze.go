@@ -17,7 +17,9 @@ type tplCache struct {
 
 //AnalyzeTPLFromCache 从缓存中获取已解析的SQL语句
 func AnalyzeTPLFromCache(name string, tpl string, input map[string]interface{}, prefix func() string) (sql string, params []interface{}) {
-	key := fmt.Sprintf("%s_%s", name, tpl)
+	sql, params, _ = AnalyzeTPL(tpl, input, prefix)
+	return
+	/*key := fmt.Sprintf("%s_%s", name, tpl)
 	b, cache, _ := tplCaches.SetIfAbsentCb(key, func(i ...interface{}) (interface{}, error) {
 		sql, params, names := AnalyzeTPL(tpl, input, prefix)
 		return &tplCache{sql: sql, params: params, names: names}, nil
@@ -35,7 +37,7 @@ func AnalyzeTPLFromCache(name string, tpl string, input map[string]interface{}, 
 			params = append(params, nil)
 		}
 	}
-	return value.sql, params
+	return value.sql, params*/
 }
 
 //AnalyzeTPL 解析模板内容，并返回解析后的SQL语句，入输入参数

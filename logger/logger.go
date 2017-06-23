@@ -12,12 +12,19 @@ import (
 
 //Logger 日志对象
 type Logger struct {
-	names    []string
-	sessions []string
-	tags     cmap.ConcurrentMap
+	names    string
+	sessions string
+}
+type event struct {
+	f       int
+	tp      string
+	fm      string
+	name    string
+	session string
+	value   []interface{}
 }
 
-var loggerEventChan chan LogEvent
+var loggerEventChan chan event
 var loggerCloserChan chan *Logger
 var loggerPool *sync.Pool
 var loggers cmap.ConcurrentMap
@@ -26,7 +33,7 @@ var manager *loggerManager
 func init() {
 	loggerPool = &sync.Pool{
 		New: func() interface{} {
-			return New()
+			return New("")
 		},
 	}
 
@@ -37,7 +44,7 @@ func init() {
 		fmt.Println("logger err:未启用日志")
 		return
 	}
-	loggerEventChan = make(chan LogEvent, 2000)
+	loggerEventChan = make(chan event, 2000)
 	loggerCloserChan = make(chan *Logger, 1000)
 	for i := 0; i < 100; i++ {
 		go logNow()
@@ -55,21 +62,18 @@ func ResetConfig(conf string) (err error) {
 }
 
 //New 根据一个或多个日志名称构建日志对象，该日志对象具有新的session id系统不会缓存该日志组件
-func New(names ...string) (logger *Logger) {
+func New(names string) (logger *Logger) {
 	logger = &Logger{}
 	logger.names = names
-	logger.tags = cmap.New()
-	for range names {
-		logger.sessions = append(logger.sessions, CreateSession())
-	}
+	logger.sessions = CreateSession()
 	return logger
 }
 
 //GetSession 根据日志名称及session获取日志组件
 func GetSession(name string, sessionID string) (logger *Logger) {
 	logger = loggerPool.Get().(*Logger)
-	logger.names = []string{name}
-	logger.sessions = []string{sessionID}
+	logger.names = name
+	logger.sessions = sessionID
 	return logger
 }
 
@@ -90,7 +94,7 @@ func (logger *Logger) SetTag(name string, value string) {
 //GetSessionID 获取当前日志的session id
 func (logger *Logger) GetSessionID() string {
 	if len(logger.sessions) > 0 {
-		return logger.sessions[0]
+		return logger.sessions
 	}
 	return ""
 }
@@ -100,10 +104,7 @@ func (logger *Logger) Debug(content ...interface{}) {
 	if !isOpen {
 		return
 	}
-	for i, name := range logger.names {
-		event := NewLogEvent(name, SLevel_Debug, logger.sessions[i], getString(content...), logger.tags)
-		loggerEventChan <- event
-	}
+	loggerEventChan <- event{f: 1, tp: SLevel_Debug, name: logger.names, session: logger.sessions, value: content}
 }
 
 //Debugf 输出debug日志
@@ -111,10 +112,7 @@ func (logger *Logger) Debugf(format string, content ...interface{}) {
 	if !isOpen {
 		return
 	}
-	for i, name := range logger.names {
-		event := NewLogEvent(name, SLevel_Debug, logger.sessions[i], fmt.Sprintf(format, content...), logger.tags)
-		loggerEventChan <- event
-	}
+	loggerEventChan <- event{f: 0, fm: format, tp: SLevel_Debug, name: logger.names, session: logger.sessions, value: content}
 }
 
 //Info 输出info日志
@@ -122,10 +120,7 @@ func (logger *Logger) Info(content ...interface{}) {
 	if !isOpen {
 		return
 	}
-	for i, name := range logger.names {
-		event := NewLogEvent(name, SLevel_Info, logger.sessions[i], getString(content...), logger.tags)
-		loggerEventChan <- event
-	}
+	loggerEventChan <- event{f: 1, tp: SLevel_Info, name: logger.names, session: logger.sessions, value: content}
 }
 
 //Infof 输出info日志
@@ -133,10 +128,7 @@ func (logger *Logger) Infof(format string, content ...interface{}) {
 	if !isOpen {
 		return
 	}
-	for i, name := range logger.names {
-		event := NewLogEvent(name, SLevel_Info, logger.sessions[i], fmt.Sprintf(format, content...), logger.tags)
-		loggerEventChan <- event
-	}
+	loggerEventChan <- event{f: 0, fm: format, tp: SLevel_Info, name: logger.names, session: logger.sessions, value: content}
 }
 
 //Warn 输出info日志
@@ -144,10 +136,7 @@ func (logger *Logger) Warn(content ...interface{}) {
 	if !isOpen {
 		return
 	}
-	for i, name := range logger.names {
-		event := NewLogEvent(name, SLevel_Warn, logger.sessions[i], getString(content...), logger.tags)
-		loggerEventChan <- event
-	}
+	loggerEventChan <- event{f: 1, tp: SLevel_Warn, name: logger.names, session: logger.sessions, value: content}
 }
 
 //Warnf 输出info日志
@@ -155,10 +144,7 @@ func (logger *Logger) Warnf(format string, content ...interface{}) {
 	if !isOpen {
 		return
 	}
-	for i, name := range logger.names {
-		event := NewLogEvent(name, SLevel_Warn, logger.sessions[i], fmt.Sprintf(format, content...), logger.tags)
-		loggerEventChan <- event
-	}
+	loggerEventChan <- event{f: 0, fm: format, tp: SLevel_Warn, name: logger.names, session: logger.sessions, value: content}
 }
 
 //Error 输出Error日志
@@ -166,10 +152,7 @@ func (logger *Logger) Error(content ...interface{}) {
 	if !isOpen {
 		return
 	}
-	for i, name := range logger.names {
-		event := NewLogEvent(name, SLevel_Error, logger.sessions[i], getString(content...), logger.tags)
-		loggerEventChan <- event
-	}
+	loggerEventChan <- event{f: 1, tp: SLevel_Error, name: logger.names, session: logger.sessions, value: content}
 
 }
 
@@ -178,10 +161,7 @@ func (logger *Logger) Errorf(format string, content ...interface{}) {
 	if !isOpen {
 		return
 	}
-	for i, name := range logger.names {
-		event := NewLogEvent(name, SLevel_Error, logger.sessions[i], fmt.Sprintf(format, content...), logger.tags)
-		loggerEventChan <- event
-	}
+	loggerEventChan <- event{f: 0, fm: format, tp: SLevel_Error, name: logger.names, session: logger.sessions, value: content}
 }
 
 //Fatal 输出Fatal日志
@@ -189,10 +169,7 @@ func (logger *Logger) Fatal(content ...interface{}) {
 	if !isOpen {
 		return
 	}
-	for i, name := range logger.names {
-		event := NewLogEvent(name, SLevel_Fatal, logger.sessions[i], getString(content...), logger.tags)
-		loggerEventChan <- event
-	}
+	loggerEventChan <- event{f: 1, tp: SLevel_Fatal, name: logger.names, session: logger.sessions, value: content}
 }
 
 //Fatalf 输出Fatalf日志
@@ -200,10 +177,8 @@ func (logger *Logger) Fatalf(format string, content ...interface{}) {
 	if !isOpen {
 		return
 	}
-	for i, name := range logger.names {
-		event := NewLogEvent(name, SLevel_Fatal, logger.sessions[i], fmt.Sprintf(format, content...), logger.tags)
-		loggerEventChan <- event
-	}
+	loggerEventChan <- event{f: 0, fm: format, tp: SLevel_Fatal, name: logger.names, session: logger.sessions, value: content}
+
 }
 
 //Fatalln 输出Fatal日志
@@ -239,14 +214,23 @@ func logNow() {
 			if !ok {
 				return
 			}
-			manager.Log(v)
+			if v.f == 1 {
+				event := NewLogEvent(v.name, v.tp, v.session, getString(v.value...), nil)
+				manager.Log(event)
+				continue
+			}
+			event := NewLogEvent(v.name, v.tp, v.session, fmt.Sprintf(v.fm, v.value...), nil)
+			manager.Log(event)
 		}
 	}
 }
 func getString(c ...interface{}) string {
+	if len(c) == 1 {
+		return fmt.Sprintf("%v", c[0])
+	}
 	var buf bytes.Buffer
 	for i := 0; i < len(c); i++ {
-		buf.WriteString(fmt.Sprintf("%v", c[i]))
+		buf.WriteString(fmt.Sprint(c[i]))
 		if i != len(c)-1 {
 			buf.WriteString(" ")
 		}
