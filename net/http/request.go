@@ -53,8 +53,6 @@ func (c *HTTPClientRequest) Request() (content string, status int, err error) {
 		return
 	}
 	status = resp.StatusCode
-
 	content, err = encoding.Convert(body, c.encoding)
-
 	return
 }

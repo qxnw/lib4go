@@ -249,7 +249,6 @@ func (c *HTTPClient) Get(url string, args ...string) (content string, status int
 	if err != nil {
 		return
 	}
-
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return

@@ -23,9 +23,8 @@ type Expression struct {
 }
 
 //Check 翻译模式字符串，并检查值是否符合条件
-func Check(query string, input map[string]string) bool {
+func Check(query string, trf *Transform) bool {
 	exps := Parse(query)
-	trf := NewMap(input)
 	for _, v := range exps {
 		left := trf.Translate(v.Left)
 		right := trf.Translate(v.Right)
