@@ -10,7 +10,7 @@ import (
 type Useage struct {
 	Total       float64 `json:"total"`
 	Idle        float64 `json:"idle"`
-	UsedPercent float64 `json:"used"`
+	UsedPercent float64 `json:"percent"`
 }
 
 // GetInfo 获取当前系统CPU使用的情况数据

@@ -7,7 +7,7 @@ type Useage struct {
 	Total       uint64  `json:"total"`
 	Idle        uint64  `json:"idle"`
 	Used        uint64  `json:"used"`
-	UsedPercent float64 `json:"used"`
+	UsedPercent float64 `json:"percent"`
 }
 
 // GetInfo 获取当前系统内存使用数据

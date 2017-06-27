@@ -87,6 +87,11 @@ func (r *InfluxClient) Query(sql string) (result string, err error) {
 	result = string(buf)
 	return
 }
+func (r *InfluxClient) SendLineProto(data string) error {
+	_, err := r.client.WriteLineProtocol(data, r.database, "", "", "")
+	return err
+
+}
 func (r *InfluxClient) Send(measurement string, tags map[string]string, fileds map[string]interface{}) error {
 	var pts []Point
 	pts = append(pts, Point{

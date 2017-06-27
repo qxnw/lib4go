@@ -10,7 +10,7 @@ import (
 type Useage struct {
 	Total       uint64  `json:"total"`
 	Idle        uint64  `json:"idle"`
-	UsedPercent float64 `json:"used"`
+	UsedPercent float64 `json:"percent"`
 }
 
 // GetInfo 获取磁盘使用信息
