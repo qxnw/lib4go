@@ -3,7 +3,6 @@ package db
 import (
 	"fmt"
 	"strconv"
-	"time"
 )
 
 type QueryRow map[string]interface{}
@@ -24,25 +23,17 @@ func (q QueryRow) GetInt(name string) int {
 	return 0
 }
 
-//GetTime 从对象中获取数据值，如果不是字符串则返回0
-func (q QueryRow) GetTime(name string) time.Time {
-	if value, ok := q[name].(time.Time); ok {
-		return value
-	}
-	return time.Time{}
-}
-
 //GetFloat32 从对象中获取数据值，如果不是字符串则返回0
 func (q QueryRow) GetFloat32(name string) float32 {
-	if value, ok := q[name].(float32); ok {
-		return value
+	if value, err := strconv.ParseFloat(fmt.Sprintf("%v", q[name]), 32); err == nil {
+		return float32(value)
 	}
 	return 0
 }
 
 //GetFloat64 从对象中获取数据值，如果不是字符串则返回0
 func (q QueryRow) GetFloat64(name string) float64 {
-	if value, ok := q[name].(float64); ok {
+	if value, err := strconv.ParseFloat(fmt.Sprintf("%v", q[name]), 64); err == nil {
 		return value
 	}
 	return 0
@@ -64,31 +55,23 @@ func (q QueryRow) GetMustString(name string) (string, error) {
 
 //GetMustInt 从对象中获取数据值，如果不是字符串则返回0
 func (q QueryRow) GetMustInt(name string) (int, error) {
-	if value, ok := q[name].(int); ok {
+	if value, err := strconv.Atoi(fmt.Sprintf("%v", q[name])); err == nil {
 		return value, nil
 	}
 	return 0, fmt.Errorf("不存在列:%s", name)
 }
 
-//GetMustTime 从对象中获取数据值，如果不是字符串则返回0
-func (q QueryRow) GetMustTime(name string) (time.Time, error) {
-	if value, ok := q[name].(time.Time); ok {
-		return value, nil
-	}
-	return time.Time{}, fmt.Errorf("不存在列:%s", name)
-}
-
 //GetMustFloat32 从对象中获取数据值，如果不是字符串则返回0
 func (q QueryRow) GetMustFloat32(name string) (float32, error) {
-	if value, ok := q[name].(float32); ok {
-		return value, nil
+	if value, err := strconv.ParseFloat(fmt.Sprintf("%v", q[name]), 32); err == nil {
+		return float32(value), nil
 	}
 	return 0, fmt.Errorf("不存在列:%s", name)
 }
 
 //GetMustFloat64 从对象中获取数据值，如果不是字符串则返回0
 func (q QueryRow) GetMustFloat64(name string) (float64, error) {
-	if value, ok := q[name].(float64); ok {
+	if value, err := strconv.ParseFloat(fmt.Sprintf("%v", q[name]), 64); err == nil {
 		return value, nil
 	}
 	return 0, fmt.Errorf("不存在列:%s", name)

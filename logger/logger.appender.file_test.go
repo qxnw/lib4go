@@ -43,7 +43,7 @@ func TestWrite(t *testing.T) {
 		t.Errorf("test fail:%v", err)
 	}
 
-	event := LogEvent{Level: "All", Output: "output"}
+	event := &LogEvent{Level: "All", Output: "output"}
 	f.Write(event)
 
 	// 不能写日志
@@ -66,13 +66,13 @@ func TestWriteToFileAndReadCheck(tx *testing.T) {
 		tx.Errorf("test fail:%v", err)
 	}
 
-	events := []LogEvent{
-		LogEvent{Level: "Debug", Now: t, Name: "test", Session: "12345678", Content: "content", Output: "output1"},
-		LogEvent{Level: "Debug", Now: t, Name: "test", Session: "12345678", Content: "content", Output: "output2"},
-		LogEvent{Level: "Info", Now: t, Name: "test", Session: "12345678", Content: "content", Output: "output3"},
-		LogEvent{Level: "Fatal", Now: t, Name: "test", Session: "12345678", Content: "content", Output: "output4"},
-		LogEvent{Level: "Error", Now: t, Name: "test", Session: "12345678", Content: "content", Output: "output5"},
-		LogEvent{Level: "Error", Now: t, Name: "test", Session: "12345678", Content: "content", Output: "output6"},
+	events := []*LogEvent{
+		&LogEvent{Level: "Debug", Now: t, Name: "test", Session: "12345678", Content: "content", Output: "output1"},
+		&LogEvent{Level: "Debug", Now: t, Name: "test", Session: "12345678", Content: "content", Output: "output2"},
+		&LogEvent{Level: "Info", Now: t, Name: "test", Session: "12345678", Content: "content", Output: "output3"},
+		&LogEvent{Level: "Fatal", Now: t, Name: "test", Session: "12345678", Content: "content", Output: "output4"},
+		&LogEvent{Level: "Error", Now: t, Name: "test", Session: "12345678", Content: "content", Output: "output5"},
+		&LogEvent{Level: "Error", Now: t, Name: "test", Session: "12345678", Content: "content", Output: "output6"},
 	}
 	for _, event := range events {
 		fa.Write(event)
@@ -80,7 +80,7 @@ func TestWriteToFileAndReadCheck(tx *testing.T) {
 	fa.Close()
 
 	// 读取文件，进行校验
-	filePath := file.GetAbs(path)
+	filePath, _ := file.GetAbs(path)
 	f, err := os.Open(filePath)
 	if err != nil {
 		tx.Errorf("test fail:%v", err)

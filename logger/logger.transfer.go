@@ -48,6 +48,8 @@ func transform(tpl string, event *LogEvent) (result string) {
 			return getCaller(8)
 		case "content":
 			return event.Content
+		case "index":
+			return fmt.Sprintf("%d", event.Index)
 		default:
 			v, ok := event.Tags[key]
 			if ok {

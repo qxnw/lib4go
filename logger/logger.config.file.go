@@ -63,6 +63,7 @@ func NewAppender(conf string) (appenders []*Appender, err error) {
 
 // TimeWriteToFile 定时写入文件时间间隔
 var TimeWriteToFile = time.Second
+var TimeWriteToSTD = time.Microsecond * 200
 
 func read() (appenders []*Appender, err error) {
 	currentAppenders := make([]*Appender, 0, 2)

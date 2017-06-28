@@ -3,6 +3,7 @@ package logger
 import (
 	"fmt"
 	"sync"
+	"sync/atomic"
 
 	"bytes"
 
@@ -12,6 +13,7 @@ import (
 
 //Logger 日志对象
 type Logger struct {
+	index    int64
 	names    string
 	sessions string
 }
@@ -24,7 +26,7 @@ type event struct {
 	value   []interface{}
 }
 
-var loggerEventChan chan event
+var loggerEventChan chan *LogEvent
 var loggerCloserChan chan *Logger
 var loggerPool *sync.Pool
 var loggers cmap.ConcurrentMap
@@ -44,9 +46,9 @@ func init() {
 		fmt.Println("logger err:未启用日志")
 		return
 	}
-	loggerEventChan = make(chan event, 2000)
+	loggerEventChan = make(chan *LogEvent, 2000)
 	loggerCloserChan = make(chan *Logger, 1000)
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 50; i++ {
 		go logNow()
 	}
 }
@@ -63,7 +65,7 @@ func ResetConfig(conf string) (err error) {
 
 //New 根据一个或多个日志名称构建日志对象，该日志对象具有新的session id系统不会缓存该日志组件
 func New(names string) (logger *Logger) {
-	logger = &Logger{}
+	logger = &Logger{index: 100}
 	logger.names = names
 	logger.sessions = CreateSession()
 	return logger
@@ -72,6 +74,7 @@ func New(names string) (logger *Logger) {
 //GetSession 根据日志名称及session获取日志组件
 func GetSession(name string, sessionID string) (logger *Logger) {
 	logger = loggerPool.Get().(*Logger)
+
 	logger.names = name
 	logger.sessions = sessionID
 	return logger
@@ -104,7 +107,7 @@ func (logger *Logger) Debug(content ...interface{}) {
 	if !isOpen {
 		return
 	}
-	loggerEventChan <- event{f: 1, tp: SLevel_Debug, name: logger.names, session: logger.sessions, value: content}
+	logger.log(SLevel_Debug, content...)
 }
 
 //Debugf 输出debug日志
@@ -112,7 +115,7 @@ func (logger *Logger) Debugf(format string, content ...interface{}) {
 	if !isOpen {
 		return
 	}
-	loggerEventChan <- event{f: 0, fm: format, tp: SLevel_Debug, name: logger.names, session: logger.sessions, value: content}
+	logger.logfmt(format, SLevel_Debug, content...)
 }
 
 //Info 输出info日志
@@ -120,7 +123,7 @@ func (logger *Logger) Info(content ...interface{}) {
 	if !isOpen {
 		return
 	}
-	loggerEventChan <- event{f: 1, tp: SLevel_Info, name: logger.names, session: logger.sessions, value: content}
+	logger.log(SLevel_Info, content...)
 }
 
 //Infof 输出info日志
@@ -128,7 +131,7 @@ func (logger *Logger) Infof(format string, content ...interface{}) {
 	if !isOpen {
 		return
 	}
-	loggerEventChan <- event{f: 0, fm: format, tp: SLevel_Info, name: logger.names, session: logger.sessions, value: content}
+	logger.logfmt(format, SLevel_Info, content...)
 }
 
 //Warn 输出info日志
@@ -136,7 +139,7 @@ func (logger *Logger) Warn(content ...interface{}) {
 	if !isOpen {
 		return
 	}
-	loggerEventChan <- event{f: 1, tp: SLevel_Warn, name: logger.names, session: logger.sessions, value: content}
+	logger.log(SLevel_Warn, content...)
 }
 
 //Warnf 输出info日志
@@ -144,7 +147,7 @@ func (logger *Logger) Warnf(format string, content ...interface{}) {
 	if !isOpen {
 		return
 	}
-	loggerEventChan <- event{f: 0, fm: format, tp: SLevel_Warn, name: logger.names, session: logger.sessions, value: content}
+	logger.logfmt(format, SLevel_Warn, content...)
 }
 
 //Error 输出Error日志
@@ -152,8 +155,7 @@ func (logger *Logger) Error(content ...interface{}) {
 	if !isOpen {
 		return
 	}
-	loggerEventChan <- event{f: 1, tp: SLevel_Error, name: logger.names, session: logger.sessions, value: content}
-
+	logger.log(SLevel_Error, content...)
 }
 
 //Errorf 输出Errorf日志
@@ -161,7 +163,7 @@ func (logger *Logger) Errorf(format string, content ...interface{}) {
 	if !isOpen {
 		return
 	}
-	loggerEventChan <- event{f: 0, fm: format, tp: SLevel_Error, name: logger.names, session: logger.sessions, value: content}
+	logger.logfmt(format, SLevel_Error, content...)
 }
 
 //Fatal 输出Fatal日志
@@ -169,7 +171,7 @@ func (logger *Logger) Fatal(content ...interface{}) {
 	if !isOpen {
 		return
 	}
-	loggerEventChan <- event{f: 1, tp: SLevel_Fatal, name: logger.names, session: logger.sessions, value: content}
+	logger.log(SLevel_Fatal, content...)
 }
 
 //Fatalf 输出Fatalf日志
@@ -177,7 +179,7 @@ func (logger *Logger) Fatalf(format string, content ...interface{}) {
 	if !isOpen {
 		return
 	}
-	loggerEventChan <- event{f: 0, fm: format, tp: SLevel_Fatal, name: logger.names, session: logger.sessions, value: content}
+	logger.logfmt(format, SLevel_Fatal, content...)
 
 }
 
@@ -205,6 +207,14 @@ func (logger *Logger) Println(content ...interface{}) {
 	logger.Print(content...)
 
 }
+func (logger *Logger) logfmt(f string, level string, content ...interface{}) {
+	event := NewLogEvent(logger.names, level, logger.sessions, fmt.Sprintf(f, content...), nil, atomic.AddInt64(&logger.index, 1))
+	loggerEventChan <- event
+}
+func (logger *Logger) log(level string, content ...interface{}) {
+	event := NewLogEvent(logger.names, level, logger.sessions, getString(content...), nil, atomic.AddInt64(&logger.index, 1))
+	loggerEventChan <- event
+}
 func logNow() {
 	for {
 		select {
@@ -214,13 +224,8 @@ func logNow() {
 			if !ok {
 				return
 			}
-			if v.f == 1 {
-				event := NewLogEvent(v.name, v.tp, v.session, getString(v.value...), nil)
-				manager.Log(event)
-				continue
-			}
-			event := NewLogEvent(v.name, v.tp, v.session, fmt.Sprintf(v.fm, v.value...), nil)
-			manager.Log(event)
+			manager.Log(v)
+			v.Close()
 		}
 	}
 }

@@ -70,6 +70,27 @@ func (r *InfluxClient) run() {
 		}
 	}
 }
+func (r *InfluxClient) QueryMaps(sql string) (rx [][]map[string]interface{}, err error) {
+	response, err := r.client.Query(Query{Command: sql, Database: r.database})
+	if err != nil {
+		err = fmt.Errorf("query.error:%v", err)
+		return
+	}
+	if err = response.Error(); err != nil {
+		return nil, fmt.Errorf("response.error:%v", err)
+	}
+	rx = make([][]map[string]interface{}, len(response.Results), len(response.Results))
+	for i, v := range response.Results {
+		rx[i] = make([]map[string]interface{}, len(v.Series), len(v.Series))
+		for m, row := range v.Series {
+			rx[i][m] = make(map[string]interface{})
+			for y, col := range row.Columns {
+				rx[i][m][col] = row.Values[m][y]
+			}
+		}
+	}
+	return rx, nil
+}
 func (r *InfluxClient) Query(sql string) (result string, err error) {
 	response, err := r.client.Query(Query{Command: sql, Database: r.database})
 	if err != nil {
