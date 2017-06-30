@@ -9,10 +9,7 @@ type QueryRow map[string]interface{}
 
 //GetString 从对象中获取数据值，如果不是字符串则返回空
 func (q QueryRow) GetString(name string) string {
-	if value, ok := q[name].(string); ok {
-		return value
-	}
-	return ""
+	return fmt.Sprintf("%v", q[name])
 }
 
 //GetInt 从对象中获取数据值，如果不是字符串则返回0
