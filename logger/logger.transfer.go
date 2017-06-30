@@ -50,6 +50,8 @@ func transform(tpl string, event *LogEvent) (result string) {
 			return event.Content
 		case "index":
 			return fmt.Sprintf("%d", event.Index)
+		case "ip":
+			return LocalIP
 		default:
 			v, ok := event.Tags[key]
 			if ok {

@@ -79,15 +79,20 @@ func (r *InfluxClient) QueryMaps(sql string) (rx [][]map[string]interface{}, err
 	if err = response.Error(); err != nil {
 		return nil, fmt.Errorf("response.error:%v", err)
 	}
-	rx = make([][]map[string]interface{}, len(response.Results), len(response.Results))
-	for i, v := range response.Results {
-		rx[i] = make([]map[string]interface{}, len(v.Series), len(v.Series))
-		for m, row := range v.Series {
-			rx[i][m] = make(map[string]interface{})
-			for y, col := range row.Columns {
-				rx[i][m][col] = row.Values[m][y]
+	rx = make([][]map[string]interface{}, 0, len(response.Results))
+	for _, v := range response.Results {
+		result := make([]map[string]interface{}, 0, 0)
+		for _, row := range v.Series {
+			for _, value := range row.Values {
+				srow := make(map[string]interface{})
+				for y, col := range row.Columns {
+					srow[col] = value[y]
+				}
+				result = append(result, srow)
 			}
+
 		}
+		rx = append(rx, result)
 	}
 	return rx, nil
 }
@@ -109,7 +114,7 @@ func (r *InfluxClient) Query(sql string) (result string, err error) {
 	return
 }
 func (r *InfluxClient) SendLineProto(data string) error {
-	_, err := r.client.WriteLineProtocol(data, r.database, "", "", "")
+	_, err := r.client.WriteLineProtocol(data, r.database, "default", "us", "")
 	return err
 
 }

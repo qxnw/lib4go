@@ -6,6 +6,12 @@ import (
 	"strings"
 )
 
+var LocalIP string
+
+func init() {
+	LocalIP = GetLocalIPAddress()
+}
+
 //QueryStringToMap 将URL查询字符串中的参数转换成map
 func QueryStringToMap(urlQuery string) (result map[string]interface{}, err error) {
 	index := strings.IndexAny(urlQuery, "?")

@@ -8,6 +8,7 @@ import (
 	"bytes"
 
 	"github.com/qxnw/lib4go/concurrent/cmap"
+	"github.com/qxnw/lib4go/net"
 	"github.com/qxnw/lib4go/utility"
 )
 
@@ -16,6 +17,7 @@ type Logger struct {
 	index    int64
 	names    string
 	sessions string
+	tags     map[string]string
 }
 type event struct {
 	f       int
@@ -31,6 +33,7 @@ var loggerCloserChan chan *Logger
 var loggerPool *sync.Pool
 var loggers cmap.ConcurrentMap
 var manager *loggerManager
+var LocalIP string
 
 func init() {
 	loggerPool = &sync.Pool{
@@ -38,7 +41,7 @@ func init() {
 			return New("")
 		},
 	}
-
+	LocalIP = net.GetLocalIPAddress()
 	register(appender_file, readFromFile)
 	var err error
 	manager, err = newLoggerManager()
@@ -72,11 +75,17 @@ func New(names string) (logger *Logger) {
 }
 
 //GetSession 根据日志名称及session获取日志组件
-func GetSession(name string, sessionID string) (logger *Logger) {
+func GetSession(name string, sessionID string, tags ...string) (logger *Logger) {
 	logger = loggerPool.Get().(*Logger)
-
 	logger.names = name
 	logger.sessions = sessionID
+	logger.tags = make(map[string]string)
+	if len(tags) > 0 && len(tags) != 2 {
+		panic(fmt.Sprintf("日志输入参数错误，扩展参数必须成对出现:%s,%v", name, tags))
+	}
+	for i := 0; i < len(tags)-1; i++ {
+		logger.tags[tags[i]] = tags[i+1]
+	}
 	return logger
 }
 
@@ -91,7 +100,7 @@ func (logger *Logger) Close() {
 
 //SetTag 设置tag
 func (logger *Logger) SetTag(name string, value string) {
-	logger.SetTag(name, value)
+	logger.tags[name] = value
 }
 
 //GetSessionID 获取当前日志的session id
