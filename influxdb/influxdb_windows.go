@@ -24,17 +24,6 @@ type InfluxDB struct {
 	config ConfigOptions
 }
 
-//NewJSON 根据json初始化influxdb
-func NewJSON(config string) (i *InfluxDB, err error) {
-	conf := ConfigOptions{}
-	// err = json.Unmarshal([]byte(config), &i.config)
-	err = json.Unmarshal([]byte(config), &conf)
-	if err != nil {
-		return nil, fmt.Errorf("influxdb 配置文件有误:%v", err)
-	}
-	return New(conf)
-}
-
 // New 新建一个influxdb的环境
 func New(config ConfigOptions) (i *InfluxDB, err error) {
 	i = &InfluxDB{}
