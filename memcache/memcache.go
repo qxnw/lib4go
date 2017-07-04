@@ -36,7 +36,6 @@ func (c *MemcacheClient) Increment(key string, delta uint64) (n uint64, err erro
 
 //Gets 获取多条数据
 func (c *MemcacheClient) Gets(key ...string) (r []string, err error) {
-
 	data, err := c.client.GetMulti(key)
 	if err != nil {
 		return nil, err

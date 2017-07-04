@@ -32,12 +32,15 @@ type StompProducer struct {
 //NewStompProducer 创建新的producer
 func NewStompProducer(address string, opts ...mq.Option) (producer *StompProducer, err error) {
 	producer = &StompProducer{address: address}
-	producer.OptionConf = &mq.OptionConf{Logger: logger.GetSession("mq.producer", logger.CreateSession())}
+	producer.OptionConf = &mq.OptionConf{}
 	producer.messages = make(chan *mq.ProcuderMessage, 10000)
 	producer.backupMsg = make(chan *mq.ProcuderMessage, 100)
 	producer.closeCh = make(chan struct{})
 	for _, opt := range opts {
 		opt(producer.OptionConf)
+	}
+	if producer.Logger == nil {
+		producer.Logger = logger.GetSession("mq.producer", logger.CreateSession())
 	}
 	if strings.EqualFold(producer.OptionConf.Version, "") {
 		producer.OptionConf.Version = "1.1"
@@ -96,7 +99,7 @@ func (producer *StompProducer) sendLoop() {
 					select {
 					case producer.backupMsg <- msg:
 					default:
-						producer.Logger.Errorf("消息无法放入备份队列(%s):%s", msg.Queue, msg.Data)
+						producer.Logger.Errorf("重试发送失败，备份队列已满无法放入队列(%s):%s", msg.Queue, msg.Data)
 					}
 					break Loop1
 				}
@@ -110,7 +113,7 @@ func (producer *StompProducer) sendLoop() {
 					select {
 					case producer.backupMsg <- msg:
 					default:
-						producer.Logger.Errorf("消息无法放入备份队列(%s):%s", msg.Queue, msg.Data)
+						producer.Logger.Errorf("发送失败，备份队列已满无法放入队列(%s):%s", msg.Queue, msg.Data)
 					}
 					break Loop1
 				}
@@ -130,7 +133,7 @@ func (producer *StompProducer) sendLoop() {
 					select {
 					case producer.backupMsg <- msg:
 					default:
-						producer.Logger.Errorf("消息无法放入备份队列(%s):%s", msg.Queue, msg.Data)
+						producer.Logger.Errorf("备份队列已满，无法放入队列(%s):%s", msg.Queue, msg.Data)
 					}
 					break Loop2
 				}
@@ -208,7 +211,7 @@ func (producer *StompProducer) Send(queue string, msg string, timeout time.Durat
 	case producer.messages <- pm:
 		return nil
 	default:
-		return errors.New("producer无法连接，消息发送失败")
+		return errors.New("producer无法连接到MQ服务器，消息队列已满无法发送")
 	}
 }
 

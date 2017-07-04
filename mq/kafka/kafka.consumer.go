@@ -1,6 +1,9 @@
 package kafka
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/jdamick/kafka"
 	"github.com/qxnw/lib4go/concurrent/cmap"
 	"github.com/qxnw/lib4go/mq"
@@ -39,16 +42,26 @@ func (k *KafkaConsumer) Consume(queue string, call func(mq.IMessage)) (err error
 	_, cnsmr, _ := k.consumers.SetIfAbsentCb(queue, func(i ...interface{}) (interface{}, error) {
 		c := &kafkaConsumer{}
 		c.consumer = kafka.NewBrokerConsumer(k.address, queue, 0, 0, 1048576)
-		c.msgQueue = make(chan *kafka.Message, 10)
+		c.msgQueue = make(chan *kafka.Message, 10000)
 		return c, nil
 	})
 	consumer := cnsmr.(*kafkaConsumer)
-	go consumer.consumer.ConsumeOnChannel(consumer.msgQueue, 10, k.quitChan)
+	conChan := make(chan error, 1)
+	go func() {
+		_, err = consumer.consumer.ConsumeOnChannel(consumer.msgQueue, 10, k.quitChan)
+		conChan <- err
+	}()
+	select {
+	case <-time.After(time.Second):
+	case err := <-conChan:
+		return err
+	}
 	go func() {
 	LOOP:
 		for {
 			select {
 			case msg, ok := <-consumer.msgQueue:
+				fmt.Println(msg, ok)
 				if ok {
 					call(NewKafkaMessage(msg))
 				} else {

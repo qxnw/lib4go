@@ -110,7 +110,7 @@ func (consumer *StompConsumer) ConnectOnce() (err error) {
 		go func() {
 			err = consumer.consume(key, value.(func(mq.IMessage)))
 			if err != nil {
-				fmt.Println(err)
+				consumer.Logger.Errorf("consume失败：%v", err)
 			}
 		}()
 		return true
