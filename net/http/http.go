@@ -13,11 +13,36 @@ import (
 	"os"
 	"strings"
 
+	"time"
+
 	"github.com/qxnw/lib4go/encoding"
 )
 
+type OptionConf struct {
+	ConnectionTimeout time.Duration
+	RequestTimeout    time.Duration
+}
+
+//Option 配置选项
+type Option func(*OptionConf)
+
+//WithConnTimeout 设置请求超时时长
+func WithConnTimeout(tm time.Duration) Option {
+	return func(o *OptionConf) {
+		o.ConnectionTimeout = tm
+	}
+}
+
+//WithRequestTimeout 设置请求超时时长
+func WithRequestTimeout(tm time.Duration) Option {
+	return func(o *OptionConf) {
+		o.RequestTimeout = tm
+	}
+}
+
 // HTTPClient HTTP客户端
 type HTTPClient struct {
+	*OptionConf
 	client *http.Client
 }
 
@@ -128,18 +153,24 @@ func NewHTTPClientCert1(caFile string) (client *HTTPClient, err error) {
 }
 
 // NewHTTPClient 构建HTTP客户端，用于发送GET POST等请求
-func NewHTTPClient() (client *HTTPClient) {
+func NewHTTPClient(opts ...Option) (client *HTTPClient) {
 	client = &HTTPClient{}
+	client.OptionConf = &OptionConf{ConnectionTimeout: time.Second * 3, RequestTimeout: time.Second * 20}
+	for _, opt := range opts {
+		opt(client.OptionConf)
+	}
 	client.client = &http.Client{
 		Transport: &http.Transport{
 			DisableKeepAlives: true,
 			Dial: func(netw, addr string) (net.Conn, error) {
-				c, err := net.DialTimeout(netw, addr, 0)
+				c, err := net.DialTimeout(netw, addr, client.OptionConf.ConnectionTimeout)
 				if err != nil {
 					return nil, err
 				}
+				c.SetDeadline(time.Now().Add(client.OptionConf.RequestTimeout))
 				return c, nil
 			},
+
 			MaxIdleConnsPerHost:   0,
 			ResponseHeaderTimeout: 0,
 		},
