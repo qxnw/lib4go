@@ -196,6 +196,9 @@ func (producer *StompProducer) Send(queue string, msg string, timeout time.Durat
 	if producer.done {
 		return errors.New("mq producer 已关闭")
 	}
+	if !producer.connecting && producer.Retry {
+		return fmt.Errorf("producer无法连接到MQ服务器:%s", producer.address)
+	}
 	pm := &mq.ProcuderMessage{Queue: queue, Data: msg, Timeout: timeout}
 	pm.Headers = make([]string, 0, len(producer.header)+4)
 	copy(pm.Headers, producer.header)

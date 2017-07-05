@@ -26,14 +26,14 @@ type MQProducerResover interface {
 var mqProducerResolvers = make(map[string]MQProducerResover)
 
 //RegisterProducer 注册配置文件适配器
-func RegisterProducer(adapter string, resolver MQProducerResover) {
+func RegisterProducer(proto string, resolver MQProducerResover) {
 	if resolver == nil {
 		panic("mq: Register adapter is nil")
 	}
-	if _, ok := mqProducerResolvers[adapter]; ok {
-		panic("mq: Register called twice for adapter " + adapter)
+	if _, ok := mqProducerResolvers[proto]; ok {
+		panic("mq: Register called twice for adapter " + proto)
 	}
-	mqProducerResolvers[adapter] = resolver
+	mqProducerResolvers[proto] = resolver
 }
 
 //NewMQProducer 根据适配器名称及参数返回配置处理器
