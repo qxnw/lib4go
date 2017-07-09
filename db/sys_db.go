@@ -70,7 +70,6 @@ func NewSysDB(provider string, connString string, max int) (obj *SysDB, err erro
 	if err != nil {
 		return
 	}
-	obj.db.SetMaxIdleConns(0) //默认为2个
 	if max > 0 {
 		obj.db.SetMaxOpenConns(max)
 	}
