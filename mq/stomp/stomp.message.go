@@ -17,7 +17,8 @@ func (m *StompMessage) Ack() error {
 //Nack 取消消息
 func (m *StompMessage) Nack() error {
 	h := s.Headers{"message-id", m.msg.Headers.Value("message-id"),
-		"subscription", m.msg.Headers.Value("subscription")}
+		"subscription", m.msg.Headers.Value("subscription"),
+		"id", m.msg.Headers.Value("message-id")}
 	return m.s.conn.Nack(h)
 }
 
