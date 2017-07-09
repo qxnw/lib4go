@@ -60,10 +60,7 @@ func NewSysDB(provider string, connString string, max int) (obj *SysDB, err erro
 
 	obj = &SysDB{provider: provider, connString: connString}
 	switch strings.ToLower(provider) {
-	case "ora":
-		//obj.db, err = sql.Open(ORA, connString)
-		obj.db, err = sql.Open(OCI8, connString)
-	case "oracle":
+	case "ora", "oracle":
 		obj.db, err = sql.Open(OCI8, connString)
 	case "sqlite":
 		obj.db, err = sql.Open(SQLITE3, connString)
@@ -73,17 +70,16 @@ func NewSysDB(provider string, connString string, max int) (obj *SysDB, err erro
 	if err != nil {
 		return
 	}
+	obj.db.SetMaxIdleConns(0) //默认为2个
 	if max > 0 {
-		obj.db.SetMaxIdleConns(max)
 		obj.db.SetMaxOpenConns(max)
 	}
-	//obj.db.SetConnMaxLifetime(time.Second * 300)
+	obj.db.SetConnMaxLifetime(0)
 	return
 }
 
 //Query 执行SQL查询语句
 func (db *SysDB) Query(query string, args ...interface{}) (dataRows []QueryRow, colus []string, err error) {
-
 	rows, err := db.db.Query(query, args...)
 	if err != nil {
 		if rows != nil {
@@ -91,8 +87,8 @@ func (db *SysDB) Query(query string, args ...interface{}) (dataRows []QueryRow, 
 		}
 		return
 	}
+	defer rows.Close()
 	dataRows, colus, err = resolveRows(rows, 0)
-	rows.Close()
 	return
 
 }
