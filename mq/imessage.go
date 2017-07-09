@@ -1,7 +1,7 @@
 package mq
 
 type IMessage interface {
-	Ack()
-	Nack()
+	Ack() error
+	Nack() error
 	GetMessage() string
 }

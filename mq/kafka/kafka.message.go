@@ -8,10 +8,12 @@ type KafkaMessage struct {
 }
 
 //Ack
-func (m *KafkaMessage) Ack() {
+func (m *KafkaMessage) Ack() error {
+	return nil
 	//m.s.conn.Ack(m.msg.Headers)
 }
-func (m *KafkaMessage) Nack() {
+func (m *KafkaMessage) Nack() error {
+	return nil
 	//m.s.conn.Nack(m.msg.Headers)
 }
 func (m *KafkaMessage) GetMessage() string {

@@ -10,12 +10,15 @@ type StompMessage struct {
 }
 
 //Ack 确定消息
-func (m *StompMessage) Ack() {
-	m.s.conn.Ack(m.msg.Headers)
+func (m *StompMessage) Ack() error {
+	return m.s.conn.Ack(m.msg.Headers)
 }
 
 //Nack 取消消息
-func (m *StompMessage) Nack() {
+func (m *StompMessage) Nack() error {
+	h := s.Headers{"message-id", m.msg.Headers.Value("message-id"),
+		"subscription", m.msg.Headers.Value("subscription")}
+	return m.s.conn.Nack(h)
 }
 
 //GetMessage 获取消息

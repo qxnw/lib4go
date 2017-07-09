@@ -140,6 +140,7 @@ func (consumer *StompConsumer) consume(queue string, callback func(mq.IMessage))
 	success, ch, err := consumer.queues.SetIfAbsentCb(queue, func(input ...interface{}) (c interface{}, err error) {
 		queue := input[0].(string)
 		header := stompngo.Headers{"destination", fmt.Sprintf("/%s/%s", "queue", queue), "ack", consumer.Ack}
+		consumer.conn.SetSubChanCap(10)
 		msgChan, err := consumer.conn.Subscribe(header)
 		if err != nil {
 			return
@@ -168,9 +169,10 @@ START:
 			if !ok {
 				break START
 			}
+
 			message := NewStompMessage(consumer, &msg.Message)
 			if message.Has() {
-				callback(message)
+				go callback(message)
 			} else {
 				consumer.reconnect(queue)
 				break START
