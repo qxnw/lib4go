@@ -5,7 +5,6 @@ import (
 	"os"
 	"os/signal"
 	"strings"
-	"sync"
 
 	"github.com/Shopify/sarama"
 	"github.com/qxnw/lib4go/concurrent/cmap"
@@ -56,7 +55,6 @@ func (k *KafkaConsumer) Consume(queue string, call func(mq.IMessage)) (err error
 	var (
 		chanmsg = make(chan *sarama.ConsumerMessage, 10000)
 		closing = make(chan struct{})
-		wg      sync.WaitGroup
 	)
 
 	go func() {
@@ -77,13 +75,13 @@ func (k *KafkaConsumer) Consume(queue string, call func(mq.IMessage)) (err error
 		pc.AsyncClose()
 	}(pc)
 
-	wg.Add(1)
 	fmt.Println("22222222222")
 	go func(pc sarama.PartitionConsumer) {
-		fmt.Println("进入消息pc.Messages()")
-		defer wg.Done()
-		for message := range pc.Messages() {
-			chanmsg <- message
+		for {
+			select {
+			case message := <-pc.Messages():
+				chanmsg <- message
+			}
 		}
 	}(pc)
 
@@ -93,9 +91,8 @@ func (k *KafkaConsumer) Consume(queue string, call func(mq.IMessage)) (err error
 		for {
 			select {
 			case msg, ok := <-chanmsg:
-				fmt.Println(msg, ok)
 				if ok {
-					call(NewKafkaMessage(msg))
+					go call(NewKafkaMessage(msg))
 				} else {
 					break LOOP
 				}
@@ -103,12 +100,11 @@ func (k *KafkaConsumer) Consume(queue string, call func(mq.IMessage)) (err error
 		}
 	}()
 
-	wg.Wait()
-	close(chanmsg)
+	//close(chanmsg)
 
-	if err := consumer.consumer.Close(); err != nil {
-		fmt.Println("Failed to close consumer: ", err)
-	}
+	//if err := consumer.consumer.Close(); err != nil {
+	//fmt.Println("Failed to close consumer: ", err)
+	//}
 	return nil
 }
 
