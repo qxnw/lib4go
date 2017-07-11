@@ -82,7 +82,7 @@ func (client *ZookeeperClient) Connect() (err error) {
 		go client.eventWatch()
 	}
 	atomic.AddInt32(&client.useCount, 1)
-	time.Sleep(client.timeout)
+	time.Sleep(time.Second)
 	client.isConnect = true
 	return
 }

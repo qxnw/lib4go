@@ -16,16 +16,17 @@ import (
 
 //StompProducer Producer
 type StompProducer struct {
-	address    string
-	conn       *stompngo.Connection
-	messages   chan *mq.ProcuderMessage
-	backupMsg  chan *mq.ProcuderMessage
-	queues     cmap.ConcurrentMap
-	connecting bool
-	closeCh    chan struct{}
-	done       bool
-	lk         sync.Mutex
-	header     []string
+	address     string
+	conn        *stompngo.Connection
+	messages    chan *mq.ProcuderMessage
+	backupMsg   chan *mq.ProcuderMessage
+	queues      cmap.ConcurrentMap
+	connecting  bool
+	isConnected bool
+	closeCh     chan struct{}
+	done        bool
+	lk          sync.Mutex
+	header      []string
 	*mq.OptionConf
 }
 
@@ -96,6 +97,7 @@ func (producer *StompProducer) sendLoop() {
 				}
 				err := producer.conn.Send(msg.Headers, msg.Data)
 				if err != nil {
+					producer.Logger.Errorf("发送消息失败，放入备份队列(%s)(err:%v)", msg.Queue, err)
 					select {
 					case producer.backupMsg <- msg:
 					default:
@@ -107,9 +109,9 @@ func (producer *StompProducer) sendLoop() {
 				if !ok {
 					break Loop1
 				}
-
 				err := producer.conn.Send(msg.Headers, msg.Data)
 				if err != nil {
+					producer.Logger.Errorf("发送消息失败，放入备份队列(%s)(err:%v)", msg.Queue, err)
 					select {
 					case producer.backupMsg <- msg:
 					default:
@@ -127,9 +129,9 @@ func (producer *StompProducer) sendLoop() {
 				if !ok {
 					break Loop2
 				}
-
 				err := producer.conn.Send(msg.Headers, msg.Data)
 				if err != nil {
+					producer.Logger.Errorf("发送消息失败，放入备份队列(%s)(err:%v)", msg.Queue, err)
 					select {
 					case producer.backupMsg <- msg:
 					default:
@@ -199,17 +201,19 @@ func (producer *StompProducer) Send(queue string, msg string, timeout time.Durat
 	if !producer.connecting && producer.Retry {
 		return fmt.Errorf("producer无法连接到MQ服务器:%s", producer.address)
 	}
+
 	pm := &mq.ProcuderMessage{Queue: queue, Data: msg, Timeout: timeout}
 	pm.Headers = make([]string, 0, len(producer.header)+4)
 	copy(pm.Headers, producer.header)
 
 	pm.Headers = append(pm.Headers, "destination", "/queue/"+queue)
+	if timeout > 0 && timeout < time.Second*10 {
+		return fmt.Errorf("超时时长不能小于10秒:%s,%v", queue, timeout)
+	}
 	if timeout > 0 {
 		pm.Headers = append(pm.Headers, "expires",
 			fmt.Sprintf("%d000", time.Now().Add(timeout).Unix()))
 	}
-
-	//producer.messages <- pm
 	select {
 	case producer.messages <- pm:
 		return nil

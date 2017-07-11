@@ -71,6 +71,7 @@ func NewSysDB(provider string, connString string, max int) (obj *SysDB, err erro
 		return
 	}
 	if max > 0 {
+		obj.db.SetMaxIdleConns(max)
 		obj.db.SetMaxOpenConns(max)
 	}
 	obj.db.SetConnMaxLifetime(0)
