@@ -1,9 +1,11 @@
 package kafka
 
-import "github.com/jdamick/kafka"
+import (
+	"github.com/Shopify/sarama"
+)
 
 type KafkaMessage struct {
-	msg     *kafka.Message
+	msg     *sarama.ConsumerMessage
 	Message string
 }
 
@@ -21,7 +23,7 @@ func (m *KafkaMessage) GetMessage() string {
 }
 
 //NewMessage
-func NewKafkaMessage(msg *kafka.Message) *KafkaMessage {
+func NewKafkaMessage(msg *sarama.ConsumerMessage) *KafkaMessage {
 	//return &StompMessage{s: s, msg: msg, Message: string(msg.Body)}
-	return &KafkaMessage{msg: msg, Message: msg.PayloadString()}
+	return &KafkaMessage{msg: msg, Message: string(msg.Value)}
 }

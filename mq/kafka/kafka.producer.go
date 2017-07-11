@@ -2,12 +2,13 @@ package kafka
 
 import (
 	"errors"
+	"strings"
 	"sync"
 	"time"
 
 	"fmt"
 
-	"github.com/jdamick/kafka"
+	"github.com/Shopify/sarama"
 	"github.com/qxnw/lib4go/concurrent/cmap"
 	"github.com/qxnw/lib4go/logger"
 	"github.com/qxnw/lib4go/mq"
@@ -28,8 +29,8 @@ type KafkaProducer struct {
 	*mq.OptionConf
 }
 type kafkaProducer struct {
-	producer *kafka.BrokerPublisher
-	msgQueue chan *kafka.Message
+	producer sarama.SyncProducer
+	msgQueue chan *sarama.ProducerMessage
 }
 
 //NewKafkaProducer 创建新的producer
@@ -39,7 +40,6 @@ func NewKafkaProducer(address string, opts ...mq.Option) (producer *KafkaProduce
 	producer.OptionConf = &mq.OptionConf{}
 	producer.messages = make(chan *mq.ProcuderMessage, 10000)
 	producer.backupMsg = make(chan *mq.ProcuderMessage, 100)
-	producer.closeCh = make(chan struct{})
 	producer.closeCh = make(chan struct{})
 	for _, opt := range opts {
 		opt(producer.OptionConf)
@@ -80,7 +80,7 @@ func (producer *KafkaProducer) sendLoop() {
 					continue
 				}
 				producerConn := pd.(*kafkaProducer)
-				_, err := producerConn.producer.Publish(kafka.NewMessage([]byte(msg.Data)))
+				_, _, err := producerConn.producer.SendMessage(&sarama.ProducerMessage{Topic: msg.Queue, Partition: 0, Value: sarama.StringEncoder(msg.Data)})
 				if err != nil {
 					select {
 					case producer.backupMsg <- msg:
@@ -103,7 +103,7 @@ func (producer *KafkaProducer) sendLoop() {
 					continue
 				}
 				producerConn := pd.(*kafkaProducer)
-				_, err := producerConn.producer.Publish(kafka.NewMessage([]byte(msg.Data)))
+				_, _, err := producerConn.producer.SendMessage(&sarama.ProducerMessage{Topic: msg.Queue, Partition: 0, Value: sarama.StringEncoder(msg.Data)})
 				if err != nil {
 					select {
 					case producer.backupMsg <- msg:
@@ -133,7 +133,8 @@ func (producer *KafkaProducer) sendLoop() {
 					continue
 				}
 				producerConn := pd.(*kafkaProducer)
-				_, err := producerConn.producer.Publish(kafka.NewMessage([]byte(msg.Data)))
+				//, Timestamp: msg.Timeout
+				_, _, err := producerConn.producer.SendMessage(&sarama.ProducerMessage{Topic: msg.Queue, Partition: 0, Value: sarama.StringEncoder(msg.Data)})
 				if err != nil {
 					select {
 					case producer.backupMsg <- msg:
@@ -166,8 +167,14 @@ func (producer *KafkaProducer) Send(queue string, msg string, timeout time.Durat
 	producer.queues.SetIfAbsentCb(queue, func(i ...interface{}) (interface{}, error) {
 		var err error
 		c := &kafkaProducer{}
-		c.producer = kafka.NewBrokerPublisher(producer.address, queue, 0)
-		c.msgQueue = make(chan *kafka.Message, 10)
+		config := sarama.NewConfig()
+		config.Producer.RequiredAcks = sarama.WaitForAll
+		config.Producer.Partitioner = sarama.NewManualPartitioner
+
+		c.producer, err = sarama.NewSyncProducer(strings.Split(producer.address, ","), config)
+		c.msgQueue = make(chan *sarama.ProducerMessage, 10)
+
+		//&sarama.ProducerMessage{Topic: *topic, Partition: int32(*partition)}
 		return c, err
 	})
 

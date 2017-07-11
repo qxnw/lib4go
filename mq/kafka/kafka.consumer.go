@@ -2,9 +2,12 @@ package kafka
 
 import (
 	"fmt"
-	"time"
+	"os"
+	"os/signal"
+	"strings"
+	"sync"
 
-	"github.com/jdamick/kafka"
+	"github.com/Shopify/sarama"
 	"github.com/qxnw/lib4go/concurrent/cmap"
 	"github.com/qxnw/lib4go/mq"
 )
@@ -17,8 +20,8 @@ type KafkaConsumer struct {
 	*mq.OptionConf
 }
 type kafkaConsumer struct {
-	consumer *kafka.BrokerConsumer
-	msgQueue chan *kafka.Message
+	consumer sarama.Consumer
+	msgQueue chan *sarama.ConsumerMessage
 }
 
 //NewKafkaConsumer 初始化kafka Consumer
@@ -39,28 +42,57 @@ func (k *KafkaConsumer) Connect() error {
 
 //Consume 订阅消息
 func (k *KafkaConsumer) Consume(queue string, call func(mq.IMessage)) (err error) {
+	fmt.Println("启动接受消息")
 	_, cnsmr, _ := k.consumers.SetIfAbsentCb(queue, func(i ...interface{}) (interface{}, error) {
 		c := &kafkaConsumer{}
-		c.consumer = kafka.NewBrokerConsumer(k.address, queue, 0, 0, 1048576)
-		c.msgQueue = make(chan *kafka.Message, 10000)
+		//c.consumer = kafka.NewBrokerConsumer(k.address, queue, 0, 0, 1048576)
+		//c.msgQueue = make(chan *kafka.Message, 10000)
+		c.consumer, err = sarama.NewConsumer(strings.Split(k.address, ","), nil)
+		c.msgQueue = make(chan *sarama.ConsumerMessage, 10000)
 		return c, nil
 	})
 	consumer := cnsmr.(*kafkaConsumer)
-	conChan := make(chan error, 1)
+
+	var (
+		chanmsg = make(chan *sarama.ConsumerMessage, 10000)
+		closing = make(chan struct{})
+		wg      sync.WaitGroup
+	)
+
 	go func() {
-		_, err = consumer.consumer.ConsumeOnChannel(consumer.msgQueue, 10, k.quitChan)
-		conChan <- err
+		signals := make(chan os.Signal, 1)
+		signal.Notify(signals, os.Kill, os.Interrupt)
+		<-signals
+		fmt.Println("Initiating shutdown of consumer...")
+		close(closing)
 	}()
-	select {
-	case <-time.After(time.Second):
-	case err := <-conChan:
-		return err
+
+	pc, err := consumer.consumer.ConsumePartition(queue, 0, sarama.OffsetNewest)
+	if err != nil {
+		fmt.Printf("Failed to start consumer for partition %d: %s", 0, err)
 	}
+
+	go func(pc sarama.PartitionConsumer) {
+		<-closing
+		pc.AsyncClose()
+	}(pc)
+
+	wg.Add(1)
+	fmt.Println("22222222222")
+	go func(pc sarama.PartitionConsumer) {
+		fmt.Println("进入消息pc.Messages()")
+		defer wg.Done()
+		for message := range pc.Messages() {
+			chanmsg <- message
+		}
+	}(pc)
+
 	go func() {
+		fmt.Println("接受消息，使用对应函数")
 	LOOP:
 		for {
 			select {
-			case msg, ok := <-consumer.msgQueue:
+			case msg, ok := <-chanmsg:
 				fmt.Println(msg, ok)
 				if ok {
 					call(NewKafkaMessage(msg))
@@ -70,6 +102,13 @@ func (k *KafkaConsumer) Consume(queue string, call func(mq.IMessage)) (err error
 			}
 		}
 	}()
+
+	wg.Wait()
+	close(chanmsg)
+
+	if err := consumer.consumer.Close(); err != nil {
+		fmt.Println("Failed to close consumer: ", err)
+	}
 	return nil
 }
 
