@@ -1,6 +1,7 @@
 package memcache
 
 import "github.com/bradfitz/gomemcache/memcache"
+import "time"
 
 // MemcacheClient memcache配置文件
 type MemcacheClient struct {
@@ -49,13 +50,15 @@ func (c *MemcacheClient) Gets(key ...string) (r []string, err error) {
 
 // Add 添加数据到memcache中,如果memcache存在，则报错
 func (c *MemcacheClient) Add(key string, value string, expiresAt int) error {
-	data := &memcache.Item{Key: key, Value: []byte(value), Expiration: int32(expiresAt)}
+	expires := time.Now().Add(time.Duration(expiresAt) * time.Second).Unix()
+	data := &memcache.Item{Key: key, Value: []byte(value), Expiration: int32(expires)}
 	return c.client.Add(data)
 }
 
 // Set 更新数据到memcache中，没有则添加
 func (c *MemcacheClient) Set(key string, value string, expiresAt int) error {
-	data := &memcache.Item{Key: key, Value: []byte(value), Expiration: int32(expiresAt)}
+	expires := time.Now().Add(time.Duration(expiresAt) * time.Second).Unix()
+	data := &memcache.Item{Key: key, Value: []byte(value), Expiration: int32(expires)}
 	err := c.client.Set(data)
 	return err
 }
