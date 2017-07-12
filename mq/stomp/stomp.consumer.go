@@ -169,7 +169,7 @@ START:
 			if !ok {
 				break START
 			}
-
+			consumer.Logger.Debug("mq.request.raw:", queue, msg)
 			message := NewStompMessage(consumer, &msg.Message)
 			if message.Has() {
 				go callback(message)
