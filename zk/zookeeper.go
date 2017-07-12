@@ -104,7 +104,7 @@ func (client *ZookeeperClient) Close() {
 	}
 
 	if client.conn != nil {
-		client.conn.Close()
+		client.once.Do(client.conn.Close)
 	}
 
 	client.isConnect = false
