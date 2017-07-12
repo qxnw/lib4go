@@ -77,7 +77,7 @@ func (client *ZookeeperClient) Connect() (err error) {
 			return err
 		}
 		client.conn = conn
-		client.conn.SetLogger(client.Log)
+		client.conn.SetLogger(&zkLogger{logger: client.Log})
 		client.eventChan = eventChan
 		go client.eventWatch()
 	}
@@ -91,7 +91,6 @@ func (client *ZookeeperClient) Connect() (err error) {
 func (client *ZookeeperClient) Reconnect() (err error) {
 	if client.conn != nil {
 		client.conn.Close()
-		client.conn = nil
 	}
 	client.done = false
 	return client.Connect()
@@ -113,6 +112,4 @@ func (client *ZookeeperClient) Close() {
 	client.once.Do(func() {
 		close(client.CloseCh)
 	})
-	client.conn = nil
-
 }
