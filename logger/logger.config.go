@@ -6,9 +6,11 @@ type Appender struct {
 	Level  string `json:"level"`
 	Path   string `json:"path,omitempty"`
 	Layout string `json:"layout"`
-	Server string `json:"server,omitempty"`
-	Method string `json:"method,omitempty"`
-	Flush  int    `json:"flush,omitempty"`
+	//RPC      string `json:"rpc,omitempty"`
+	Interval string `json:"interval,omitempty"`
+	//Domain   string `json:"domain,omitempty"`
+	//Server   string `json:"server,omitempty"`
+	//Registry string `json:"registry,omitempty"`
 }
 
 //ReadConfig 读取配置文件

@@ -56,6 +56,7 @@ func init() {
 	}
 }
 
+
 //ResetConfig 重置日志配置
 func ResetConfig(conf string) (err error) {
 	apds, err := NewAppender(conf)

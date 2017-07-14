@@ -43,7 +43,7 @@ func init() {
 	}
 }
 
-func getLevel(name string) int {
+func GetLevel(name string) int {
 	if l, ok := levelMap[name]; ok {
 		return l
 	}

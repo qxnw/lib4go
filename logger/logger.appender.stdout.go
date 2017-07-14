@@ -2,6 +2,7 @@ package logger
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"time"
 
@@ -26,10 +27,19 @@ type StdoutAppender struct {
 //NewStudoutAppender 构建基于文件流的日志输出对象
 func NewStudoutAppender(unq string, layout *Appender) (fa *StdoutAppender, err error) {
 	fa = &StdoutAppender{layout: layout, unq: unq}
-	fa.Level = getLevel(layout.Level)
+	fa.Level = GetLevel(layout.Level)
 	fa.buffer = bytes.NewBufferString("")
 	fa.output = log.New(fa.buffer, "", log.Llongcolor)
-	fa.ticker = time.NewTicker(TimeWriteToSTD)
+	intervalStr := layout.Interval
+	if intervalStr == "" {
+		intervalStr = "200ms"
+	}
+	interval, err := time.ParseDuration(intervalStr)
+	if err != nil {
+		err = fmt.Errorf("日志配置文件错误：%v", err)
+		return
+	}
+	fa.ticker = time.NewTicker(interval)
 	fa.output.SetOutputLevel(log.Ldebug)
 	go fa.writeTo()
 	return
@@ -37,7 +47,7 @@ func NewStudoutAppender(unq string, layout *Appender) (fa *StdoutAppender, err e
 
 //Write 写入日志
 func (f *StdoutAppender) Write(event *LogEvent) {
-	current := getLevel(event.Level)
+	current := GetLevel(event.Level)
 	if current < f.Level {
 		return
 	}

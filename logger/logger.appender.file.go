@@ -6,6 +6,8 @@ import (
 	"sync"
 	"time"
 
+	"fmt"
+
 	"github.com/qxnw/lib4go/file"
 )
 
@@ -24,9 +26,18 @@ type FileAppender struct {
 //NewFileAppender 构建基于文件流的日志输出对象
 func NewFileAppender(path string, layout *Appender) (fa *FileAppender, err error) {
 	fa = &FileAppender{layout: layout}
-	fa.Level = getLevel(layout.Level)
+	fa.Level = GetLevel(layout.Level)
 	fa.buffer = bytes.NewBufferString("\n--------------------begin------------------------\n\n")
-	fa.ticker = time.NewTicker(TimeWriteToFile)
+	intervalStr := layout.Interval
+	if intervalStr == "" {
+		intervalStr = "1s"
+	}
+	interval, err := time.ParseDuration(intervalStr)
+	if err != nil {
+		err = fmt.Errorf("日志配置文件错误：%v", err)
+		return
+	}
+	fa.ticker = time.NewTicker(interval)
 	fa.file, err = file.CreateFile(path)
 	if err != nil {
 		return
@@ -37,7 +48,7 @@ func NewFileAppender(path string, layout *Appender) (fa *FileAppender, err error
 
 //Write 写入日志
 func (f *FileAppender) Write(event *LogEvent) {
-	current := getLevel(event.Level)
+	current := GetLevel(event.Level)
 	if current < f.Level {
 		return
 	}

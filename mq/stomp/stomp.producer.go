@@ -164,7 +164,10 @@ func (producer *StompProducer) GetBackupMessage() chan *mq.ProcuderMessage {
 //reconnect 自动重连
 func (producer *StompProducer) reconnect() {
 	producer.conn.Disconnect(stompngo.Headers{})
-	producer.Connect()
+	err := producer.Connect()
+	if err != nil {
+		producer.Logger.Errorf("连接到MQ服务器失败:%v", err)
+	}
 }
 
 //ConnectOnce 连接到服务器
@@ -181,6 +184,7 @@ func (producer *StompProducer) connectOnce() (err error) {
 	defer func() {
 		producer.connecting = false
 	}()
+	producer.Logger.Infof("重新连接到服务器:%s", producer.address)
 	con, err := net.Dial("tcp", producer.address)
 	if err != nil {
 		return fmt.Errorf("mq 无法连接到远程服务器:%v", err)
@@ -189,6 +193,7 @@ func (producer *StompProducer) connectOnce() (err error) {
 	if err != nil {
 		return fmt.Errorf("mq 无法连接到MQ:%v", err)
 	}
+
 	go producer.sendLoop()
 	return nil
 }
