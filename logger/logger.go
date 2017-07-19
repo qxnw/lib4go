@@ -56,7 +56,6 @@ func init() {
 	}
 }
 
-
 //ResetConfig 重置日志配置
 func ResetConfig(conf string) (err error) {
 	apds, err := NewAppender(conf)
@@ -95,6 +94,7 @@ func (logger *Logger) Close() {
 	select {
 	case loggerCloserChan <- logger:
 	default:
+
 		loggerPool.Put(logger)
 	}
 }
