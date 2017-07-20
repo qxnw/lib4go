@@ -1,5 +1,6 @@
 package kafka
 
+/*
 import (
 	"github.com/Shopify/sarama"
 )
@@ -27,3 +28,4 @@ func NewKafkaMessage(msg *sarama.ConsumerMessage) *KafkaMessage {
 	//return &StompMessage{s: s, msg: msg, Message: string(msg.Body)}
 	return &KafkaMessage{msg: msg, Message: string(msg.Value)}
 }
+*/

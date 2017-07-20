@@ -1,5 +1,6 @@
 package kafka
 
+/*
 import (
 	"errors"
 	"strings"
@@ -207,3 +208,4 @@ func (s *kafkaProducerResolver) Resolve(address string, opts ...mq.Option) (mq.M
 func init() {
 	mq.RegisterProducer("kafka", &kafkaProducerResolver{})
 }
+*/

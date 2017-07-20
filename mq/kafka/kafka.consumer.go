@@ -1,5 +1,6 @@
 package kafka
 
+/*
 import (
 	"fmt"
 	"os"
@@ -135,3 +136,4 @@ func (s *kafkaConsumerResolver) Resolve(address string, opts ...mq.Option) (mq.M
 func init() {
 	mq.RegisterCosnumer("kafka", &kafkaConsumerResolver{})
 }
+*/
