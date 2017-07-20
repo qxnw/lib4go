@@ -38,8 +38,6 @@ type ZookeeperClient struct {
 	timeout   time.Duration
 	conn      *zk.Conn
 	eventChan <-chan zk.Event
-	//watchValueEvents   cmap.ConcurrentMap
-	//watchChilrenEvents cmap.ConcurrentMap
 	Log       *logger.Logger
 	useCount  int32
 	isConnect bool
@@ -53,8 +51,6 @@ type ZookeeperClient struct {
 func New(servers []string, timeout time.Duration) (*ZookeeperClient, error) {
 	client := &ZookeeperClient{servers: servers, timeout: timeout, useCount: 0}
 	client.CloseCh = make(chan struct{})
-	//client.watchValueEvents = cmap.New()
-	//client.watchChilrenEvents = cmap.New()
 	client.Log = logger.GetSession("zk", logger.CreateSession())
 	return client, nil
 }
@@ -63,8 +59,6 @@ func New(servers []string, timeout time.Duration) (*ZookeeperClient, error) {
 func NewWithLogger(servers []string, timeout time.Duration, logger *logger.Logger) (*ZookeeperClient, error) {
 	client := &ZookeeperClient{servers: servers, timeout: timeout, useCount: 0}
 	client.CloseCh = make(chan struct{})
-	//client.watchValueEvents = cmap.New()
-	//client.watchChilrenEvents = cmap.New()
 	client.Log = logger
 	return client, nil
 }
@@ -87,8 +81,14 @@ func (client *ZookeeperClient) Connect() (err error) {
 	return
 }
 
+//IsConnected 是否已连接到服务器
+func (client *ZookeeperClient) IsConnected() bool {
+	return client.isConnect
+}
+
 //Reconnect 重新连接服务器
 func (client *ZookeeperClient) Reconnect() (err error) {
+	client.isConnect = false
 	if client.conn != nil {
 		client.conn.Close()
 	}
