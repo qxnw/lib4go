@@ -55,51 +55,6 @@ func Decrypt(input string, skey string) (r string, err error) {
 	return
 }
 
-// Encrypt3DES 3DES加密
-// input 要加密的字符串	skey 加密使用的秘钥[字符串长度必须是24的倍数]
-func Encrypt3DES(input string, skey string) (r string, err error) {
-	origData := []byte(input)
-	key := []byte(skey)
-	block, err := des.NewTripleDESCipher(key)
-	if err != nil {
-		return "", fmt.Errorf("des NewTripleDESCipher err:%v", err)
-	}
-	iv := []byte{0, 0, 0, 0, 0, 0, 0, 0}
-	origData = PKCS5Padding(origData, block.BlockSize())
-	blockMode := cipher.NewCBCEncrypter(block, iv)
-	crypted := make([]byte, len(origData))
-	blockMode.CryptBlocks(crypted, origData)
-	r = strings.ToUpper(hex.EncodeToString(crypted))
-	return
-}
-
-// Decrypt3DES 3DES解密
-// input 要解密的字符串	skey 加密使用的秘钥[字符串长度必须是24的倍数]
-func Decrypt3DES(input, skey string) (r string, err error) {
-	/*add by champly 2016年11月16日17:35:03*/
-	if len(input) < 1 {
-		return "", errors.New("解密的对象长度必须大于0")
-	}
-	/*end*/
-
-	crypted, err := hex.DecodeString(input)
-	if err != nil {
-		return "", fmt.Errorf("des DecodeString err:%v", err)
-	}
-	key := []byte(skey)
-	block, err := des.NewTripleDESCipher(key)
-	if err != nil {
-		return "", fmt.Errorf("des NewTripleDESCipher err:%v", err)
-	}
-	iv := []byte{0, 0, 0, 0, 0, 0, 0, 0}
-	blockMode := cipher.NewCBCDecrypter(block, iv)
-	origData := make([]byte, len(crypted))
-	blockMode.CryptBlocks(origData, crypted)
-	origData = PKCS5UnPadding(origData)
-	r = string(origData)
-	return
-}
-
 // ZeroPadding Zero填充模式
 func ZeroPadding(ciphertext []byte, blockSize int) []byte {
 	padding := blockSize - len(ciphertext)%blockSize
@@ -138,8 +93,8 @@ func PKCS7Padding(data []byte) []byte {
 
 }
 
-// UnPKCS7Padding 去除PKCS7的补码
-func UnPKCS7Padding(data []byte) []byte {
+// PKCS7UnPadding 去除PKCS7的补码
+func PKCS7UnPadding(data []byte) []byte {
 	length := len(data)
 	// 去掉最后一个字节 unpadding 次
 	unpadding := int(data[length-1])

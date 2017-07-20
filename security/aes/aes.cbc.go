@@ -53,7 +53,7 @@ func DecryptCBCPKCS7WithIV(contentStr string, keyStr string, iv []byte) (string,
 
 	plantText := make([]byte, len(content))
 	blockModel.CryptBlocks(plantText, content)
-	plantText = des.UnPKCS7Padding(plantText)
+	plantText = des.PKCS7UnPadding(plantText)
 
 	return string(plantText), nil
 }
