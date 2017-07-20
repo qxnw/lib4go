@@ -100,11 +100,11 @@ func Decrypt(input string, skey string, mode string) (r string, err error) {
 
 	switch padding {
 	case "pkcs5":
-		origData = xdes.PKCS5Padding(origData, block.BlockSize())
+		origData = xdes.PKCS5UnPadding(origData)
 	case "pkcs7":
-		origData = xdes.PKCS7Padding(origData)
+		origData = xdes.PKCS7UnPadding(origData)
 	case "zero":
-		origData = xdes.ZeroPadding(origData, block.BlockSize())
+		origData = xdes.ZeroUnPadding(origData)
 	default:
 		err = fmt.Errorf("不支持的填充模式:%s", padding)
 		return
