@@ -84,7 +84,7 @@ func (client *ZookeeperClient) GetChildren(path string) (paths []string, version
 	// 使用定时器判断获取子节点是否超时
 	select {
 	case <-time.After(TIMEOUT):
-		err = fmt.Errorf("get node(%s) children timeout", path)
+		err = fmt.Errorf("get node(%s) children timeout ", path)
 		return
 	case data := <-ch:
 		if client.done {

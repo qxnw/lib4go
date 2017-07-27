@@ -7,7 +7,8 @@ import (
 
 func TestExists(t *testing.T) {
 	if !Exists("/home/champly") {
-		t.Error("/home/champly exist test fail")
+		t.Error("/home/champly exist test fail22.")
+
 	}
 
 	if Exists("/home/champly/adfada") {

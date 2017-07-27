@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"bytes"
 
@@ -94,9 +95,14 @@ func (logger *Logger) Close() {
 	select {
 	case loggerCloserChan <- logger:
 	default:
-
 		loggerPool.Put(logger)
 	}
+}
+
+//WaitClose 等待所有日志写入完毕并关闭
+func (logger *Logger) WaitClose() {
+	logger.Close()
+	time.Sleep(time.Second * 2)
 }
 
 //SetTag 设置tag
