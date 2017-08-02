@@ -88,8 +88,9 @@ START:
 
 //Close 关闭当前appender
 func (f *StdoutAppender) Close() {
-	f.locker.Lock()
 	f.Level = ILevel_OFF
 	f.ticker.Stop()
+	f.locker.Lock()
+	f.buffer.WriteTo(os.Stdout)
 	f.locker.Unlock()
 }

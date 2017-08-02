@@ -9,7 +9,6 @@ import (
 	"bytes"
 
 	"github.com/qxnw/lib4go/concurrent/cmap"
-	"github.com/qxnw/lib4go/net"
 	"github.com/qxnw/lib4go/utility"
 )
 
@@ -34,7 +33,8 @@ var loggerCloserChan chan *Logger
 var loggerPool *sync.Pool
 var loggers cmap.ConcurrentMap
 var manager *loggerManager
-var LocalIP string
+var closeChan chan struct{}
+var onceClose sync.Once
 
 func init() {
 	loggerPool = &sync.Pool{
@@ -42,7 +42,6 @@ func init() {
 			return New("")
 		},
 	}
-	LocalIP = net.GetLocalIPAddress()
 	register(appender_file, readFromFile)
 	var err error
 	manager, err = newLoggerManager()
@@ -50,9 +49,16 @@ func init() {
 		fmt.Println("logger err:未启用日志")
 		return
 	}
+	closeChan = make(chan struct{})
 	loggerEventChan = make(chan *LogEvent, 2000)
 	loggerCloserChan = make(chan *Logger, 1000)
-	for i := 0; i < 50; i++ {
+	go logNow()
+
+}
+
+//AddWriteThread 添加count个写线程用于并发写日志
+func AddWriteThread(count int) {
+	for i := 0; i < count; i++ {
 		go logNow()
 	}
 }
@@ -97,12 +103,6 @@ func (logger *Logger) Close() {
 	default:
 		loggerPool.Put(logger)
 	}
-}
-
-//WaitClose 等待所有日志写入完毕并关闭
-func (logger *Logger) WaitClose() {
-	logger.Close()
-	time.Sleep(time.Second * 2)
 }
 
 //SetTag 设置tag
@@ -238,6 +238,9 @@ func logNow() {
 			loggerPool.Put(logger)
 		case v, ok := <-loggerEventChan:
 			if !ok {
+				onceClose.Do(func() {
+					close(closeChan)
+				})
 				return
 			}
 			manager.Log(v)
@@ -261,11 +264,13 @@ func getString(c ...interface{}) string {
 
 //Close 关闭所有日志组件
 func Close() {
+	time.Sleep(time.Millisecond * 100)
 	if manager == nil {
 		return
 	}
-	manager.Close()
 	close(loggerEventChan)
+	<-closeChan
+	manager.Close()
 }
 
 //CreateSession create logger session

@@ -6,8 +6,15 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/qxnw/lib4go/net"
 )
 
+var ip string
+
+func init() {
+	ip = net.GetLocalIPAddress()
+}
 func transform(tpl string, event *LogEvent) (result string) {
 	word, _ := regexp.Compile(`%\w+`)
 	//@变量, 将数据放入params中
@@ -51,7 +58,7 @@ func transform(tpl string, event *LogEvent) (result string) {
 		case "index":
 			return fmt.Sprintf("%d", event.Index)
 		case "ip":
-			return LocalIP
+			return ip
 		default:
 			v, ok := event.Tags[key]
 			if ok {
