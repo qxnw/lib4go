@@ -28,8 +28,8 @@ type Client struct {
 //ClientOption 配置选项
 type ClientOption func(*ClientConf)
 
-//WithSentinels 设置哨兵服务器
-func WithSentinels(address []string) ClientOption {
+//WithAddress 设置哨兵服务器
+func WithAddress(address []string) ClientOption {
 	return func(o *ClientConf) {
 		o.Address = address
 	}
@@ -71,12 +71,13 @@ func WithWTimeout(timeout int) ClientOption {
 }
 
 //NewClient 构建客户端
-func NewClient(masterAddr string, option ...ClientOption) (r *Client, err error) {
+func NewClient(master string, option ...ClientOption) (r *Client, err error) {
 	conf := &ClientConf{}
 	for _, opt := range option {
 		opt(conf)
 	}
-	return NewClientByConf(masterAddr, conf)
+	conf.MasterName = master
+	return NewClientByConf(conf)
 
 }
 
@@ -87,18 +88,18 @@ func NewClientByJSON(j string) (r *Client, err error) {
 	if err != nil {
 		return nil, err
 	}
-	return NewClientByConf(conf.MasterName, conf)
+	return NewClientByConf(conf)
 }
 
 //NewClientByConf 根据配置对象构建客户端
-func NewClientByConf(masterAddr string, conf *ClientConf) (r *Client, err error) {
+func NewClientByConf(conf *ClientConf) (r *Client, err error) {
 	conf.DialTimeout = types.DecodeInt(conf.DialTimeout, 0, 3, conf.DialTimeout)
 	conf.RTimeout = types.DecodeInt(conf.RTimeout, 0, 3, conf.RTimeout)
 	conf.WTimeout = types.DecodeInt(conf.WTimeout, 0, 3, conf.WTimeout)
 	conf.PoolSize = types.DecodeInt(conf.PoolSize, 0, 3, conf.PoolSize)
 	client := &Client{}
 	opts := &redis.UniversalOptions{
-		MasterName:   masterAddr,
+		MasterName:   conf.MasterName,
 		Addrs:        conf.Address,
 		Password:     conf.Password,
 		DB:           conf.Db,
