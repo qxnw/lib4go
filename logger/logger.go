@@ -35,6 +35,7 @@ var loggers cmap.ConcurrentMap
 var manager *loggerManager
 var closeChan chan struct{}
 var onceClose sync.Once
+var done bool
 
 func init() {
 	loggerPool = &sync.Pool{
@@ -264,6 +265,10 @@ func getString(c ...interface{}) string {
 
 //Close 关闭所有日志组件
 func Close() {
+	if done {
+		return
+	}
+	done = true
 	time.Sleep(time.Millisecond * 100)
 	if manager == nil {
 		return
