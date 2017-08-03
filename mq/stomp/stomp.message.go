@@ -1,6 +1,6 @@
 package stomp
 
-import s "github.com/gmallard/stompngo"
+import s "github.com/zkfy/stompngo"
 
 //StompMessage stomp消息
 type StompMessage struct {

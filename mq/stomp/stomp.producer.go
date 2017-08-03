@@ -8,10 +8,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gmallard/stompngo"
 	"github.com/qxnw/lib4go/concurrent/cmap"
 	"github.com/qxnw/lib4go/logger"
 	"github.com/qxnw/lib4go/mq"
+	"github.com/zkfy/stompngo"
 )
 
 //StompProducer Producer

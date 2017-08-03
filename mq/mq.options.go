@@ -3,7 +3,7 @@ package mq
 import "github.com/qxnw/lib4go/logger"
 
 type OptionConf struct {
-	Logger     *logger.Logger
+	Logger     logger.ILogger
 	Version    string
 	Persistent string
 	Ack        string
@@ -14,7 +14,7 @@ type OptionConf struct {
 type Option func(*OptionConf)
 
 //WithLogger 设置日志记录组件
-func WithLogger(logger *logger.Logger) Option {
+func WithLogger(logger logger.ILogger) Option {
 	return func(o *OptionConf) {
 		o.Logger = logger
 	}

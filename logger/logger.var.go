@@ -72,4 +72,5 @@ type ILogger interface {
 
 	Warnf(format string, v ...interface{})
 	Warn(v ...interface{})
+	GetSessionID() string
 }
