@@ -70,6 +70,14 @@ func (r *InfluxClient) run() {
 		}
 	}
 }
+func (r *InfluxClient) QueryResponse(sql string) (response *Response, err error) {
+	response, err = r.client.Query(Query{Command: sql, Database: r.database})
+	if err != nil {
+		err = fmt.Errorf("query.error:%v", err)
+		return
+	}
+	return
+}
 func (r *InfluxClient) QueryMaps(sql string) (rx [][]map[string]interface{}, err error) {
 	response, err := r.client.Query(Query{Command: sql, Database: r.database})
 	if err != nil {
