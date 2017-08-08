@@ -122,6 +122,8 @@ func resolveRows(rows *sql.Rows, col int) (dataRows []QueryRow, columns []string
 			if value == nil {
 				continue
 			} else {
+				//	buff := value.(*[]byte)
+				//row[key] = bytes.NewBuffer(*buff).String()
 				row[key] = strings.TrimPrefix(fmt.Sprintf("%s", value), "&")
 			}
 		}
