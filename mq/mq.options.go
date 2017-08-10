@@ -4,15 +4,23 @@ import "github.com/qxnw/lib4go/logger"
 
 type OptionConf struct {
 	Logger     logger.ILogger
-	Version    string
-	Persistent string
-	Ack        string
-	Retry      bool
-	Key        string
+	Address    string `json:"address"`
+	Version    string `json:"version"`
+	Persistent string `json:"persistent"`
+	Ack        string `json:"ack"`
+	Retry      bool   `json:"retry"`
+	Key        string `json:"key"`
 }
 
 //Option 配置选项
 type Option func(*OptionConf)
+
+//WithConf 根据配置文件初始化
+func WithConf(conf *OptionConf) Option {
+	return func(o *OptionConf) {
+		o = conf
+	}
+}
 
 //WithLogger 设置日志记录组件
 func WithLogger(logger logger.ILogger) Option {

@@ -43,6 +43,13 @@ func RegisterProducer(proto string, resolver MQProducerResover) {
 	mqProducerResolvers[proto] = resolver
 }
 
+func GetOptions(input map[string]interface{}) []Option {
+	opts := make([]opts, 0,len(input))
+	for k, v := range input {
+		if k==""
+	}
+}
+
 //NewMQProducer 根据适配器名称及参数返回配置处理器
 func NewMQProducer(address string, opts ...Option) (MQProducer, error) {
 	proto, addrs, err := getMQNames(address)
