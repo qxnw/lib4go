@@ -2,15 +2,22 @@ package mq
 
 import (
 	"fmt"
+	"sync/atomic"
 	"time"
 )
 
 type ProcuderMessage struct {
-	Headers []string
-	Queue   string
-	Data    string
-	Timeout time.Duration
+	Headers   []string
+	Queue     string
+	Data      string
+	SendTimes int32
+	Timeout   time.Duration
 }
+
+func (p *ProcuderMessage) AddSendTimes() {
+	atomic.AddInt32(&p.SendTimes, 1)
+}
+
 type MQProducer interface {
 	Connect() error
 	GetBackupMessage() chan *ProcuderMessage

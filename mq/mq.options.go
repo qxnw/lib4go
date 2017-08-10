@@ -8,6 +8,7 @@ type OptionConf struct {
 	Persistent string
 	Ack        string
 	Retry      bool
+	Key        string
 }
 
 //Option 配置选项
@@ -45,5 +46,12 @@ func WithAck(ack string) Option {
 func WithRetrySend(b bool) Option {
 	return func(o *OptionConf) {
 		o.Retry = b
+	}
+}
+
+//WithSignKey 设置数据加密key
+func WithSignKey(key string) Option {
+	return func(o *OptionConf) {
+		o.Key = key
 	}
 }
