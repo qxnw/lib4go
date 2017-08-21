@@ -13,9 +13,12 @@ func (q QueryRow) GetString(name string) string {
 }
 
 //GetInt 从对象中获取数据值，如果不是字符串则返回0
-func (q QueryRow) GetInt(name string) int {
+func (q QueryRow) GetInt(name string, def ...int) int {
 	if value, err := strconv.Atoi(fmt.Sprintf("%v", q[name])); err == nil {
 		return value
+	}
+	if len(def) > 0 {
+		return def[0]
 	}
 	return 0
 }
