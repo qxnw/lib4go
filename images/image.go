@@ -18,7 +18,7 @@ import (
 	"github.com/nfnt/resize"
 )
 
-//Draw 图片自定义处理类
+//Image 图片自定义处理类
 type Image struct {
 	m *image.RGBA
 }
@@ -32,13 +32,13 @@ func NewImage(w int, h int) (img *Image) {
 }
 
 //NewImageFromFile 根据文件创建画板
-func NewImageFromFile(w int, h int, p string) (img *Image, err error) {
-	img = &Image{}
-	img.m = image.NewRGBA(image.Rect(0, 0, w, h))
+func NewImageFromFile(p string) (img *Image, err error) {
 	ig, err := decodeImage(p)
 	if err != nil {
 		return
 	}
+	img = &Image{}
+	img.m = image.NewRGBA(ig.Bounds())
 	draw.Draw(img.m, img.m.Bounds(), ig, image.ZP, draw.Src)
 	return
 }
@@ -81,14 +81,14 @@ func (img *Image) DrawFont(fontPath string, text string, col string, fontSize fl
 }
 
 //DrawImageWithScale 绘制图片并缩放原始图片
-func (img *Image) DrawImageWithScale(p string, sx int, sy int, ex int, ey int, w int, h int) (err error) {
+func (img *Image) DrawImageWithScale(p string, sx int, sy int, w int, h int) (err error) {
 	m1, err := decodeImage(p)
 	if err != nil {
 		return
 	}
 	//缩放图片
 	m := resize.Resize(uint(w), uint(h), m1, resize.Lanczos3)
-	draw.Draw(img.m, image.Rect(sx, sy, ex, ey), m, image.Pt(0, 0), draw.Over)
+	draw.Draw(img.m, image.Rect(sx, sy, sx+w, sy+h), m, image.Pt(0, 0), draw.Over)
 	return
 }
 
