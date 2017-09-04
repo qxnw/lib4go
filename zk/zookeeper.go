@@ -97,10 +97,10 @@ func (client *ZookeeperClient) Reconnect() (err error) {
 }
 
 //Close 关闭服务器
-func (client *ZookeeperClient) Close() error {
+func (client *ZookeeperClient) Close() {
 	atomic.AddInt32(&client.useCount, -1)
 	if client.useCount > 0 {
-		return nil
+		return
 	}
 
 	if client.conn != nil {
@@ -112,5 +112,5 @@ func (client *ZookeeperClient) Close() error {
 	client.once.Do(func() {
 		close(client.CloseCh)
 	})
-	return nil
+	return
 }
