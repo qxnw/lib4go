@@ -30,8 +30,9 @@ func init() {
 	tplCaches = cmap.New(8)
 
 	Register("oracle", ATTPLContext{name: "oracle"})
-	Register("mysql", ATTPLContext{name: "mysql"})
+	Register("ora", ATTPLContext{name: "ora"})
 
+	Register("mysql", ATTPLContext{name: "mysql"})
 	Register("sqlite", MTPLContext{name: "sqlite"})
 }
 func Register(name string, tpl ITPLContext) {
