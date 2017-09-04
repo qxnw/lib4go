@@ -65,7 +65,7 @@ func NewSysDB(provider string, connString string, max int) (obj *SysDB, err erro
 	case "sqlite":
 		obj.db, err = sql.Open(SQLITE3, connString)
 	default:
-		return nil, errors.New("数据库类型不支持:" + provider)
+		obj.db, err = sql.Open(provider, connString)
 	}
 	if err != nil {
 		return

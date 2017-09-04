@@ -27,10 +27,18 @@ type ITPLContext interface {
 
 func init() {
 	tpls = make(map[string]ITPLContext)
-	tpls[cOracle] = OracleTPLContext{}
-	tpls[cOra] = OracleTPLContext{}
-	tpls[cSqlite] = SqliteTPLContext{}
 	tplCaches = cmap.New(8)
+
+	Register("oracle", ATTPLContext{name: "oracle"})
+	Register("mysql", ATTPLContext{name: "mysql"})
+
+	Register("sqlite", MTPLContext{name: "sqlite"})
+}
+func Register(name string, tpl ITPLContext) {
+	if _, ok := tpls[name]; ok {
+		panic("重复的注册:" + name)
+	}
+	tpls[name] = tpl
 }
 
 //GetDBContext 获取数据库上下文操作
