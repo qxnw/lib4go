@@ -22,8 +22,7 @@ func DecodeGBK(input string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
-	c, err := encoding.Convert([]byte(gbkBuff), "gb2312")
+	c, err := encoding.Convert([]byte(gbkBuff), "gbk")
 	if err != nil {
 		return "", err
 	}
