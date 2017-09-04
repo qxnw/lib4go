@@ -96,8 +96,12 @@ func (img *Image) DrawImageWithScale(p string, sx int, sy int, w int, h int) (er
 func (img *Image) Save(path string) error {
 	imgfile, _ := os.Create(path)
 	defer imgfile.Close()
+	if strings.HasSuffix(path, ".jpg") {
+		return jpeg.Encode(imgfile, img.m, &jpeg.Options{Quality: 70})
+	}
 	return png.Encode(imgfile, img.m)
 }
+
 func decodeImage(p string) (m image.Image, err error) {
 	f1, err := os.Open(p)
 	if err != nil {
