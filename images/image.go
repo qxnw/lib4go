@@ -63,16 +63,23 @@ func (img *Image) DrawFont(fontPath string, text string, col string, fontSize fl
 	if err != nil {
 		return
 	}
-	//	r, g, b, err := colorToRGB(col)
+
 	c := freetype.NewContext()
 	c.SetDst(img.m)
 	c.SetClip(img.m.Bounds())
-	v, err := strconv.Atoi(col[0:2])
-	if err != nil {
-		return
+	switch col {
+	case "000000":
+		c.SetSrc(image.NewUniform(color.Gray16{0}))
+	case "ffffff":
+		c.SetSrc(image.NewUniform(color.Gray16{0xffff}))
+	default:
+		r, g, b, err := colorToRGB(col)
+		if err != nil {
+			return err
+		}
+		c.SetSrc(image.NewUniform(color.RGBA{R: r, G: g, B: b, A: 1}))
 	}
-	//c.SetSrc(image.NewUniform(color.RGBA{R: r, G: g, B: b, A: 1}))
-	c.SetSrc(image.NewUniform(color.Gray16{uint16(v)}))
+
 	c.SetFont(f)
 	c.SetFontSize(fontSize)
 	c.SetHinting(font.HintingNone)
