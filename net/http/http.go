@@ -43,7 +43,8 @@ func WithRequestTimeout(tm time.Duration) Option {
 // HTTPClient HTTP客户端
 type HTTPClient struct {
 	*OptionConf
-	client *http.Client
+	client   *http.Client
+	Response *http.Response
 }
 
 // HTTPClientRequest  http请求
@@ -212,15 +213,15 @@ func (c *HTTPClient) Download(method string, url string, params string, header m
 	for i, v := range header {
 		req.Header.Set(i, v)
 	}
-	resp, err := c.client.Do(req)
-	if resp != nil {
-		defer resp.Body.Close()
+	c.Response, err = c.client.Do(req)
+	if c.Response != nil {
+		defer c.Response.Body.Close()
 	}
 	if err != nil {
 		return
 	}
-	status = resp.StatusCode
-	body, err = ioutil.ReadAll(resp.Body)
+	status = c.Response.StatusCode
+	body, err = ioutil.ReadAll(c.Response.Body)
 	return
 }
 
@@ -254,18 +255,18 @@ func (c *HTTPClient) Request(method string, url string, params string, charset s
 	for i, v := range header {
 		req.Header.Set(i, v)
 	}
-	resp, err := c.client.Do(req)
-	if resp != nil {
-		defer resp.Body.Close()
+	c.Response, err = c.client.Do(req)
+	if c.Response != nil {
+		defer c.Response.Body.Close()
 	}
 	if err != nil {
 		return
 	}
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := ioutil.ReadAll(c.Response.Body)
 	if err != nil {
 		return
 	}
-	status = resp.StatusCode
+	status = c.Response.StatusCode
 	content, err = encoding.Convert(body, charset)
 	return
 }
@@ -273,18 +274,18 @@ func (c *HTTPClient) Request(method string, url string, params string, charset s
 // Get http get请求
 func (c *HTTPClient) Get(url string, args ...string) (content string, status int, err error) {
 	charset := getEncoding(args...)
-	resp, err := c.client.Get(url)
-	if resp != nil {
-		defer resp.Body.Close()
+	c.Response, err = c.client.Get(url)
+	if c.Response != nil {
+		defer c.Response.Body.Close()
 	}
 	if err != nil {
 		return
 	}
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := ioutil.ReadAll(c.Response.Body)
 	if err != nil {
 		return
 	}
-	status = resp.StatusCode
+	status = c.Response.StatusCode
 	content, err = encoding.Convert(body, charset)
 	return
 }
@@ -292,18 +293,18 @@ func (c *HTTPClient) Get(url string, args ...string) (content string, status int
 // Post http Post请求
 func (c *HTTPClient) Post(url string, params string, args ...string) (content string, status int, err error) {
 	charset := getEncoding(args...)
-	resp, err := c.client.Post(url, "application/x-www-form-urlencoded", encoding.GetReader(params, charset))
-	if resp != nil {
-		defer resp.Body.Close()
+	c.Response, err = c.client.Post(url, "application/x-www-form-urlencoded", encoding.GetReader(params, charset))
+	if c.Response != nil {
+		defer c.Response.Body.Close()
 	}
 	if err != nil {
 		return
 	}
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := ioutil.ReadAll(c.Response.Body)
 	if err != nil {
 		return
 	}
-	status = resp.StatusCode
+	status = c.Response.StatusCode
 	content, err = encoding.Convert(body, charset)
 	return
 }
