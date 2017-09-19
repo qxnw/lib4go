@@ -31,6 +31,7 @@ type StompConsumer struct {
 	done       bool
 	lk         sync.Mutex
 	header     []string
+	once       sync.Once
 	*mq.OptionConf
 }
 
@@ -212,7 +213,10 @@ func (consumer *StompConsumer) Close() {
 	if consumer.conn == nil {
 		return
 	}
-	close(consumer.closeCh)
+	consumer.once.Do(func() {
+		close(consumer.closeCh)
+	})
+
 	consumer.queues.RemoveIterCb(func(key string, value interface{}) bool {
 		ch := value.(*consumerChan)
 		close(ch.unconsumeCh)
