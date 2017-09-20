@@ -1,6 +1,7 @@
 package net
 
 import (
+	"bytes"
 	"fmt"
 	"net/url"
 	"strings"
@@ -32,5 +33,18 @@ func QueryStringToMap(urlQuery string) (result map[string]interface{}, err error
 		}
 	}
 
+	return
+}
+func GetQueryWithMap(data map[string]string) (res string, err error) {
+	buf := bytes.Buffer{}
+
+	for k, v := range data {
+		buf.WriteString(k)
+		buf.WriteString("=")
+		buf.WriteString(url.QueryEscape(v))
+		buf.WriteString("&")
+	}
+	res = buf.String()
+	res = strings.TrimRight(res, "&")
 	return
 }
