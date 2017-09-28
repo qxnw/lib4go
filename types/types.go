@@ -3,6 +3,7 @@ package types
 import (
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 //DecodeString 判断变量的值与指定相等时设置为另一个值，否则使用原值
@@ -93,5 +94,10 @@ func GetString(i interface{}) string {
 	if i == nil {
 		return ""
 	}
-	return fmt.Sprint(i)
+	switch i.(type) {
+	case []string:
+		return strings.Join(i.([]string), ";")
+	default:
+		return fmt.Sprint(i)
+	}
 }

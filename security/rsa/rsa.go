@@ -78,30 +78,34 @@ func Sign(message string, privateKey string, mode string) (string, error) {
 	}
 
 	switch strings.ToLower(mode) {
+	case "sha256":
+		t := sha1.New()
+		io.WriteString(t, message)
+		digest := t.Sum(nil)
+		data, err := rsa.SignPKCS1v15(rand.Reader, priv, crypto.SHA256, digest)
+		if err != nil {
+			return "", err
+		}
+		return base64.StdEncoding.EncodeToString(data), nil
 	case "sha1":
 		t := sha1.New()
 		io.WriteString(t, message)
 		digest := t.Sum(nil)
-		// return rsa.SignPKCS1v15(rand.Reader, priv, crypto.SHA1, digest)
-		/*change by champly 2016年11月17日10:31:10*/
 		data, err := rsa.SignPKCS1v15(rand.Reader, priv, crypto.SHA1, digest)
 		if err != nil {
 			return "", err
 		}
 		return base64.StdEncoding.EncodeToString(data), nil
-		/*end*/
+
 	case "md5":
 		t := md5.New()
 		io.WriteString(t, message)
 		digest := t.Sum(nil)
-		// return rsa.SignPKCS1v15(rand.Reader, priv, crypto.MD5, digest)
-		/*change by champly 2016年11月17日10:31:10*/
 		data, err := rsa.SignPKCS1v15(rand.Reader, priv, crypto.MD5, digest)
 		if err != nil {
 			return "", err
 		}
 		return base64.StdEncoding.EncodeToString(data), nil
-		/*end*/
 	default:
 		return "", errors.New("签名模式不支持")
 	}
@@ -120,6 +124,11 @@ func Verify(src string, sign string, publicKey string, mode string) (pass bool, 
 	rsaPub, _ := pub.(*rsa.PublicKey)
 	data, _ := base64.StdEncoding.DecodeString(sign)
 	switch strings.ToLower(mode) {
+	case "sha256":
+		t := sha1.New()
+		io.WriteString(t, src)
+		digest := t.Sum(nil)
+		err = rsa.VerifyPKCS1v15(rsaPub, crypto.SHA256, digest, data)
 	case "sha1":
 		t := sha1.New()
 		io.WriteString(t, src)
