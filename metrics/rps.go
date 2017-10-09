@@ -11,9 +11,9 @@ type IQPS interface {
 	M15() int32
 }
 
-// GetOrRegisterRps returns an existing Meter or constructs and registers a
+// GetOrRegisterQPS returns an existing Meter or constructs and registers a
 // new StandardMeter.
-func GetOrRegisterRps(name string, r Registry) IQPS {
+func GetOrRegisterQPS(name string, r Registry) IQPS {
 	if nil == r {
 		r = DefaultRegistry
 	}
