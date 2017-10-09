@@ -134,7 +134,7 @@ func (r *reporter) send() error {
 		now := time.Now()
 		rname, tags := splitGroup(name)
 		switch metric := obj.(type) {
-		case RPS:
+		case IQPS:
 			metric.Mark(0)
 			pts = append(pts, influxdb.Point{
 				Measurement: rname,

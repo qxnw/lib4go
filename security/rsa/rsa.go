@@ -6,6 +6,7 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha1"
+	"crypto/sha256"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
@@ -79,7 +80,7 @@ func Sign(message string, privateKey string, mode string) (string, error) {
 
 	switch strings.ToLower(mode) {
 	case "sha256":
-		t := sha1.New()
+		t := sha256.New()
 		io.WriteString(t, message)
 		digest := t.Sum(nil)
 		data, err := rsa.SignPKCS1v15(rand.Reader, priv, crypto.SHA256, digest)
@@ -125,7 +126,7 @@ func Verify(src string, sign string, publicKey string, mode string) (pass bool, 
 	data, _ := base64.StdEncoding.DecodeString(sign)
 	switch strings.ToLower(mode) {
 	case "sha256":
-		t := sha1.New()
+		t := sha256.New()
 		io.WriteString(t, src)
 		digest := t.Sum(nil)
 		err = rsa.VerifyPKCS1v15(rsaPub, crypto.SHA256, digest, data)
