@@ -13,7 +13,6 @@ func DecodeBytes(src string) (s []byte, err error) {
 	return
 }
 
-
 // Encode 把一个string通过base64编码
 func Encode(src string) string {
 	return EncodeBytes([]byte(src))

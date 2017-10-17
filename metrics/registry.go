@@ -130,7 +130,7 @@ func (r *StandardRegistry) register(name string, i interface{}) error {
 		return DuplicateMetric(name)
 	}
 	switch i.(type) {
-	case Counter, Gauge, GaugeFloat64, Healthcheck, Histogram, Meter, Timer, RPS:
+	case Counter, Gauge, GaugeFloat64, Healthcheck, Histogram, Meter, Timer, IQPS:
 		r.metrics[name] = i
 	}
 	return nil
