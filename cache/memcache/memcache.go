@@ -17,6 +17,7 @@ type memcacheClient struct {
 func New(addrs []string) (m *memcacheClient, err error) {
 	m = &memcacheClient{servers: addrs}
 	m.client = memcache.New(addrs...)
+	m.client.Timeout = time.Second
 	return
 }
 
