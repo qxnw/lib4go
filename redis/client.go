@@ -1,4 +1,4 @@
-package failover
+package redis
 
 import (
 	"encoding/json"
