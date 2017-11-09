@@ -28,15 +28,12 @@ func Encrypt(origData string, publicKey string) (string, error) {
 		return "", fmt.Errorf("x509 ParsePKIXPublicKey err:%v", err)
 	}
 	pub := pubInterface.(*rsa.PublicKey)
-	// return rsa.EncryptPKCS1v15(rand.Reader, pub, []byte(origData))
-
-	/*change by champly 2016年11月17日09:41:21*/
 	data, err := rsa.EncryptPKCS1v15(rand.Reader, pub, []byte(origData))
 	if err != nil {
 		return "", fmt.Errorf("rsa EncryptPKCS1v15 err:%v", err)
 	}
 	return base64.URLEncoding.EncodeToString(data), nil
-	/*end*/
+
 }
 
 // Decrypt RSA解密
@@ -50,9 +47,6 @@ func Decrypt(ciphertext string, privateKey string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("x509 ParsePKCS1PrivateKey err:%v", err)
 	}
-	// return rsa.DecryptPKCS1v15(rand.Reader, priv, []byte(ciphertext))
-
-	/*change by champly 2016年11月17日09:36:41*/
 	input, err := base64.URLEncoding.DecodeString(ciphertext)
 	if err != nil {
 		return "", fmt.Errorf("base64 URLEncoding DecodeString err:%v", err)

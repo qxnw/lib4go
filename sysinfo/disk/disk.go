@@ -20,6 +20,7 @@ func GetInfo() (useage Useage) {
 		dir = "c:"
 	}
 	sm, _ := disk.Usage(dir)
+
 	useage.Total = sm.Total
 	useage.Idle = sm.Total - sm.Used
 	useage.UsedPercent = sm.UsedPercent

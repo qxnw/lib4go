@@ -21,7 +21,7 @@ func GetInfo() (useage Useage) {
 		useage.Total += value.Total()
 		useage.Idle += value.Idle
 	}
-	upc, _ := cpu.Percent(time.Millisecond*2000, true)
+	upc, _ := cpu.Percent(time.Second, true)
 	var total float64
 	for _, v := range upc {
 		total += v
