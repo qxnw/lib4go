@@ -53,9 +53,9 @@ func EncryptBytes(origData []byte, skey string, iv []byte, mode string) (crypted
 	var blockMode cipher.BlockMode
 	switch m {
 	case "ECB":
-		blockMode = cipher.NewCBCEncrypter(block, iv)
-	case "CBC":
 		blockMode = NewECBEncrypter(block)
+	case "CBC":
+		blockMode = cipher.NewCBCEncrypter(block, iv)
 	default:
 		err = fmt.Errorf("加密模式不支持:%s", m)
 		return
@@ -92,10 +92,10 @@ func DecryptBytes(crypted []byte, skey string, iv []byte, mode string) (r []byte
 	}
 	var blockMode cipher.BlockMode
 	switch m {
-	case "ECB":
-		blockMode = cipher.NewCBCDecrypter(block, iv)
 	case "CBC":
-		blockMode = NewECBEncrypter(block)
+		blockMode = cipher.NewCBCDecrypter(block, iv)
+	case "ECB":
+		blockMode = NewECBDecrypter(block)
 	default:
 		err = fmt.Errorf("加密模式不支持:%s", m)
 		return
@@ -113,6 +113,7 @@ func DecryptBytes(crypted []byte, skey string, iv []byte, mode string) (r []byte
 		err = fmt.Errorf("填充模式不支持:%s", p)
 		return
 	}
+
 	return
 }
 
