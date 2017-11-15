@@ -111,5 +111,6 @@ func NewClientByConf(conf *ClientConf) (client *Client, err error) {
 
 	client.UniversalClient = redis.NewUniversalClient(opts)
 	_, err = client.UniversalClient.Ping().Result()
+
 	return
 }
