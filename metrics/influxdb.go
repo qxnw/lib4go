@@ -8,6 +8,7 @@ import (
 
 	"github.com/qxnw/lib4go/influxdb"
 	"github.com/qxnw/lib4go/logger"
+	"github.com/zkfy/cron"
 	"github.com/zkfy/go-metrics"
 )
 
@@ -17,7 +18,7 @@ type IReporter interface {
 }
 type reporter struct {
 	reg      metrics.Registry
-	interval time.Duration
+	schedule cron.Schedule
 	url      uurl.URL
 	database string
 	username string
@@ -40,8 +41,8 @@ const (
 )
 
 // InfluxDB starts a InfluxDB reporter which will post the metrics from the given registry at each d interval.
-func InfluxDB(r metrics.Registry, d time.Duration, url, database, username, password string, logger *logger.Logger) (IReporter, error) {
-	return InfluxDBWithTags(r, d, url, database, username, password, nil, logger)
+func InfluxDB(r metrics.Registry, cron string, url, database, username, password string, logger *logger.Logger) (IReporter, error) {
+	return InfluxDBWithTags(r, cron, url, database, username, password, nil, logger)
 }
 
 //MakeName 构建参数名称
@@ -66,7 +67,12 @@ func splitGroup(name string) (string, map[string]string) {
 }
 
 // InfluxDBWithTags starts a InfluxDB reporter which will post the metrics from the given registry at each d interval with the specified tags
-func InfluxDBWithTags(r metrics.Registry, d time.Duration, url, database, username, password string, tags map[string]string, logger *logger.Logger) (IReporter, error) {
+func InfluxDBWithTags(r metrics.Registry, c string, url, database, username, password string, tags map[string]string, logger *logger.Logger) (IReporter, error) {
+	sch, err := cron.ParseStandard(c)
+	if err != nil {
+		return nil, err
+	}
+
 	u, err := uurl.Parse(url)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse InfluxDB url %s. err=%v", url, err)
@@ -75,7 +81,7 @@ func InfluxDBWithTags(r metrics.Registry, d time.Duration, url, database, userna
 	rep := &reporter{
 		logger:   logger,
 		reg:      r,
-		interval: d,
+		schedule: sch,
 		url:      *u,
 		database: database,
 		username: username,
@@ -102,16 +108,18 @@ func (r *reporter) makeClient() (err error) {
 }
 
 func (r *reporter) run() {
-	intervalTicker := time.Tick(r.interval)
 	pingTicker := time.Tick(time.Second * 5)
-
+	var intervalTicker int64
 	for {
 		select {
 		case <-time.After(time.Second):
 			if r.done {
 				return
 			}
-		case <-intervalTicker:
+			if intervalTicker > time.Now().Unix() {
+				break
+			}
+			intervalTicker = r.schedule.Next(time.Now()).Unix()
 			if err := r.send(); err != nil {
 				r.logger.Errorf("unable to send metrics to InfluxDB. err=%v", err)
 			}

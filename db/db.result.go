@@ -23,6 +23,17 @@ func (q QueryRow) GetInt(name string, def ...int) int {
 	return 0
 }
 
+//GetInt64 从对象中获取数据值，如果不是字符串则返回0
+func (q QueryRow) GetInt64(name string, def ...int64) int64 {
+	if value, err := strconv.ParseInt(fmt.Sprintf("%v", q[name]), 10, 64); err == nil {
+		return value
+	}
+	if len(def) > 0 {
+		return def[0]
+	}
+	return 0
+}
+
 //GetFloat32 从对象中获取数据值，如果不是字符串则返回0
 func (q QueryRow) GetFloat32(name string) float32 {
 	if value, err := strconv.ParseFloat(fmt.Sprintf("%v", q[name]), 32); err == nil {

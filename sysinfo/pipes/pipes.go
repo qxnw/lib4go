@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 )
 
 // RunString Convert a shell command with a series of pipes into
@@ -107,12 +108,33 @@ func RunCmds(cmds []*exec.Cmd) error {
 	return nil
 }
 
+//BashRun 通过bash 执行命令
+func BashRun(cmd string) (content string, err error) {
+	cmd1 := exec.Command("/bin/bash", "-c", cmd)
+	var out bytes.Buffer
+	cmd1.Stdout = &out
+	cmd1.Stderr = &out
+	err = cmd1.Start()
+	if err != nil {
+		return
+	}
+	err = cmd1.Wait()
+	if err != nil {
+		return
+	}
+
+	content = strings.Trim(out.String(), "\n")
+	return
+}
+
 //Run 通过管道方式执行命令
 func Run(cmds []*exec.Cmd) (content string, err error) {
 	var out bytes.Buffer
 	AssemblePipes(cmds, os.Stdin, &out)
 	err = RunCmds(cmds)
+	time.Sleep(time.Second)
 	if err != nil {
+		err = fmt.Errorf("命令执行失败:%s,err:%v", strings.Trim(out.String(), "\n"), err)
 		return
 	}
 	content = strings.Trim(out.String(), "\n")
