@@ -10,6 +10,7 @@ type OptionConf struct {
 	Ack        string `json:"ack"`
 	Retry      bool   `json:"retry"`
 	Key        string `json:"key"`
+	Raw        string `json:"raw"`
 }
 
 //Option 配置选项
@@ -47,6 +48,13 @@ func WithPersistent(persistent string) Option {
 func WithAck(ack string) Option {
 	return func(o *OptionConf) {
 		o.Ack = ack
+	}
+}
+
+//WithRaw 设置配置原串
+func WithRaw(raw string) Option {
+	return func(o *OptionConf) {
+		o.Raw = raw
 	}
 }
 

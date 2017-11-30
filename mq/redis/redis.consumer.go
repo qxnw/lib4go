@@ -11,6 +11,7 @@ import (
 	"github.com/qxnw/lib4go/concurrent/cmap"
 	"github.com/qxnw/lib4go/logger"
 	"github.com/qxnw/lib4go/mq"
+	"github.com/qxnw/lib4go/redis"
 	"github.com/zkfy/stompngo"
 )
 
@@ -22,7 +23,7 @@ type consumerChan struct {
 //RedisConsumer Consumer
 type RedisConsumer struct {
 	address    string
-	conn       *stompngo.Connection
+	client     *redis.Client
 	cache      cmap.ConcurrentMap
 	queues     cmap.ConcurrentMap
 	connecting bool
@@ -47,12 +48,13 @@ func NewRedisConsumer(address string, opts ...mq.Option) (consumer *RedisConsume
 	return
 }
 
-//Connect  循环连接服务器
-func (consumer *RedisConsumer) Connect() error {
-	return nil
+//Connect  连接服务器
+func (consumer *RedisConsumer) Connect() (err error) {
+	consumer.client, err = redis.NewClientByJSON(consumer.Raw)
+	return
 }
 
-//Consume 订阅消息
+//Consume 注册消费信息
 func (consumer *RedisConsumer) Consume(queue string, callback func(mq.IMessage)) (err error) {
 	if strings.EqualFold(queue, "") {
 		return errors.New("队列名字不能为空")
@@ -60,20 +62,10 @@ func (consumer *RedisConsumer) Consume(queue string, callback func(mq.IMessage))
 	if callback == nil {
 		return errors.New("回调函数不能为nil")
 	}
-	b, _ := consumer.cache.SetIfAbsent(queue, callback)
-	if !b {
-		err = fmt.Errorf("重复订阅消息:%s", queue)
-		return
-	}
-	return nil
-}
-
-//Consume 注册消费信息
-func (consumer *RedisConsumer) consume(queue string, callback func(mq.IMessage)) (err error) {
 	success, ch, err := consumer.queues.SetIfAbsentCb(queue, func(input ...interface{}) (c interface{}, err error) {
 		queue := input[0].(string)
 		header := stompngo.Headers{"destination", fmt.Sprintf("/%s/%s", "queue", queue), "ack", consumer.Ack}
-		consumer.conn.SetSubChanCap(10)
+		consumer.client.SetSubChanCap(10)
 		msgChan, err := consumer.conn.Subscribe(header)
 		if err != nil {
 			return
@@ -113,19 +105,10 @@ START:
 	}
 	return
 }
-func (consumer *RedisConsumer) reconnect(queue string) {
-	if v, b := consumer.queues.Get(queue); b {
-		ch := v.(*consumerChan)
-		close(ch.unconsumeCh)
-	}
-	consumer.queues.Remove(queue)
-	consumer.conn.Disconnect(stompngo.Headers{})
-	consumer.Connect()
-}
 
 //UnConsume 取消注册消费
 func (consumer *RedisConsumer) UnConsume(queue string) {
-	if consumer.conn == nil {
+	if consumer.client == nil {
 		return
 	}
 	header := stompngo.Headers{"destination",
@@ -141,8 +124,7 @@ func (consumer *RedisConsumer) UnConsume(queue string) {
 
 //Close 关闭当前连接
 func (consumer *RedisConsumer) Close() {
-
-	if consumer.conn == nil {
+	if consumer.client == nil {
 		return
 	}
 	consumer.once.Do(func() {
@@ -158,7 +140,7 @@ func (consumer *RedisConsumer) Close() {
 	go func() {
 		defer recover()
 		time.Sleep(time.Millisecond * 100)
-		consumer.conn.Disconnect(stompngo.Headers{})
+		consumer.client.Disconnect(stompngo.Headers{})
 	}()
 
 }
