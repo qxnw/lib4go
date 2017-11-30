@@ -37,7 +37,7 @@ type RedisConsumer struct {
 //NewRedisConsumer 创建新的Consumer
 func NewRedisConsumer(address string, opts ...mq.Option) (consumer *RedisConsumer, err error) {
 	consumer = &RedisConsumer{address: address}
-	consumer.OptionConf = &mq.OptionConf{Logger: logger.GetSession("mq.consumer", logger.CreateSession())}
+	consumer.OptionConf = &mq.OptionConf{Logger: logger.GetSession("mq.redis", logger.CreateSession())}
 	consumer.closeCh = make(chan struct{})
 	consumer.queues = cmap.New(2)
 	consumer.cache = cmap.New(2)

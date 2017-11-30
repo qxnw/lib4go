@@ -31,7 +31,7 @@ func init() {
 
 	Register("oracle", ATTPLContext{name: "oracle"})
 	Register("ora", ATTPLContext{name: "ora"})
-	Register("mysql", ATTPLContext{name: "mysql"})
+	Register("mysql", MTPLContext{name: "mysql"})
 	Register("sqlite", MTPLContext{name: "sqlite"})
 }
 func Register(name string, tpl ITPLContext) {
