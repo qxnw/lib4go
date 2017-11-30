@@ -1,7 +1,6 @@
 package redis
 
 import (
-	"fmt"
 	"strings"
 	"sync"
 	"time"
@@ -24,7 +23,6 @@ type consumerChan struct {
 type RedisConsumer struct {
 	address    string
 	client     *redis.Client
-	cache      cmap.ConcurrentMap
 	queues     cmap.ConcurrentMap
 	connecting bool
 	closeCh    chan struct{}
@@ -41,7 +39,6 @@ func NewRedisConsumer(address string, opts ...mq.Option) (consumer *RedisConsume
 	consumer.OptionConf = &mq.OptionConf{Logger: logger.GetSession("mq.redis", logger.CreateSession())}
 	consumer.closeCh = make(chan struct{})
 	consumer.queues = cmap.New(2)
-	consumer.cache = cmap.New(2)
 	for _, opt := range opts {
 		opt(consumer.OptionConf)
 	}
@@ -62,47 +59,28 @@ func (consumer *RedisConsumer) Consume(queue string, callback func(mq.IMessage))
 	if callback == nil {
 		return errors.New("回调函数不能为nil")
 	}
-	success, ch, err := consumer.queues.SetIfAbsentCb(queue, func(input ...interface{}) (c interface{}, err error) {
+	_, _, err = consumer.queues.SetIfAbsentCb(queue, func(input ...interface{}) (c interface{}, err error) {
 		queue := input[0].(string)
-		header := stompngo.Headers{"destination", fmt.Sprintf("/%s/%s", "queue", queue), "ack", consumer.Ack}
-		consumer.client.SetSubChanCap(10)
-		msgChan, err := consumer.conn.Subscribe(header)
-		if err != nil {
-			return
-		}
-		chans := &consumerChan{}
-		chans.msgChan = msgChan
-		chans.unconsumeCh = make(chan struct{})
-		return chans, nil
+		unconsumeCh := make(chan struct{}, 1)
+		go func() {
+		START:
+			for {
+				select {
+				case <-consumer.closeCh:
+					break START
+				case <-unconsumeCh:
+					break START
+				case <-time.After(time.Millisecond * 50):
+					cmd := consumer.client.LPop(queue)
+					message := NewRedisMessage(cmd)
+					if message.Has() {
+						go callback(message)
+					}
+				}
+			}
+		}()
+		return unconsumeCh, nil
 	}, queue)
-	if err != nil {
-		return err
-	}
-	if !success {
-		err = fmt.Errorf("重复订阅消息:%s", queue)
-		return
-	}
-	msgChan := ch.(*consumerChan)
-START:
-	for {
-		select {
-		case <-consumer.closeCh:
-			break START
-		case <-msgChan.unconsumeCh:
-			break START
-		case msg, ok := <-msgChan.msgChan:
-			if !ok {
-				break START
-			}
-			message := mq.mes(consumer, &msg.Message)
-			if message.Has() {
-				go callback(message)
-			} else {
-				consumer.reconnect(queue)
-				break START
-			}
-		}
-	}
 	return
 }
 
@@ -111,15 +89,10 @@ func (consumer *RedisConsumer) UnConsume(queue string) {
 	if consumer.client == nil {
 		return
 	}
-	header := stompngo.Headers{"destination",
-		fmt.Sprintf("/%s/%s", "queue", queue), "ack", consumer.Ack}
-	consumer.conn.Unsubscribe(header)
-	if v, b := consumer.queues.Get(queue); b {
-		ch := v.(*consumerChan)
-		close(ch.unconsumeCh)
+	if c, ok := consumer.queues.Get(queue); ok {
+		close(c.(chan struct{}))
 	}
 	consumer.queues.Remove(queue)
-	consumer.cache.Remove(queue)
 }
 
 //Close 关闭当前连接
@@ -132,17 +105,11 @@ func (consumer *RedisConsumer) Close() {
 	})
 
 	consumer.queues.RemoveIterCb(func(key string, value interface{}) bool {
-		ch := value.(*consumerChan)
-		close(ch.unconsumeCh)
+		ch := value.(chan struct{})
+		close(ch)
 		return true
 	})
-	consumer.cache.Clear()
-	go func() {
-		defer recover()
-		time.Sleep(time.Millisecond * 100)
-		consumer.client.Disconnect(stompngo.Headers{})
-	}()
-
+	consumer.client.Close()
 }
 
 type redisConsumerResolver struct {
