@@ -2,10 +2,8 @@ package redis
 
 import (
 	"errors"
-	"sync"
 	"time"
 
-	"github.com/qxnw/lib4go/concurrent/cmap"
 	"github.com/qxnw/lib4go/logger"
 	"github.com/qxnw/lib4go/mq"
 	"github.com/qxnw/lib4go/redis"
@@ -13,17 +11,11 @@ import (
 
 //RedisProducer Producer
 type RedisProducer struct {
-	address     string
-	client      *redis.Client
-	messages    chan *mq.ProcuderMessage
-	backupMsg   chan *mq.ProcuderMessage
-	queues      cmap.ConcurrentMap
-	connecting  bool
-	isConnected bool
-	closeCh     chan struct{}
-	done        bool
-	lk          sync.Mutex
-	header      []string
+	address   string
+	client    *redis.Client
+	backupMsg chan *mq.ProcuderMessage
+	closeCh   chan struct{}
+	done      bool
 	*mq.OptionConf
 }
 
@@ -32,7 +24,6 @@ func NewRedisProducer(address string, opts ...mq.Option) (producer *RedisProduce
 	producer = &RedisProducer{address: address}
 	producer.OptionConf = &mq.OptionConf{Logger: logger.GetSession("mq.redis", logger.CreateSession())}
 	producer.closeCh = make(chan struct{})
-	producer.queues = cmap.New(2)
 	for _, opt := range opts {
 		opt(producer.OptionConf)
 	}
@@ -63,7 +54,6 @@ func (producer *RedisProducer) Send(queue string, msg string, timeout time.Durat
 func (producer *RedisProducer) Close() {
 	producer.done = true
 	close(producer.closeCh)
-	close(producer.messages)
 	close(producer.backupMsg)
 }
 
