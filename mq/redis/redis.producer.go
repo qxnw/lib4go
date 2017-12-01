@@ -58,12 +58,12 @@ func (producer *RedisProducer) Close() {
 	producer.client.Close()
 }
 
-type stompProducerResolver struct {
+type redisProducerResolver struct {
 }
 
-func (s *stompProducerResolver) Resolve(address string, opts ...mq.Option) (mq.MQProducer, error) {
+func (s *redisProducerResolver) Resolve(address string, opts ...mq.Option) (mq.MQProducer, error) {
 	return NewRedisProducer(address, opts...)
 }
 func init() {
-	mq.RegisterProducer("redis", &stompProducerResolver{})
+	mq.RegisterProducer("redis", &redisProducerResolver{})
 }
