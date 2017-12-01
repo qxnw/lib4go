@@ -55,6 +55,7 @@ func (producer *RedisProducer) Close() {
 	producer.done = true
 	close(producer.closeCh)
 	close(producer.backupMsg)
+	producer.client.Close()
 }
 
 type stompProducerResolver struct {
