@@ -14,14 +14,18 @@ type Useage struct {
 }
 
 // GetInfo 获取当前系统CPU使用的情况数据
-func GetInfo() (useage Useage) {
+func GetInfo(t ...time.Duration) (useage Useage) {
 	cpus, _ := cpu.Times(true)
 	useage = Useage{}
 	for _, value := range cpus {
 		useage.Total += value.Total()
 		useage.Idle += value.Idle
 	}
-	upc, _ := cpu.Percent(time.Second, true)
+	du := time.Second
+	if len(t) > 0 {
+		du = t[0]
+	}
+	upc, _ := cpu.Percent(du, true)
 	var total float64
 	for _, v := range upc {
 		total += v

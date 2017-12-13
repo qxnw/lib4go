@@ -12,3 +12,10 @@ func Encrypt(content string) string {
 	bs := h.Sum(nil)
 	return fmt.Sprintf("%x", bs)
 }
+
+//EncryptBytes bytes加密
+func EncryptBytes(content []byte) []byte {
+	h := sha256.New()
+	h.Write(content)
+	return h.Sum(nil)
+}

@@ -1,6 +1,7 @@
 package memory
 
 import "github.com/shirou/gopsutil/mem"
+import "runtime"
 
 // Useage Total总量，Idle空闲，Used使用率，Collercter总量，使用量
 type Useage struct {
@@ -18,4 +19,11 @@ func GetInfo() (useage Useage) {
 	useage.Used = vm.Used
 	useage.UsedPercent = vm.UsedPercent
 	return
+}
+
+//GetAPPMemory 获取当前应用程序占用的内存大小
+func GetAPPMemory() uint64 {
+	var mem runtime.MemStats
+	runtime.ReadMemStats(&mem)
+	return mem.TotalAlloc >> 20
 }
