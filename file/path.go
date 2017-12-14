@@ -1,5 +1,3 @@
-// +build darwin freebsd
-
 package file
 
 import (
