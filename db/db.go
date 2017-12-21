@@ -79,13 +79,13 @@ func (db *DB) Replace(sql string, args []interface{}) string {
 
 //Begin 创建事务
 func (db *DB) Begin() (t *DBTrans, err error) {
-	t = &DBTrans{}
-	t.tx, err = db.db.Begin()
+	tt := &DBTrans{}
+	tt.tx, err = db.db.Begin()
 	if err != nil {
 		return
 	}
-	t.tpl = db.tpl
-	return
+	tt.tpl = db.tpl
+	return tt, nil
 }
 func (db *DB) Close() {
 	db.db.Close()
