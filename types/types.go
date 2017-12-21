@@ -101,3 +101,11 @@ func GetString(i interface{}) string {
 		return fmt.Sprint(i)
 	}
 }
+func IntContains(input []int, v int) bool {
+	for _, i := range input {
+		if i == v {
+			return true
+		}
+	}
+	return false
+}
