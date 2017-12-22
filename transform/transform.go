@@ -126,3 +126,25 @@ func (d *Transform) TranslateAll(format string, a bool) string {
 	})
 	return result
 }
+
+//Translate 翻译字符串kv为map[string]string，map[string]interface{}或以逗号分隔的健值对
+func Translate(format string, kv ...interface{}) string {
+	if len(kv) == 0 {
+		panic(fmt.Sprintf("输入的kv必须为：map[string]string，map[string]interface{}，或健值对"))
+	}
+	trf := New()
+	switch kv[0].(type) {
+	case map[string]string:
+		trf = NewMap(kv[0].(map[string]string))
+	case map[string]interface{}:
+		trf = NewMaps(kv[0].(map[string]interface{}))
+	default:
+		if len(kv)%2 != 0 {
+			panic(fmt.Sprintf("输入的kv必须为2的倍数"))
+		}
+		for i := 0; i < len(kv)-1; i = i + 2 {
+			trf.Set(fmt.Sprint(kv[i]), fmt.Sprint(kv[i+1]))
+		}
+	}
+	return trf.Translate(format)
+}

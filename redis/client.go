@@ -108,7 +108,6 @@ func NewClientByConf(conf *ClientConf) (client *Client, err error) {
 		WriteTimeout: time.Duration(conf.WTimeout) * time.Second,
 		PoolSize:     conf.PoolSize,
 	}
-
 	client.UniversalClient = redis.NewUniversalClient(opts)
 	_, err = client.UniversalClient.Ping().Result()
 	return
