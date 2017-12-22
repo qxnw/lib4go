@@ -1,6 +1,8 @@
 package memcache
 
 import (
+	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/bradfitz/gomemcache/memcache"
@@ -14,7 +16,7 @@ type memcacheClient struct {
 }
 
 // New 根据配置文件创建一个memcache连接
-func New(addrs []string) (m *memcacheClient, err error) {
+func New(addrs []string, conf string) (m *memcacheClient, err error) {
 	m = &memcacheClient{servers: addrs}
 	m.client = memcache.New(addrs...)
 	m.client.Timeout = time.Second
@@ -31,13 +33,37 @@ func (c *memcacheClient) Get(key string) (string, error) {
 }
 
 //Decrement 增加变量的值
-func (c *memcacheClient) Decrement(key string, delta uint64) (n uint64, err error) {
-	return c.client.Decrement(key, delta)
+func (c *memcacheClient) Decrement(key string, delta int64) (n int64, err error) {
+	value, err := strconv.ParseUint(fmt.Sprintf("%d", delta), 10, 64)
+	if err != nil {
+		return 0, err
+	}
+	v, err := c.client.Decrement(key, value)
+	if err != nil {
+		return
+	}
+	n, err = strconv.ParseInt(fmt.Sprintf("%d", v), 10, 64)
+	if err != nil {
+		return 0, err
+	}
+	return
 }
 
 //Increment 减少变量的值
-func (c *memcacheClient) Increment(key string, delta uint64) (n uint64, err error) {
-	return c.client.Increment(key, delta)
+func (c *memcacheClient) Increment(key string, delta int64) (n int64, err error) {
+	value, err := strconv.ParseUint(fmt.Sprintf("%d", delta), 10, 64)
+	if err != nil {
+		return 0, err
+	}
+	v, err := c.client.Increment(key, value)
+	if err != nil {
+		return
+	}
+	n, err = strconv.ParseInt(fmt.Sprintf("%d", v), 10, 64)
+	if err != nil {
+		return 0, err
+	}
+	return
 }
 
 //Gets 获取多条数据
@@ -92,8 +118,8 @@ func (c *memcacheClient) DeleteAll() error {
 type memcacheResolver struct {
 }
 
-func (s *memcacheResolver) Resolve(address []string) (cache.ICache, error) {
-	return New(address)
+func (s *memcacheResolver) Resolve(address []string, conf string) (cache.ICache, error) {
+	return New(address, conf)
 }
 func init() {
 	cache.Register("memcached", &memcacheResolver{})

@@ -7,19 +7,18 @@ import (
 
 type ICache interface {
 	Get(key string) (string, error)
-	Decrement(key string, delta uint64) (n uint64, err error)
-	Increment(key string, delta uint64) (n uint64, err error)
+	Decrement(key string, delta int64) (n int64, err error)
+	Increment(key string, delta int64) (n int64, err error)
 	Gets(key ...string) (r []string, err error)
 	Add(key string, value string, expiresAt int) error
 	Set(key string, value string, expiresAt int) error
 	Delete(key string) error
 	Delay(key string, expiresAt int) error
-	DeleteAll() error
 }
 
 //CacheResover 定义配置文件转换方法
 type CacheResover interface {
-	Resolve(address []string) (ICache, error)
+	Resolve(address []string, conf string) (ICache, error)
 }
 
 var cacheResolvers = make(map[string]CacheResover)
@@ -36,7 +35,7 @@ func Register(proto string, resolver CacheResover) {
 }
 
 //NewCache 根据适配器名称及参数返回配置处理器
-func NewCache(address string) (ICache, error) {
+func NewCache(address string, conf string) (ICache, error) {
 	proto, addrs, err := getNames(address)
 	if err != nil {
 		return nil, err
@@ -45,7 +44,7 @@ func NewCache(address string) (ICache, error) {
 	if !ok {
 		return nil, fmt.Errorf("mq: unknown adapter name %q (forgotten import?)", proto)
 	}
-	return resolver.Resolve(addrs)
+	return resolver.Resolve(addrs, conf)
 }
 
 func getNames(address string) (proto string, raddr []string, err error) {
