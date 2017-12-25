@@ -16,7 +16,7 @@ type memcacheClient struct {
 }
 
 // New 根据配置文件创建一个memcache连接
-func New(addrs []string, conf string) (m *memcacheClient, err error) {
+func New(addrs []string) (m *memcacheClient, err error) {
 	m = &memcacheClient{servers: addrs}
 	m.client = memcache.New(addrs...)
 	m.client.Timeout = time.Second
@@ -118,8 +118,8 @@ func (c *memcacheClient) DeleteAll() error {
 type memcacheResolver struct {
 }
 
-func (s *memcacheResolver) Resolve(address []string, conf string) (cache.ICache, error) {
-	return New(address, conf)
+func (s *memcacheResolver) Resolve(address []string) (cache.ICache, error) {
+	return New(address)
 }
 func init() {
 	cache.Register("memcached", &memcacheResolver{})

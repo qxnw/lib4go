@@ -18,7 +18,7 @@ type ICache interface {
 
 //CacheResover 定义配置文件转换方法
 type CacheResover interface {
-	Resolve(address []string, conf string) (ICache, error)
+	Resolve(address []string) (ICache, error)
 }
 
 var cacheResolvers = make(map[string]CacheResover)
@@ -35,7 +35,7 @@ func Register(proto string, resolver CacheResover) {
 }
 
 //NewCache 根据适配器名称及参数返回配置处理器
-func NewCache(address string, conf string) (ICache, error) {
+func NewCache(address string) (ICache, error) {
 	proto, addrs, err := getNames(address)
 	if err != nil {
 		return nil, err
@@ -44,7 +44,7 @@ func NewCache(address string, conf string) (ICache, error) {
 	if !ok {
 		return nil, fmt.Errorf("mq: unknown adapter name %q (forgotten import?)", proto)
 	}
-	return resolver.Resolve(addrs, conf)
+	return resolver.Resolve(addrs)
 }
 
 func getNames(address string) (proto string, raddr []string, err error) {
