@@ -13,6 +13,7 @@ type ICache interface {
 	Add(key string, value string, expiresAt int) error
 	Set(key string, value string, expiresAt int) error
 	Delete(key string) error
+	Exists(key string) bool
 	Delay(key string, expiresAt int) error
 }
 

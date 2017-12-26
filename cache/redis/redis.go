@@ -90,6 +90,12 @@ func (c *redisClient) Delete(key string) error {
 	return err
 }
 
+// Delete 删除memcache中的数据
+func (c *redisClient) Exists(key string) bool {
+	r, err := c.client.Exists(key).Result()
+	return err == nil && r == 1
+}
+
 // Delay 延长数据在memcache中的时间
 func (c *redisClient) Delay(key string, expiresAt int) error {
 	expires := time.Duration(expiresAt) * time.Second
