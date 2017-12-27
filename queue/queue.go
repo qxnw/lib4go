@@ -1,9 +1,12 @@
 package queue
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 )
+
+var Nil = errors.New("nil")
 
 type IQueue interface {
 	Push(key string, value string) error

@@ -1,6 +1,7 @@
 package redis
 
 import (
+	rds "github.com/go-redis/redis"
 	"github.com/qxnw/lib4go/queue"
 	"github.com/qxnw/lib4go/redis"
 )
@@ -29,7 +30,11 @@ func (c *redisClient) Push(key string, value string) error {
 
 // Pop 移除并且返回 key 对应的 list 的第一个元素。
 func (c *redisClient) Pop(key string) (string, error) {
-	return c.client.LPop(key).Result()
+	r, err := c.client.LPop(key).Result()
+	if err != nil && err == rds.Nil {
+		return "", queue.Nil
+	}
+	return r, err
 }
 
 // Pop 移除并且返回 key 对应的 list 的第一个元素。
