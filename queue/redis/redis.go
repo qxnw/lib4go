@@ -32,6 +32,11 @@ func (c *redisClient) Pop(key string) (string, error) {
 	return c.client.LPop(key).Result()
 }
 
+// Pop 移除并且返回 key 对应的 list 的第一个元素。
+func (c *redisClient) Count(key string) (int64, error) {
+	return c.client.LLen(key).Result()
+}
+
 type redisResolver struct {
 }
 
