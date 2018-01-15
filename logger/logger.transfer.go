@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/qxnw/lib4go/jsons"
+
 	"github.com/qxnw/lib4go/net"
 )
 
@@ -17,6 +19,7 @@ func init() {
 }
 func transform(tpl string, event *LogEvent) (result string) {
 	word, _ := regexp.Compile(`%\w+`)
+	ecode := strings.Contains(tpl, "\"")
 	//@变量, 将数据放入params中
 	result = word.ReplaceAllStringFunc(tpl, func(s string) string {
 		key := s[1:]
@@ -54,6 +57,9 @@ func transform(tpl string, event *LogEvent) (result string) {
 		case "caller":
 			return getCaller(8)
 		case "content":
+			if ecode {
+				return jsons.Escape(event.Content)
+			}
 			return event.Content
 		case "index":
 			return fmt.Sprintf("%d", event.Index)
