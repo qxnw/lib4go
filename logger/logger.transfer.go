@@ -58,7 +58,7 @@ func transform(tpl string, event *LogEvent) (result string) {
 			return getCaller(8)
 		case "content":
 			if ecode {
-				return jsons.Escape(event.Content)
+				return jsons.Escape(strings.Replace(event.Content, "\"", "'", -1))
 			}
 			return event.Content
 		case "index":
