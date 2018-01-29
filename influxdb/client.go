@@ -1,6 +1,7 @@
 package influxdb
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	uurl "net/url"
@@ -58,6 +59,7 @@ func (r *InfluxClient) run() {
 	for {
 		select {
 		case <-r.closeCh:
+			r.client = nil
 			return
 		case <-pingTicker:
 			_, _, err := r.client.Ping()
@@ -71,6 +73,9 @@ func (r *InfluxClient) run() {
 	}
 }
 func (r *InfluxClient) QueryResponse(sql string) (response *Response, err error) {
+	if r.done {
+		return nil, errors.New("连接已关闭")
+	}
 	response, err = r.client.Query(Query{Command: sql, Database: r.database})
 	if err != nil {
 		err = fmt.Errorf("query.error:%v", err)
@@ -79,6 +84,9 @@ func (r *InfluxClient) QueryResponse(sql string) (response *Response, err error)
 	return
 }
 func (r *InfluxClient) QueryMaps(sql string) (rx [][]map[string]interface{}, err error) {
+	if r.done {
+		return nil, errors.New("连接已关闭")
+	}
 	response, err := r.client.Query(Query{Command: sql, Database: r.database})
 	if err != nil {
 		err = fmt.Errorf("query.error:%v", err)
@@ -105,6 +113,9 @@ func (r *InfluxClient) QueryMaps(sql string) (rx [][]map[string]interface{}, err
 	return rx, nil
 }
 func (r *InfluxClient) Query(sql string) (result string, err error) {
+	if r.done {
+		return "", errors.New("连接已关闭")
+	}
 	response, err := r.client.Query(Query{Command: sql, Database: r.database})
 	if err != nil {
 		err = fmt.Errorf("query.error:%v", err)
@@ -122,11 +133,17 @@ func (r *InfluxClient) Query(sql string) (result string, err error) {
 	return
 }
 func (r *InfluxClient) SendLineProto(data string) error {
+	if r.done {
+		return errors.New("连接已关闭")
+	}
 	_, err := r.client.WriteLineProtocol(data, r.database, "default", "us", "")
 	return err
 
 }
 func (r *InfluxClient) Send(measurement string, tags map[string]string, fileds map[string]interface{}) error {
+	if r.done {
+		return errors.New("连接已关闭")
+	}
 	var pts []Point
 	pts = append(pts, Point{
 		Measurement: measurement,
@@ -139,6 +156,7 @@ func (r *InfluxClient) Send(measurement string, tags map[string]string, fileds m
 		Points:   pts,
 		Database: r.database,
 	}
+
 	_, err := r.client.Write(bps)
 	return err
 }

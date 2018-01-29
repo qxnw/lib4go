@@ -105,6 +105,9 @@ func (c *redisClient) Delay(key string, expiresAt int) error {
 	_, err := c.client.Expire(key, expires).Result()
 	return err
 }
+func (c *redisClient) Close() error {
+	return c.client.Close()
+}
 
 type redisResolver struct {
 }

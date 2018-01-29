@@ -12,6 +12,7 @@ type IQueue interface {
 	Push(key string, value string) error
 	Pop(key string) (string, error)
 	Count(key string) (int64, error)
+	Close() error
 }
 
 //IQueueResover 定义配置文件转换方法

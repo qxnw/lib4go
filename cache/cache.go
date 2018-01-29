@@ -15,6 +15,7 @@ type ICache interface {
 	Delete(key string) error
 	Exists(key string) bool
 	Delay(key string, expiresAt int) error
+	Close() error
 }
 
 //CacheResover 定义配置文件转换方法

@@ -42,6 +42,11 @@ func (c *redisClient) Count(key string) (int64, error) {
 	return c.client.LLen(key).Result()
 }
 
+// Close 释放资源
+func (c *redisClient) Close() error {
+	return c.client.Close()
+}
+
 type redisResolver struct {
 }
 

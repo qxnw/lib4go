@@ -119,6 +119,9 @@ func (c *memcacheClient) Delay(key string, expiresAt int) error {
 func (c *memcacheClient) DeleteAll() error {
 	return c.client.DeleteAll()
 }
+func (c *memcacheClient) Close() error {
+	return nil
+}
 
 type memcacheResolver struct {
 }

@@ -36,7 +36,7 @@ const (
 	SQLITE3 = "sqlite3"
 	//OCI8 oralce数据库
 	OCI8 = "oci8"
-	//ora  oralce数据库
+	//ORA  oralce数据库
 	ORA = "ora"
 )
 
@@ -51,13 +51,10 @@ type SysDB struct {
 
 //NewSysDB 创建DB实例
 func NewSysDB(provider string, connString string, max int) (obj *SysDB, err error) {
-	/*add by champly 2016年11月14日17:03:46*/
 	if provider == "" || connString == "" {
 		err = errors.New("provider or connString not allow nil")
 		return
 	}
-	/*end*/
-
 	obj = &SysDB{provider: provider, connString: connString}
 	switch strings.ToLower(provider) {
 	case "ora", "oracle":
@@ -75,6 +72,7 @@ func NewSysDB(provider string, connString string, max int) (obj *SysDB, err erro
 		obj.db.SetMaxOpenConns(max)
 	}
 	obj.db.SetConnMaxLifetime(0)
+	err = obj.db.Ping()
 	return
 }
 
