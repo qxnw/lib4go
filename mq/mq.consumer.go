@@ -7,7 +7,7 @@ import (
 
 type MQConsumer interface {
 	Connect() error
-	Consume(queue string, callback func(IMessage)) (err error)
+	Consume(queue string, concurrency int, callback func(IMessage)) (err error)
 	UnConsume(queue string)
 	Close()
 }
@@ -43,17 +43,18 @@ func NewMQConsumer(address string, opts ...Option) (MQConsumer, error) {
 	return resolver.Resolve(addrs[0], opts...)
 }
 func getMQNames(address string) (proto string, raddr []string, err error) {
-	addr := strings.SplitN(address, "://", 2)
-	if len(addr) != 2 {
+	addr := strings.Split(address, "://")
+	if len(addr) > 2 {
 		return "", nil, fmt.Errorf("MQ地址配置错误%s，格式:stomp://192.168.0.1:61613", addr)
 	}
 	if len(addr[0]) == 0 {
 		return "", nil, fmt.Errorf("MQ地址配置错误%s，格式:stomp://192.168.0.1:61613", addr)
 	}
-	if len(addr[1]) == 0 {
-		return "", nil, fmt.Errorf("MQ地址配置错误%s，格式:stomp://192.168.0.1:61613", addr)
-	}
 	proto = addr[0]
-	raddr = strings.Split(addr[1], ",")
+	if len(addr) > 1 {
+		raddr = strings.Split(addr[1], ",")
+	} else {
+		raddr = append(raddr, "")
+	}
 	return
 }
