@@ -8,7 +8,7 @@ import (
 
 	"sync"
 
-	"github.com/lunny/log"
+	"github.com/zkfy/log"
 )
 
 //StdoutAppender 标准输出器
