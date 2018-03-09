@@ -112,11 +112,12 @@ func (r *reporter) makeClient() (err error) {
 func (r *reporter) run() {
 	pingTicker := time.Tick(time.Second * 5)
 	var intervalTicker int64
+LOOP:
 	for {
 		select {
 		case <-time.After(time.Second):
 			if r.done {
-				return
+				break LOOP
 			}
 			now := time.Now()
 			if intervalTicker > now.Unix() {
@@ -128,7 +129,6 @@ func (r *reporter) run() {
 				}
 			}()
 			intervalTicker = r.schedule.Next(now).Unix()
-
 		case <-pingTicker:
 			_, _, err := r.client.Ping()
 			if err != nil {

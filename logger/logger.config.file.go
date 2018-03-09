@@ -14,7 +14,7 @@ import (
 	"github.com/qxnw/lib4go/file"
 )
 
-var loggerPath, _ = file.GetAbs("../conf/ars.logger.json")
+var loggerPath, _ = file.GetAbs("../conf/logger.json")
 var configAdapter map[string]func() []*Appender
 var defaultConfigAdapter string
 
