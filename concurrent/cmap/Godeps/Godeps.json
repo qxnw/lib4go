@@ -1,0 +1,6 @@
+{
+	"ImportPath": "github.com/qxnw/lib4go/concurrent/cmap",
+	"GoVersion": "go1.9",
+	"GodepVersion": "v80",
+	"Deps": []
+}
