@@ -1,0 +1,6 @@
+{
+	"ImportPath": "github.com/qxnw/lib4go/queue",
+	"GoVersion": "go1.9",
+	"GodepVersion": "v80",
+	"Deps": []
+}
