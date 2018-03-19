@@ -126,7 +126,7 @@ func (c *memcacheClient) Close() error {
 type memcacheResolver struct {
 }
 
-func (s *memcacheResolver) Resolve(address []string) (cache.ICache, error) {
+func (s *memcacheResolver) Resolve(address []string, c string) (cache.ICache, error) {
 	return New(address)
 }
 func init() {
