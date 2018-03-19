@@ -37,7 +37,7 @@ func Register(proto string, resolver CacheResover) {
 }
 
 //NewCache 根据适配器名称及参数返回配置处理器
-func NewCache(address string) (ICache, error) {
+func NewCache(address string, conf string) (ICache, error) {
 	proto, addrs, err := getNames(address)
 	if err != nil {
 		return nil, err
@@ -46,7 +46,7 @@ func NewCache(address string) (ICache, error) {
 	if !ok {
 		return nil, fmt.Errorf("mq: unknown adapter name %q (forgotten import?)", proto)
 	}
-	return resolver.Resolve(addrs)
+	return resolver.Resolve(addrs, conf)
 }
 
 func getNames(address string) (proto string, raddr []string, err error) {
