@@ -52,16 +52,35 @@ func (consumer *RedisConsumer) Connect() (err error) {
 }
 
 //Consume 注册消费信息
-func (consumer *RedisConsumer) Consume(queue string, callback func(mq.IMessage)) (err error) {
+func (consumer *RedisConsumer) Consume(queue string, concurrency int, callback func(mq.IMessage)) (err error) {
 	if strings.EqualFold(queue, "") {
 		return errors.New("队列名字不能为空")
 	}
 	if callback == nil {
 		return errors.New("回调函数不能为nil")
 	}
+
 	_, _, err = consumer.queues.SetIfAbsentCb(queue, func(input ...interface{}) (c interface{}, err error) {
 		queue := input[0].(string)
 		unconsumeCh := make(chan struct{}, 1)
+		if concurrency <= 0 {
+			concurrency = 10
+		}
+		msgChan := make(chan *RedisMessage, concurrency)
+		for i := 0; i < concurrency; i++ {
+			go func() {
+			START:
+				for {
+					select {
+					case message, ok := <-msgChan:
+						if !ok {
+							break START
+						}
+						go callback(message)
+					}
+				}
+			}()
+		}
 		go func() {
 		START:
 			for {
@@ -71,13 +90,18 @@ func (consumer *RedisConsumer) Consume(queue string, callback func(mq.IMessage))
 				case <-unconsumeCh:
 					break START
 				case <-time.After(time.Millisecond * 50):
-					cmd := consumer.client.LPop(queue)
-					message := NewRedisMessage(cmd)
-					if message.Has() {
-						go callback(message)
+					if consumer.client != nil && !consumer.done {
+						cmd := consumer.client.BLPop(time.Second, queue)
+						message := NewRedisMessage(cmd)
+						if message.Has() {
+							msgChan <- message
+
+						}
 					}
+
 				}
 			}
+			close(msgChan)
 		}()
 		return unconsumeCh, nil
 	}, queue)
@@ -97,9 +121,7 @@ func (consumer *RedisConsumer) UnConsume(queue string) {
 
 //Close 关闭当前连接
 func (consumer *RedisConsumer) Close() {
-	if consumer.client == nil {
-		return
-	}
+
 	consumer.once.Do(func() {
 		close(consumer.closeCh)
 	})
@@ -109,6 +131,9 @@ func (consumer *RedisConsumer) Close() {
 		close(ch)
 		return true
 	})
+	if consumer.client == nil {
+		return
+	}
 	consumer.client.Close()
 }
 

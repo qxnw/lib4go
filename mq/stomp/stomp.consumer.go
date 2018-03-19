@@ -121,7 +121,7 @@ func (consumer *StompConsumer) ConnectOnce() (err error) {
 }
 
 //Consume 订阅消息
-func (consumer *StompConsumer) Consume(queue string, callback func(mq.IMessage)) (err error) {
+func (consumer *StompConsumer) Consume(queue string, concurrency int, callback func(mq.IMessage)) (err error) {
 	if strings.EqualFold(queue, "") {
 		return errors.New("队列名字不能为空")
 	}

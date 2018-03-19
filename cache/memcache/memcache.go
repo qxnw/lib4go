@@ -102,7 +102,12 @@ func (c *memcacheClient) Set(key string, value string, expiresAt int) error {
 
 // Delete 删除memcache中的数据
 func (c *memcacheClient) Delete(key string) error {
+
 	return c.client.Delete(key)
+}
+func (c *memcacheClient) Exists(key string) bool {
+	i, err := c.client.Get(key)
+	return err == nil && len(i.Value) > 0
 }
 
 // Delay 延长数据在memcache中的时间
@@ -113,6 +118,9 @@ func (c *memcacheClient) Delay(key string, expiresAt int) error {
 // DeleteAll 删除所有缓存数据
 func (c *memcacheClient) DeleteAll() error {
 	return c.client.DeleteAll()
+}
+func (c *memcacheClient) Close() error {
+	return nil
 }
 
 type memcacheResolver struct {

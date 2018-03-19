@@ -19,6 +19,7 @@ type IReporter interface {
 type reporter struct {
 	reg      metrics.Registry
 	schedule cron.Schedule
+	cron     string
 	url      uurl.URL
 	database string
 	username string
@@ -80,6 +81,7 @@ func InfluxDBWithTags(r metrics.Registry, c string, url, database, username, pas
 
 	rep := &reporter{
 		logger:   logger,
+		cron:     c,
 		reg:      r,
 		schedule: sch,
 		url:      *u,
@@ -110,19 +112,23 @@ func (r *reporter) makeClient() (err error) {
 func (r *reporter) run() {
 	pingTicker := time.Tick(time.Second * 5)
 	var intervalTicker int64
+LOOP:
 	for {
 		select {
 		case <-time.After(time.Second):
 			if r.done {
-				return
+				break LOOP
 			}
-			if intervalTicker > time.Now().Unix() {
+			now := time.Now()
+			if intervalTicker > now.Unix() {
 				break
 			}
-			intervalTicker = r.schedule.Next(time.Now()).Unix()
-			if err := r.send(); err != nil {
-				r.logger.Errorf("unable to send metrics to InfluxDB. err=%v", err)
-			}
+			go func() {
+				if err := r.send(); err != nil {
+					r.logger.Errorf("unable to send metrics to InfluxDB. err=%v", err)
+				}
+			}()
+			intervalTicker = r.schedule.Next(now).Unix()
 		case <-pingTicker:
 			_, _, err := r.client.Ping()
 			if err != nil {
