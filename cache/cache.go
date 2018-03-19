@@ -20,7 +20,7 @@ type ICache interface {
 
 //CacheResover 定义配置文件转换方法
 type CacheResover interface {
-	Resolve(address []string) (ICache, error)
+	Resolve(address []string, conf string) (ICache, error)
 }
 
 var cacheResolvers = make(map[string]CacheResover)
