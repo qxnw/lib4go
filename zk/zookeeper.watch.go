@@ -111,7 +111,7 @@ START:
 					client.isConnect = false
 				// 网络连接不成功
 				case zk.StateDisconnected:
-					client.Log.Warnf("关闭与zk的连接:%v", client.servers)
+					client.Log.Warnf("zk已断开连接:%v", client.servers)
 					client.isConnect = false
 				// 网络断开，正在连接
 				case zk.StateConnecting:
