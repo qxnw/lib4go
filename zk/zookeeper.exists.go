@@ -48,15 +48,14 @@ func (client *ZookeeperClient) Exists(path string) (b bool, err error) {
 		err = fmt.Errorf("judgment node : %s exists timeout", path)
 		return
 	case data := <-ch:
-		b = false
 		if client.done {
 			return false, ErrClientConnClosing
 		}
 		err = data.(existsType).err
 		if err != nil {
-			return
+			return false, err
 		}
 		b = data.(existsType).b
-		return
+		return b, nil
 	}
 }
