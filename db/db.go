@@ -1,6 +1,7 @@
 package db
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/qxnw/lib4go/db/tpl"
@@ -35,6 +36,7 @@ func NewDB(provider string, connString string, maxOpen int, maxIdle int, maxLife
 	if err != nil {
 		return
 	}
+	fmt.Println(provider, connString, maxOpen, maxIdle, maxLifeTime)
 	obj.db, err = NewSysDB(provider, connString, maxOpen, maxIdle, time.Duration(maxLifeTime)*time.Second)
 	return
 }
