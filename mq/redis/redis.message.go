@@ -1,6 +1,8 @@
 package redis
 
 import (
+	"fmt"
+
 	"github.com/go-redis/redis"
 )
 
@@ -38,5 +40,6 @@ func NewRedisMessage(cmd *redis.StringSliceCmd) *RedisMessage {
 	if hasData {
 		ndata = msg[0]
 	}
+	fmt.Println("NewRedisMessage:", ndata, msg)
 	return &RedisMessage{Message: ndata, HasData: hasData}
 }
