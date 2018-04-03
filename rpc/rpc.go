@@ -3,7 +3,8 @@ package rpc
 import "time"
 
 type IRPCResponse interface {
-	Wait(timeout time.Duration) (int, string, error)
+	GetService() string
+	Wait(timeout time.Duration) (int, string, map[string]string, error)
 	GetResult() chan IRPCResult
 }
 type IRPCResult interface {
