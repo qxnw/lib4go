@@ -10,5 +10,6 @@ type IRPCResult interface {
 	GetService() string
 	GetStatus() int
 	GetResult() string
+	GetParams() map[string]string
 	GetErr() error
 }
