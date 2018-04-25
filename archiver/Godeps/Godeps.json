@@ -1,0 +1,11 @@
+{
+	"ImportPath": "github.com/qxnw/lib4go/archiver",
+	"GoVersion": "go1.10",
+	"GodepVersion": "v80",
+	"Deps": [
+		{
+			"ImportPath": "github.com/golang/snappy",
+			"Rev": "553a641470496b2327abcac10b36396bd98e45c9"
+		}
+	]
+}

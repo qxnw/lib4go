@@ -1,0 +1,16 @@
+{
+	"ImportPath": "github.com/qxnw/lib4go/cache/memcache",
+	"GoVersion": "go1.10",
+	"GodepVersion": "v80",
+	"Deps": [
+		{
+			"ImportPath": "github.com/bradfitz/gomemcache/memcache",
+			"Comment": "release.r60-41-gfb1f79c",
+			"Rev": "fb1f79c6b65acda83063cbc69f6bba1522558bfc"
+		},
+		{
+			"ImportPath": "github.com/qxnw/lib4go/cache",
+			"Rev": "2ab4222c762e26fc3e99ebeda04f011a8ef4d69e"
+		}
+	]
+}
